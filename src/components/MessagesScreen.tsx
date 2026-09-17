@@ -5,7 +5,7 @@ import { ScreenHeader, Avatar, Badge } from './ui';
 import type { Conversation } from '@/types';
 
 export function MessagesScreen() {
-  const { conversations, sendMessage, role } = useApp();
+  const { conversations, sendMessage, role, t } = useApp();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [input, setInput] = useState('');
 
@@ -22,7 +22,7 @@ export function MessagesScreen() {
     const list = conversations;
     return (
       <div className="px-5 pt-6 pb-24 max-w-2xl mx-auto">
-        <ScreenHeader title="Messages" subtitle={role === 'contractor' ? 'Chat with your workers' : 'Chat with your employers'} />
+        <ScreenHeader title={t('messagesTitle')} subtitle={role === 'contractor' ? t('messagesSubtitleContractor') : t('messagesSubtitleWorker')} />
         <div className="space-y-2">
           {list.map((c) => (
             <button
@@ -62,7 +62,7 @@ export function MessagesScreen() {
         <Avatar initials={active.name.substring(0, 2).toUpperCase()} size="sm" />
         <div className="flex-1 min-w-0">
           <p className="font-bold text-gray-900 truncate text-sm">{active.name}</p>
-          <p className="text-xs text-accent-600 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-accent-500" /> Online</p>
+          <p className="text-xs text-accent-600 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-accent-500" /> {t('online')}</p>
         </div>
         <button className="w-9 h-9 rounded-full bg-accent-50 flex items-center justify-center text-accent-600">
           <Phone size={18} />
@@ -88,18 +88,21 @@ export function MessagesScreen() {
       {/* Quick actions */}
       <div className="px-4 py-2 bg-white border-t border-gray-100">
         <div className="flex gap-2 overflow-x-auto no-scrollbar mb-2">
-          {quickActions.map((qa) => (
-            <button
-              key={qa}
-              onClick={() => handleSend(qa)}
-              className="px-3 py-1.5 rounded-full bg-brand-50 text-brand-700 text-xs font-semibold whitespace-nowrap hover:bg-brand-100 transition-colors flex items-center gap-1"
-            >
-              {qa === 'Confirm' && <CheckCircle2 size={12} />}
-              {qa === 'Ask location' && <MapPin size={12} />}
-              {qa === 'Call contractor' && <Phone size={12} />}
-              {qa}
-            </button>
-          ))}
+          {quickActions.map((qa) => {
+            const translated = qa === 'Confirm' ? t('confirm') : qa === 'Ask location' ? t('askLocation') : t('callContractor');
+            return (
+              <button
+                key={qa}
+                onClick={() => handleSend(qa)}
+                className="px-3 py-1.5 rounded-full bg-brand-50 text-brand-700 text-xs font-semibold whitespace-nowrap hover:bg-brand-100 transition-colors flex items-center gap-1"
+              >
+                {qa === 'Confirm' && <CheckCircle2 size={12} />}
+                {qa === 'Ask location' && <MapPin size={12} />}
+                {qa === 'Call contractor' && <Phone size={12} />}
+                {translated}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -109,7 +112,7 @@ export function MessagesScreen() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
-          placeholder="Type a message..."
+          placeholder={t('typeMessage')}
           className="flex-1 px-4 py-3 rounded-full bg-gray-100 focus:bg-white border-2 border-transparent focus:border-brand-300 outline-none text-sm transition-all"
         />
         <button

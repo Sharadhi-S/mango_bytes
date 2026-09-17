@@ -15,7 +15,7 @@ import { Card, ScreenHeader, Badge, Button, ProgressBar, formatINR } from './ui'
 import { workerProfile } from '@/mockData';
 
 export function ProfileScreen() {
-  const { earnings, setRole } = useApp();
+  const { earnings, setRole, t } = useApp();
 
   const totalPaid = earnings.filter((e) => e.status === 'paid').reduce((s, e) => s + e.amount, 0);
   const totalPending = earnings.filter((e) => e.status === 'pending').reduce((s, e) => s + e.amount, 0);
@@ -36,7 +36,7 @@ export function ProfileScreen() {
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-extrabold text-gray-900">{workerProfile.name}</h1>
             {workerProfile.verified && (
-              <Badge color="green"><CheckCircle2 size={12} /> Verified</Badge>
+              <Badge color="green"><CheckCircle2 size={12} /> {t('verified')}</Badge>
             )}
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
@@ -53,8 +53,8 @@ export function ProfileScreen() {
           <Shield size={24} />
         </div>
         <div className="flex-1">
-          <p className="font-bold text-gray-900 text-sm">Identity Verified</p>
-          <p className="text-xs text-gray-500">Aadhaar and phone number confirmed</p>
+          <p className="font-bold text-gray-900 text-sm">{t('identityVerified')}</p>
+          <p className="text-xs text-gray-500">{t('identityVerifiedDesc')}</p>
         </div>
         <CheckCircle2 size={20} className="text-accent-500" />
       </Card>
@@ -63,22 +63,22 @@ export function ProfileScreen() {
       <div className="grid grid-cols-3 gap-2 mb-5">
         <Card className="p-3 text-center">
           <p className="text-xl font-extrabold text-gray-900">{workerProfile.workCount}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Jobs Done</p>
+          <p className="text-xs text-gray-400 mt-0.5">{t('jobsDone')}</p>
         </Card>
         <Card className="p-3 text-center">
           <p className="text-xl font-extrabold text-gray-900">{workerProfile.experience}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Experience</p>
+          <p className="text-xs text-gray-400 mt-0.5">{t('experience')}</p>
         </Card>
         <Card className="p-3 text-center">
           <p className="text-xl font-extrabold text-gray-900 flex items-center justify-center gap-0.5">
             4.8 <Star size={14} className="text-warning-500 fill-warning-500" />
           </p>
-          <p className="text-xs text-gray-400 mt-0.5">Rating</p>
+          <p className="text-xs text-gray-400 mt-0.5">{t('rating')}</p>
         </Card>
       </div>
 
       {/* Skills */}
-      <SectionTitle>Skills</SectionTitle>
+      <SectionTitle>{t('skills')}</SectionTitle>
       <Card className="p-4 mb-5 animate-slide-up">
         <div className="flex flex-wrap gap-2">
           {workerProfile.skills.map((skill) => (
@@ -88,19 +88,19 @@ export function ProfileScreen() {
       </Card>
 
       {/* Availability */}
-      <SectionTitle>Availability</SectionTitle>
+      <SectionTitle>{t('availability')}</SectionTitle>
       <Card className="p-4 mb-5 animate-slide-up flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-accent-50 flex items-center justify-center text-accent-600">
             <Clock size={20} />
           </div>
-          <p className="font-semibold text-gray-900 text-sm">Currently Available</p>
+          <p className="font-semibold text-gray-900 text-sm">{t('currentlyAvailable')}</p>
         </div>
-        <Badge color="green">Available</Badge>
+        <Badge color="green">{t('available')}</Badge>
       </Card>
 
       {/* Languages */}
-      <SectionTitle>Languages</SectionTitle>
+      <SectionTitle>{t('languages')}</SectionTitle>
       <Card className="p-4 mb-5 animate-slide-up">
         <div className="flex flex-wrap gap-2">
           {workerProfile.languages.map((lang) => (
@@ -113,7 +113,7 @@ export function ProfileScreen() {
       </Card>
 
       {/* Work History */}
-      <SectionTitle>Work History</SectionTitle>
+      <SectionTitle>{t('workHistory')}</SectionTitle>
       <div className="space-y-2 mb-5">
         {workerProfile.workHistory.map((wh, i) => (
           <Card key={i} className="p-4 animate-slide-up">
@@ -135,13 +135,13 @@ export function ProfileScreen() {
       </div>
 
       {/* Payment Summary */}
-      <SectionTitle>Payment History Summary</SectionTitle>
+      <SectionTitle>{t('paymentHistorySummary')}</SectionTitle>
       <Card className="p-4 mb-5 animate-slide-up">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <div className="flex items-center gap-1.5 text-gray-400 mb-1">
               <IndianRupee size={14} />
-              <span className="text-xs font-semibold">Total Received</span>
+              <span className="text-xs font-semibold">{t('totalReceived')}</span>
             </div>
             <p className="text-xl font-extrabold text-accent-600">{formatINR(totalPaid)}</p>
           </div>
@@ -155,7 +155,7 @@ export function ProfileScreen() {
         </div>
         <div className="mt-3 pt-3 border-t border-gray-50">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-400">Payment reliability</span>
+            <span className="text-gray-400">{t('paymentReliability')}</span>
             <span className="font-semibold text-accent-600">95%</span>
           </div>
           <div className="mt-2">
@@ -166,7 +166,7 @@ export function ProfileScreen() {
 
       {/* Logout */}
       <Button variant="ghost" className="w-full text-error-600 hover:bg-error-50" onClick={() => setRole(null)}>
-        <LogOut size={18} className="mr-2" /> Switch Role
+        <LogOut size={18} className="mr-2" /> {t('switchRole')}
       </Button>
     </div>
   );

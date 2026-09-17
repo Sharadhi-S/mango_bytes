@@ -5,21 +5,21 @@ import { Card, ScreenHeader, formatINR, Badge } from './ui';
 import type { EarningEntry } from '@/types';
 
 export function EarningsScreen() {
-  const { earnings } = useApp();
+  const { earnings, t } = useApp();
   const [selected, setSelected] = useState<EarningEntry | null>(null);
 
   return (
     <div className="px-5 pt-6 pb-24 max-w-2xl mx-auto">
-      <ScreenHeader title="Earnings" subtitle="Your wage history and payment details" />
+      <ScreenHeader title={t('earningsTitle')} subtitle={t('earningsSubtitle')} />
 
       {/* Summary */}
       <div className="grid grid-cols-2 gap-3 mb-5">
         <Card className="p-4 bg-gradient-to-br from-brand-600 to-brand-700 text-white border-0">
-          <p className="text-brand-100 text-xs font-semibold">Total This Month</p>
+          <p className="text-brand-100 text-xs font-semibold">{t('totalThisMonth')}</p>
           <p className="text-2xl font-extrabold mt-1">₹12,600</p>
         </Card>
         <Card className="p-4">
-          <p className="text-gray-400 text-xs font-semibold">Total Paid</p>
+          <p className="text-gray-400 text-xs font-semibold">{t('totalPaid')}</p>
           <p className="text-2xl font-extrabold mt-1 text-gray-900">₹10,500</p>
         </Card>
       </div>
@@ -46,9 +46,9 @@ export function EarningsScreen() {
               <div className="text-right ml-2">
                 <p className="font-extrabold text-gray-900">+{formatINR(entry.amount)}</p>
                 {entry.status === 'paid' ? (
-                  <Badge color="green">Paid</Badge>
+                  <Badge color="green">{t('paid')}</Badge>
                 ) : (
-                  <Badge color="yellow">Pending</Badge>
+                  <Badge color="yellow">{t('pending')}</Badge>
                 )}
               </div>
             </div>
@@ -65,7 +65,7 @@ export function EarningsScreen() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-extrabold text-gray-900">Payment Details</h2>
+              <h2 className="text-lg font-extrabold text-gray-900">{t('paymentDetails')}</h2>
               <button onClick={() => setSelected(null)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
                 <X size={20} />
               </button>
@@ -75,7 +75,7 @@ export function EarningsScreen() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className={`text-sm font-semibold ${selected.status === 'paid' ? 'text-accent-700' : 'text-warning-700'}`}>
-                    {selected.status === 'paid' ? 'Payment Received' : 'Payment Pending'}
+                    {selected.status === 'paid' ? t('paymentReceived') : t('paymentPending')}
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5">{selected.date}</p>
                 </div>
@@ -84,23 +84,23 @@ export function EarningsScreen() {
             </div>
 
             <div className="space-y-4">
-              <DetailRow icon={<Briefcase size={18} />} label="Work" value={selected.work} />
-              <DetailRow icon={<User size={18} />} label="Employer" value={selected.employer} />
-              <DetailRow icon={<Calendar size={18} />} label="Date" value={selected.date} />
-              <DetailRow icon={<Clock3 size={18} />} label="Duration" value={selected.hoursOrDays} />
-              <DetailRow icon={<IndianRupee size={18} />} label="Amount" value={formatINR(selected.amount)} />
+              <DetailRow icon={<Briefcase size={18} />} label={t('work')} value={selected.work} />
+              <DetailRow icon={<User size={18} />} label={t('employer')} value={selected.employer} />
+              <DetailRow icon={<Calendar size={18} />} label={t('date')} value={selected.date} />
+              <DetailRow icon={<Clock3 size={18} />} label={t('duration')} value={selected.hoursOrDays} />
+              <DetailRow icon={<IndianRupee size={18} />} label={t('amount')} value={formatINR(selected.amount)} />
             </div>
 
             <div className="mt-5 pt-5 border-t border-gray-100">
               {selected.status === 'paid' ? (
                 <div className="flex items-center gap-2 text-accent-600">
                   <CheckCircle2 size={20} />
-                  <span className="font-semibold">Payment completed successfully</span>
+                  <span className="font-semibold">{t('paymentCompleted')}</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-warning-600">
                   <Clock size={20} />
-                  <span className="font-semibold">Payment expected within 2-3 days</span>
+                  <span className="font-semibold">{t('paymentExpected')}</span>
                 </div>
               )}
             </div>

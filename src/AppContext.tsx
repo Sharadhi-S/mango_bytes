@@ -106,6 +106,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.setItem('mango-bytes-role', role ?? '');
     }
+    if (role) {
+      setScreen('home');
+    }
   }, [role]);
 
   useEffect(() => {
@@ -132,10 +135,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const narration = text || translate(lang, 'voiceIntro');
     setVoiceText(narration);
     setVoiceActive(true);
+
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(narration);
+      const voiceMap: Record<LangCode, string> = {
+        en: 'en-IN',
+        hi: 'hi-IN',
+        kn: 'kn-IN',
+        ta: 'ta-IN',
+        te: 'te-IN',
+        mr: 'mr-IN',
+        bn: 'bn-IN',
+      };
+
+      utterance.lang = voiceMap[lang] || 'en-IN';
+      utterance.rate = 1;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    }
   }, [lang]);
 
   const stopVoice = useCallback(() => {
     setVoiceActive(false);
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
   }, []);
 
   const saveMoney = useCallback((goalId: string, amount: number) => {

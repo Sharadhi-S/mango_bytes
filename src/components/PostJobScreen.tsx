@@ -4,7 +4,7 @@ import { useApp } from '@/AppContext';
 import { Card, ScreenHeader, Button, Badge } from './ui';
 
 export function PostJobScreen() {
-  const { postJob, postedJobs } = useApp();
+  const { postJob, postedJobs, t } = useApp();
   const [showSuccess, setShowSuccess] = useState(false);
   const [form, setForm] = useState({
     title: '',
@@ -41,28 +41,28 @@ export function PostJobScreen() {
 
   return (
     <div className="px-5 pt-6 pb-24 max-w-2xl mx-auto">
-      <ScreenHeader title="Post Job" subtitle="Create a new job requirement" />
+      <ScreenHeader title={t('postJobTitle')} subtitle={t('postJobSubtitle')} />
 
       {/* Form */}
       <Card className="p-5 mb-5 animate-slide-up">
         <div className="space-y-4">
-          <Field label="Job Title" value={form.title} onChange={(v) => handleChange('title', v)} placeholder="e.g. Construction Helper" />
-          <Field label="Required Skill" value={form.skill} onChange={(v) => handleChange('skill', v)} placeholder="e.g. No experience required" />
+          <Field label={t('jobTitle')} value={form.title} onChange={(v) => handleChange('title', v)} placeholder="e.g. Construction Helper" />
+          <Field label={t('requiredSkill')} value={form.skill} onChange={(v) => handleChange('skill', v)} placeholder="e.g. No experience required" />
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Workers Needed" value={form.workersNeeded} onChange={(v) => handleChange('workersNeeded', v)} placeholder="5" type="number" />
-            <Field label="Daily Wage (₹)" value={form.dailyWage} onChange={(v) => handleChange('dailyWage', v)} placeholder="700" type="number" />
+            <Field label={t('workersNeeded')} value={form.workersNeeded} onChange={(v) => handleChange('workersNeeded', v)} placeholder="5" type="number" />
+            <Field label={t('dailyWage')} value={form.dailyWage} onChange={(v) => handleChange('dailyWage', v)} placeholder="700" type="number" />
           </div>
-          <Field label="Location" value={form.location} onChange={(v) => handleChange('location', v)} placeholder="e.g. Site A, Mysuru" />
+          <Field label={t('location')} value={form.location} onChange={(v) => handleChange('location', v)} placeholder="e.g. Site A, Mysuru" />
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Start Date" value={form.startDate} onChange={(v) => handleChange('startDate', v)} placeholder="e.g. Sep 20" />
-            <Field label="Duration" value={form.duration} onChange={(v) => handleChange('duration', v)} placeholder="e.g. 15 days" />
+            <Field label={t('startDate')} value={form.startDate} onChange={(v) => handleChange('startDate', v)} placeholder="e.g. Sep 20" />
+            <Field label={t('durationLabel')} value={form.duration} onChange={(v) => handleChange('duration', v)} placeholder="e.g. 15 days" />
           </div>
           <div>
-            <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Description</label>
+            <label className="text-sm font-semibold text-gray-700 mb-1.5 block">{t('description')}</label>
             <textarea
               value={form.description}
               onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="Describe the work..."
+              placeholder={t('describeWork')}
               rows={3}
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-brand-400 outline-none text-sm font-medium text-gray-900 resize-none"
             />
@@ -70,12 +70,12 @@ export function PostJobScreen() {
         </div>
 
         <Button className="w-full mt-5" size="lg" onClick={handleSubmit} disabled={!isValid}>
-          <Plus size={20} className="mr-2" /> Post Requirement
+          <Plus size={20} className="mr-2" /> {t('postRequirement')}
         </Button>
       </Card>
 
       {/* Posted Jobs */}
-      <h2 className="text-sm font-bold text-gray-700 mb-3">Active Requirements</h2>
+      <h2 className="text-sm font-bold text-gray-700 mb-3">{t('activeRequirements')}</h2>
       <div className="space-y-2">
         {postedJobs.map((job) => (
           <Card key={job.id} className="p-4 animate-slide-up">
@@ -112,8 +112,8 @@ export function PostJobScreen() {
             <div className="w-16 h-16 rounded-full bg-accent-100 flex items-center justify-center mx-auto mb-4">
               <Check size={32} className="text-accent-600" />
             </div>
-            <h2 className="text-lg font-extrabold text-gray-900">Job Posted!</h2>
-            <p className="text-sm text-gray-500 mt-1">Your requirement is now visible to workers</p>
+            <h2 className="text-lg font-extrabold text-gray-900">{t('jobPosted')}</h2>
+            <p className="text-sm text-gray-500 mt-1">{t('jobPostedDesc')}</p>
           </div>
         </div>
       )}

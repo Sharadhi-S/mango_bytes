@@ -6,6 +6,7 @@ import { initialContractorWorkers } from '@/mockData';
 import type { ContractorWorker } from '@/types';
 
 export function WorkersScreen() {
+  const { t } = useApp();
   const [selected, setSelected] = useState<ContractorWorker | null>(null);
   const [assigned, setAssigned] = useState<Set<string>>(new Set());
 
@@ -15,24 +16,24 @@ export function WorkersScreen() {
 
   return (
     <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8">
-      <ScreenHeader title="Find Workers" subtitle="Discover skilled workers near you" />
+      <ScreenHeader title={t('findWorkersTitle')} subtitle={t('findWorkersSubtitle')} />
 
       {/* Search */}
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search by skill, name, or location..."
+          placeholder={t('findWorkersSearch')}
           className="w-full px-4 py-3 rounded-xl bg-white border-2 border-gray-100 focus:border-brand-400 outline-none text-sm font-medium text-gray-900 shadow-card"
         />
       </div>
 
       {/* Filter chips */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar mb-5 -mx-5 px-5 lg:mx-0 lg:px-0">
-        <button className="px-4 py-2 rounded-full bg-brand-600 text-white text-sm font-semibold whitespace-nowrap">All</button>
-        <button className="px-4 py-2 rounded-full bg-white text-gray-600 text-sm font-semibold whitespace-nowrap shadow-card">Available</button>
-        <button className="px-4 py-2 rounded-full bg-white text-gray-600 text-sm font-semibold whitespace-nowrap shadow-card">Verified</button>
-        <button className="px-4 py-2 rounded-full bg-white text-gray-600 text-sm font-semibold whitespace-nowrap shadow-card">Mason</button>
-        <button className="px-4 py-2 rounded-full bg-white text-gray-600 text-sm font-semibold whitespace-nowrap shadow-card">Helper</button>
+        <button className="px-4 py-2 rounded-full bg-brand-600 text-white text-sm font-semibold whitespace-nowrap">{t('all')}</button>
+        <button className="px-4 py-2 rounded-full bg-white text-gray-600 text-sm font-semibold whitespace-nowrap shadow-card">{t('available')}</button>
+        <button className="px-4 py-2 rounded-full bg-white text-gray-600 text-sm font-semibold whitespace-nowrap shadow-card">{t('verified')}</button>
+        <button className="px-4 py-2 rounded-full bg-white text-gray-600 text-sm font-semibold whitespace-nowrap shadow-card">{t('mason')}</button>
+        <button className="px-4 py-2 rounded-full bg-white text-gray-600 text-sm font-semibold whitespace-nowrap shadow-card">{t('helper')}</button>
       </div>
 
       {/* Worker cards */}
@@ -68,7 +69,7 @@ export function WorkersScreen() {
               </button>
               {assigned.has(worker.id) ? (
                 <div className="px-3 py-2 rounded-lg bg-accent-100 text-accent-700 text-sm font-semibold flex items-center gap-1">
-                  <CheckCircle2 size={16} /> Assigned
+                  <CheckCircle2 size={16} /> {t('assigned')}
                 </div>
               ) : (
                 <button
@@ -92,7 +93,7 @@ export function WorkersScreen() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-extrabold text-gray-900">Worker Profile</h2>
+              <h2 className="text-lg font-extrabold text-gray-900">{t('workerProfile')}</h2>
               <button onClick={() => setSelected(null)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
                 <X size={20} />
               </button>
@@ -108,41 +109,41 @@ export function WorkersScreen() {
                 <p className="text-sm text-gray-500">{selected.primarySkill}</p>
                 <div className="flex items-center gap-1 mt-1">
                   <Star size={14} className="text-warning-500 fill-warning-500" />
-                  <span className="text-xs font-semibold text-gray-600">4.8 · {selected.workCount} jobs completed</span>
+                  <span className="text-xs font-semibold text-gray-600">4.8 · {selected.workCount} {t('jobsCompleted')}</span>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-5">
               <div className="p-3 rounded-xl bg-gray-50">
-                <p className="text-xs text-gray-400 font-semibold">Experience</p>
+                <p className="text-xs text-gray-400 font-semibold">{t('experience')}</p>
                 <p className="font-bold text-gray-900 text-sm mt-0.5">{selected.experience}</p>
               </div>
               <div className="p-3 rounded-xl bg-gray-50">
-                <p className="text-xs text-gray-400 font-semibold">Location</p>
+                <p className="text-xs text-gray-400 font-semibold">{t('location')}</p>
                 <p className="font-bold text-gray-900 text-sm mt-0.5">{selected.location}</p>
               </div>
               <div className="p-3 rounded-xl bg-gray-50">
-                <p className="text-xs text-gray-400 font-semibold">Availability</p>
+                <p className="text-xs text-gray-400 font-semibold">{t('availability')}</p>
                 <p className="font-bold text-gray-900 text-sm mt-0.5">{selected.availability}</p>
               </div>
               <div className="p-3 rounded-xl bg-gray-50">
-                <p className="text-xs text-gray-400 font-semibold">Verification</p>
+                <p className="text-xs text-gray-400 font-semibold">{t('verification')}</p>
                 <p className="font-bold text-gray-900 text-sm mt-0.5">{selected.verified ? 'Verified' : 'Pending'}</p>
               </div>
             </div>
 
             <div className="flex gap-2">
               <Button variant="secondary" className="flex-1">
-                <Phone size={18} className="mr-2" /> Contact
+                <Phone size={18} className="mr-2" /> {t('contact')}
               </Button>
               {assigned.has(selected.id) ? (
                 <Button variant="success" className="flex-1" disabled>
-                  <CheckCircle2 size={18} className="mr-2" /> Assigned
+                  <CheckCircle2 size={18} className="mr-2" /> {t('assigned')}
                 </Button>
               ) : (
                 <Button className="flex-1" onClick={() => { handleAssign(selected.id); setSelected(null); }}>
-                  <UserPlus size={18} className="mr-2" /> Assign Job
+                  <UserPlus size={18} className="mr-2" /> {t('assignJob')}
                 </Button>
               )}
             </div>

@@ -8,25 +8,29 @@ interface NavItem {
   icon: typeof Home;
 }
 
-const labourerNav: NavItem[] = [
-  { id: 'home', label: 'Home', icon: Home },
-  { id: 'jobs', label: 'Jobs', icon: Briefcase },
-  { id: 'earnings', label: 'Earnings', icon: Wallet },
-  { id: 'savings', label: 'Savings', icon: PiggyBank },
-  { id: 'profile', label: 'Profile', icon: User },
-];
-
-const contractorNav: NavItem[] = [
-  { id: 'home', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'workers', label: 'Workers', icon: Users },
-  { id: 'postJob', label: 'Post Job', icon: Briefcase },
-  { id: 'wages', label: 'Wages', icon: CreditCard },
-  { id: 'messages', label: 'Messages', icon: MessageSquare },
-];
+interface NavItem {
+  id: ScreenId;
+  label: string;
+  icon: typeof Home;
+}
 
 export function BottomNav() {
-  const { role, screen, setScreen } = useApp();
-  const items = role === 'labourer' ? labourerNav : contractorNav;
+  const { role, screen, setScreen, t } = useApp();
+  const items = role === 'labourer'
+    ? [
+        { id: 'home', label: t('navHome'), icon: Home },
+        { id: 'jobs', label: t('navJobs'), icon: Briefcase },
+        { id: 'earnings', label: t('navEarnings'), icon: Wallet },
+        { id: 'savings', label: t('navSavings'), icon: PiggyBank },
+        { id: 'profile', label: t('navProfile'), icon: User },
+      ]
+    : [
+        { id: 'home', label: t('navDashboard'), icon: LayoutDashboard },
+        { id: 'workers', label: t('navWorkers'), icon: Users },
+        { id: 'postJob', label: t('postJob'), icon: Briefcase },
+        { id: 'wages', label: t('navWages'), icon: CreditCard },
+        { id: 'messages', label: t('navMessages'), icon: MessageSquare },
+      ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">

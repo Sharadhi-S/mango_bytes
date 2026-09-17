@@ -22,16 +22,16 @@ export function LabourerDashboard() {
   const recentEarning = earnings[0];
 
   const quickActions = [
-    { label: 'Withdraw', icon: Wallet, screen: 'earnings' as const, color: 'bg-brand-50 text-brand-600' },
-    { label: 'Save', icon: PiggyBank, screen: 'savings' as const, color: 'bg-accent-50 text-accent-600' },
-    { label: 'View Earnings', icon: TrendingUp, screen: 'earnings' as const, color: 'bg-warning-50 text-warning-600' },
-    { label: 'Messages', icon: MessageSquare, screen: 'messages' as const, color: 'bg-error-50 text-error-600', badge: unreadCount },
+    { label: t('earnings'), icon: Wallet, screen: 'earnings' as const, color: 'bg-brand-50 text-brand-600' },
+    { label: t('saveMoney'), icon: PiggyBank, screen: 'savings' as const, color: 'bg-accent-50 text-accent-600' },
+    { label: t('viewMessages'), icon: TrendingUp, screen: 'earnings' as const, color: 'bg-warning-50 text-warning-600' },
+    { label: t('messages'), icon: MessageSquare, screen: 'messages' as const, color: 'bg-error-50 text-error-600', badge: unreadCount },
   ];
 
   const learningCards = [
-    { title: 'Saving money', icon: PiggyBank, subtitle: 'Small daily savings help in emergencies.' },
-    { title: 'Emergency funds', icon: ShieldCheck, subtitle: 'Keep some money aside for health or travel needs.' },
-    { title: 'Understanding wages', icon: TrendingUp, subtitle: 'Check hours worked and daily pay before spending.' },
+    { title: t('saveMoney'), icon: PiggyBank, subtitle: 'Small daily savings help in emergencies.' },
+    { title: t('emergencyFund'), icon: ShieldCheck, subtitle: 'Keep some money aside for health or travel needs.' },
+    { title: t('wages'), icon: TrendingUp, subtitle: 'Check hours worked and daily pay before spending.' },
     { title: 'Avoid wasteful spending', icon: BookOpen, subtitle: 'Spend on needs first and keep extra for later.' },
   ];
 

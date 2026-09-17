@@ -10,7 +10,7 @@ const statusConfig = {
 };
 
 export function AttendanceScreen() {
-  const { attendance, setAttendanceStatus } = useApp();
+  const { attendance, setAttendanceStatus, t } = useApp();
 
   const presentCount = attendance.filter((a) => a.status === 'present').length;
   const absentCount = attendance.filter((a) => a.status === 'absent').length;
@@ -19,25 +19,25 @@ export function AttendanceScreen() {
 
   return (
     <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8">
-      <ScreenHeader title="Attendance" subtitle="Today's worker attendance" />
+      <ScreenHeader title={t('attendanceTitle')} subtitle={t('attendanceSubtitle')} />
 
       {/* Summary */}
       <div className="grid grid-cols-4 gap-2 mb-5">
         <Card className="p-3 text-center">
           <p className="text-lg font-extrabold text-accent-600">{presentCount}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Present</p>
+          <p className="text-xs text-gray-400 mt-0.5">{t('present')}</p>
         </Card>
         <Card className="p-3 text-center">
           <p className="text-lg font-extrabold text-warning-600">{halfCount}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Half Day</p>
+          <p className="text-xs text-gray-400 mt-0.5">{t('halfDay')}</p>
         </Card>
         <Card className="p-3 text-center">
           <p className="text-lg font-extrabold text-error-600">{absentCount}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Absent</p>
+          <p className="text-xs text-gray-400 mt-0.5">{t('absent')}</p>
         </Card>
         <Card className="p-3 text-center">
           <p className="text-lg font-extrabold text-gray-900">{formatINR(Math.round(totalWage))}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Today's Wages</p>
+          <p className="text-xs text-gray-400 mt-0.5">{t('todaysWages')}</p>
         </Card>
       </div>
 

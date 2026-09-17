@@ -3,28 +3,28 @@ import { useApp } from '@/AppContext';
 import { Card, ScreenHeader, Badge, Button, formatINR } from './ui';
 
 export function WagesScreen() {
-  const { wages, markWagePaid } = useApp();
+  const { wages, markWagePaid, t } = useApp();
 
   const totalPaid = wages.filter((w) => w.status === 'paid').reduce((s, w) => s + w.totalEarned, 0);
   const totalPending = wages.filter((w) => w.status === 'pending').reduce((s, w) => s + w.totalEarned, 0);
 
   return (
     <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8">
-      <ScreenHeader title="Wage Management" subtitle="Track and pay worker wages" />
+      <ScreenHeader title={t('wagesTitle')} subtitle={t('wagesSubtitle')} />
 
       {/* Summary */}
       <div className="grid grid-cols-2 gap-3 mb-5">
         <Card className="p-4 bg-gradient-to-br from-accent-500 to-accent-600 text-white border-0">
           <div className="flex items-center gap-2 text-accent-50 mb-1">
             <Check size={16} />
-            <span className="text-xs font-semibold">Total Paid</span>
+            <span className="text-xs font-semibold">{t('totalPaidOut')}</span>
           </div>
           <p className="text-2xl font-extrabold">{formatINR(totalPaid)}</p>
         </Card>
         <Card className="p-4 bg-gradient-to-br from-warning-500 to-warning-600 text-white border-0">
           <div className="flex items-center gap-2 text-warning-50 mb-1">
             <Clock size={16} />
-            <span className="text-xs font-semibold">Pending Payment</span>
+            <span className="text-xs font-semibold">{t('pendingPayment')}</span>
           </div>
           <p className="text-2xl font-extrabold">{formatINR(totalPending)}</p>
         </Card>
@@ -66,11 +66,11 @@ export function WagesScreen() {
 
             {wage.status === 'pending' ? (
               <Button variant="success" size="sm" className="w-full mt-3" onClick={() => markWagePaid(wage.id)}>
-                <IndianRupee size={16} className="mr-1" /> Mark as Paid
+                <IndianRupee size={16} className="mr-1" /> {t('markAsPaid')}
               </Button>
             ) : (
               <div className="mt-3 flex items-center gap-2 text-xs text-accent-600 font-semibold py-2.5 px-3 bg-accent-50 rounded-xl">
-                <Check size={16} /> Payment completed
+                <Check size={16} /> {t('paymentCompleted2')}
               </div>
             )}
           </Card>
@@ -81,7 +81,7 @@ export function WagesScreen() {
       <div className="mt-5 flex items-start gap-3 p-4 rounded-xl bg-brand-50 text-brand-700">
         <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
         <p className="text-sm font-medium">
-          This is a demo prototype. No real payments are processed. All data is mock for demonstration.
+          {t('demoWagesNote')}
         </p>
       </div>
     </div>

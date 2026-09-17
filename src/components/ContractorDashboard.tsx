@@ -14,29 +14,29 @@ import { Card, ScreenHeader, formatINR } from './ui';
 import { contractorStats } from '@/mockData';
 
 export function ContractorDashboard() {
-  const { setScreen, wages, postedJobs, attendance } = useApp();
+  const { setScreen, wages, postedJobs, attendance, lang, t } = useApp();
 
   const pendingWages = wages.filter((w) => w.status === 'pending').reduce((s, w) => s + w.totalEarned, 0);
   const presentCount = attendance.filter((a) => a.status === 'present').length;
 
   const stats = [
-    { label: 'Active Workers', value: contractorStats.activeWorkers, icon: Users, color: 'bg-brand-50 text-brand-600' },
-    { label: 'Present Today', value: presentCount, icon: Calendar, color: 'bg-accent-50 text-accent-600' },
-    { label: 'Pending Wages', value: formatINR(pendingWages), icon: IndianRupee, color: 'bg-warning-50 text-warning-600' },
-    { label: 'Open Jobs', value: postedJobs.length, icon: Briefcase, color: 'bg-error-50 text-error-600' },
+    { label: t('activeWorkers'), value: contractorStats.activeWorkers, icon: Users, color: 'bg-brand-50 text-brand-600' },
+    { label: t('presentToday'), value: presentCount, icon: Calendar, color: 'bg-accent-50 text-accent-600' },
+    { label: t('pendingWages'), value: formatINR(pendingWages), icon: IndianRupee, color: 'bg-warning-50 text-warning-600' },
+    { label: t('openJobs'), value: postedJobs.length, icon: Briefcase, color: 'bg-error-50 text-error-600' },
   ];
 
   const quickActions = [
-    { label: 'Find Workers', icon: Users, screen: 'workers' as const, color: 'bg-brand-50 text-brand-600' },
-    { label: 'Post Job', icon: Briefcase, screen: 'postJob' as const, color: 'bg-accent-50 text-accent-600' },
-    { label: 'Attendance', icon: Calendar, screen: 'attendance' as const, color: 'bg-warning-50 text-warning-600' },
-    { label: 'Wages', icon: CreditCard, screen: 'wages' as const, color: 'bg-error-50 text-error-600' },
-    { label: 'Messages', icon: MessageSquare, screen: 'messages' as const, color: 'bg-brand-50 text-brand-600' },
+    { label: t('findWorkers'), icon: Users, screen: 'workers' as const, color: 'bg-brand-50 text-brand-600' },
+    { label: t('postJob'), icon: Briefcase, screen: 'postJob' as const, color: 'bg-accent-50 text-accent-600' },
+    { label: t('attendance'), icon: Calendar, screen: 'attendance' as const, color: 'bg-warning-50 text-warning-600' },
+    { label: t('wages'), icon: CreditCard, screen: 'wages' as const, color: 'bg-error-50 text-error-600' },
+    { label: t('messages'), icon: MessageSquare, screen: 'messages' as const, color: 'bg-brand-50 text-brand-600' },
   ];
 
   return (
     <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8">
-      <ScreenHeader title="Dashboard" subtitle="Kumar Constructions" />
+      <ScreenHeader title={t('dashboard')} subtitle={t('dashboardSubtitle')} />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
@@ -55,7 +55,7 @@ export function ContractorDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <h2 className="text-sm font-bold text-gray-700 mb-3">Quick Actions</h2>
+      <h2 className="text-sm font-bold text-gray-700 mb-3">{t('quickActionsTitle')}</h2>
       <div className="flex gap-2 overflow-x-auto no-scrollbar mb-6 -mx-5 px-5 lg:mx-0 lg:px-0">
         {quickActions.map((action) => {
           const Icon = action.icon;
@@ -81,15 +81,15 @@ export function ContractorDashboard() {
             <AlertCircle size={20} />
           </div>
           <div className="flex-1">
-            <p className="font-bold text-gray-900 text-sm">Pending Wage Payments</p>
-            <p className="text-xs text-gray-500">{formatINR(pendingWages)} to be paid to workers</p>
+            <p className="font-bold text-gray-900 text-sm">{t('pendingWagePayments')}</p>
+            <p className="text-xs text-gray-500">{formatINR(pendingWages)} {t('toBePaid')}</p>
           </div>
           <ArrowRight size={18} className="text-gray-300" />
         </Card>
       )}
 
       {/* Open Requirements */}
-      <h2 className="text-sm font-bold text-gray-700 mb-3">Open Job Requirements</h2>
+      <h2 className="text-sm font-bold text-gray-700 mb-3">{t('openRequirements')}</h2>
       <div className="space-y-2">
         {postedJobs.map((job) => (
           <Card key={job.id} className="p-4 animate-slide-up" onClick={() => setScreen('postJob')}>

@@ -12,7 +12,7 @@ const iconMap: Record<string, typeof Shield> = {
 };
 
 export function SavingsScreen() {
-  const { savingsGoals, saveMoney, workerStats } = useApp();
+  const { savingsGoals, saveMoney, workerStats, t } = useApp();
   const [activeGoal, setActiveGoal] = useState<SavingsGoal | null>(null);
   const [customAmount, setCustomAmount] = useState('');
   const [autoSavePercent, setAutoSavePercent] = useState(15);
@@ -35,12 +35,12 @@ export function SavingsScreen() {
 
   return (
     <div className="px-5 pt-6 pb-24 max-w-2xl mx-auto">
-      <ScreenHeader title="Savings" subtitle="Save for your goals — your money, your choice" />
+      <ScreenHeader title={t('savingsTitle')} subtitle={t('savingsSubtitle')} />
 
       <Card className="p-4 mb-5 animate-slide-up">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-xs font-semibold text-gray-400">Automatic savings</p>
+            <p className="text-xs font-semibold text-gray-400">{t('automaticSavings')}</p>
             <h2 className="text-lg font-extrabold text-gray-900">{autoSavePercent}% of every wage</h2>
           </div>
           <div className="rounded-full bg-accent-50 px-2 py-1 text-xs font-bold text-accent-600">Demo setting</div>
@@ -60,7 +60,7 @@ export function SavingsScreen() {
           <span>40%</span>
         </div>
         <Button variant="secondary" className="w-full mt-4" onClick={() => handleSave(Math.max(20, Math.round(workerStats.availableBalance * (autoSavePercent / 100))))}>
-          Save Now
+          {t('saveNow')}
         </Button>
       </Card>
 
@@ -69,12 +69,12 @@ export function SavingsScreen() {
         <div className="bg-gradient-to-br from-accent-500 to-accent-600 p-5 text-white">
           <div className="flex items-center gap-2 text-accent-50 mb-1">
             <Shield size={18} />
-            <span className="text-sm font-semibold">Emergency Fund</span>
+            <span className="text-sm font-semibold">{t('emergencyFundTitle')}</span>
           </div>
           <div className="flex items-end justify-between">
             <div>
               <p className="text-3xl font-extrabold">{formatINR(workerStats.emergencySavings)}</p>
-              <p className="text-accent-50 text-sm mt-1">of ₹5,000 goal</p>
+              <p className="text-accent-50 text-sm mt-1">{t('ofGoal')}</p>
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold">{Math.round((workerStats.emergencySavings / 5000) * 100)}%</p>
@@ -92,16 +92,16 @@ export function SavingsScreen() {
       {/* Available Balance */}
       <Card className="p-4 mb-5 flex items-center justify-between">
         <div>
-          <p className="text-xs text-gray-400 font-semibold">Available to Save</p>
+          <p className="text-xs text-gray-400 font-semibold">{t('availableToSave')}</p>
           <p className="text-xl font-extrabold text-gray-900">{formatINR(workerStats.availableBalance)}</p>
         </div>
         <Button size="sm" variant="success" onClick={() => setActiveGoal(savingsGoals[0])}>
-          Save from earnings
+          {t('saveFromEarnings')}
         </Button>
       </Card>
 
       {/* Savings Goals */}
-      <h2 className="text-sm font-bold text-gray-700 mb-3">Your Goals</h2>
+      <h2 className="text-sm font-bold text-gray-700 mb-3">{t('yourGoals')}</h2>
       <div className="space-y-3 mb-4">
         {savingsGoals.map((goal) => {
           const Icon = iconMap[goal.icon] || Shield;
@@ -129,7 +129,7 @@ export function SavingsScreen() {
                 onClick={() => setActiveGoal(goal)}
                 className={`mt-3 w-full py-2.5 rounded-xl text-sm font-semibold ${c.bg} ${c.text} hover:opacity-80 active:scale-[0.98] transition-all`}
               >
-                Add money
+                {t('addMoney')}
               </button>
             </Card>
           );
@@ -146,15 +146,15 @@ export function SavingsScreen() {
           >
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="text-lg font-extrabold text-gray-900">Save Money</h2>
-                <p className="text-sm text-gray-500">Add to {activeGoal.name}</p>
+                <h2 className="text-lg font-extrabold text-gray-900">{t('saveMoneyTitle')}</h2>
+                <p className="text-sm text-gray-500">{t('addTo')} {activeGoal.name}</p>
               </div>
               <button onClick={() => setActiveGoal(null)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
                 <X size={20} />
               </button>
             </div>
 
-            <p className="text-sm text-gray-500 mb-3">Choose an amount to save from your available balance ({formatINR(workerStats.availableBalance)})</p>
+            <p className="text-sm text-gray-500 mb-3">{t('chooseAmount')} ({formatINR(workerStats.availableBalance)})</p>
 
             <div className="grid grid-cols-3 gap-3 mb-4">
               {presetAmounts.map((amt) => (
@@ -173,7 +173,7 @@ export function SavingsScreen() {
                 type="number"
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
-                placeholder="Custom amount"
+                placeholder={t('customAmount')}
                 className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-brand-400 outline-none text-sm font-semibold text-gray-900"
               />
               <Button onClick={() => handleSave(Number(customAmount))} disabled={!customAmount || Number(customAmount) <= 0}>
@@ -181,7 +181,7 @@ export function SavingsScreen() {
               </Button>
             </div>
 
-            <p className="text-xs text-gray-400 text-center">You can withdraw your savings anytime</p>
+            <p className="text-xs text-gray-400 text-center">{t('withdrawAnytime')}</p>
           </div>
         </div>
       )}
@@ -194,8 +194,8 @@ export function SavingsScreen() {
             <div className="w-16 h-16 rounded-full bg-accent-100 flex items-center justify-center mx-auto mb-4">
               <Check size={32} className="text-accent-600" />
             </div>
-            <h2 className="text-lg font-extrabold text-gray-900">Saved!</h2>
-            <p className="text-sm text-gray-500 mt-1">₹{savedAmount} added to your {activeGoal?.name}</p>
+            <h2 className="text-lg font-extrabold text-gray-900">{t('saved')}</h2>
+            <p className="text-sm text-gray-500 mt-1">₹{savedAmount} {t('savedTo')} {activeGoal?.name}</p>
           </div>
         </div>
       )}
