@@ -1,3 +1,5 @@
-# mango_bytes
+# Mango Bytes
 
-[![Open in Bolt](https://bolt.new/static/open-in-bolt.svg)](https://bolt.new/~/sb1-ztzxf1qy)
+A mobile-first financial inclusion prototype for blue-collar workers and contractors.
+
+Built with React, Vite, Tailwind CSS, and mock data for hackathon demo flows.

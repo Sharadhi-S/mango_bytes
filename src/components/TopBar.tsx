@@ -12,7 +12,7 @@ export function TopBar() {
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white ${role === 'labourer' ? 'bg-brand-600' : 'bg-accent-600'}`}>
             {role === 'labourer' ? <HardHat size={18} /> : <Building2 size={18} />}
           </div>
-          <span className="font-extrabold text-gray-900 text-sm">KaamSaathi</span>
+          <span className="font-extrabold text-gray-900 text-sm">Mango Bytes</span>
         </div>
         <div className="flex items-center gap-3">
           <button className="relative w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">

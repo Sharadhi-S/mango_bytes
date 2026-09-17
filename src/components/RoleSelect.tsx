@@ -11,7 +11,7 @@ export function RoleSelect() {
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-brand-600 text-white shadow-float mb-4">
           <HardHat size={40} strokeWidth={2.5} />
         </div>
-        <h1 className="text-3xl font-extrabold text-gray-900">KaamSaathi</h1>
+        <h1 className="text-3xl font-extrabold text-gray-900">Mango Bytes</h1>
         <p className="text-gray-500 mt-2 text-sm">Work. Wages. Together.</p>
       </div>
 
