@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type {
   Role,
   ScreenId,
@@ -75,9 +75,19 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [role, setRole] = useState<Role | null>(null);
+  const [role, setRole] = useState<Role | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const stored = localStorage.getItem('mango-bytes-role');
+    return stored === 'labourer' || stored === 'contractor' ? stored : null;
+  });
   const [screen, setScreen] = useState<ScreenId>('home');
-  const [lang, setLang] = useState<LangCode>('en');
+  const [lang, setLangState] = useState<LangCode>(() => {
+    if (typeof window === 'undefined') return 'en';
+    const stored = localStorage.getItem('mango-bytes-lang');
+    return stored === 'en' || stored === 'hi' || stored === 'kn' || stored === 'ta' || stored === 'te' || stored === 'mr' || stored === 'bn'
+      ? stored
+      : 'en';
+  });
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [voiceActive, setVoiceActive] = useState(false);
   const [voiceText, setVoiceText] = useState('');
@@ -92,7 +102,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [wages, setWages] = useState<WageRow[]>(initialWages);
   const [postedJobs, setPostedJobs] = useState<PostedJob[]>(initialPostedJobs);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mango-bytes-role', role ?? '');
+    }
+  }, [role]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mango-bytes-lang', lang);
+    }
+  }, [lang]);
+
   const t = useCallback((key: string) => translate(lang, key), [lang]);
+
+  const setLang = useCallback((nextLang: LangCode) => {
+    setLangState(nextLang);
+  }, []);
 
   const showToast = useCallback((message: string) => {
     const id = Date.now() + Math.random();

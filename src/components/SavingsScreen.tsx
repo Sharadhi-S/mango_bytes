@@ -15,6 +15,7 @@ export function SavingsScreen() {
   const { savingsGoals, saveMoney, workerStats } = useApp();
   const [activeGoal, setActiveGoal] = useState<SavingsGoal | null>(null);
   const [customAmount, setCustomAmount] = useState('');
+  const [autoSavePercent, setAutoSavePercent] = useState(15);
   const [showSuccess, setShowSuccess] = useState(false);
   const [savedAmount, setSavedAmount] = useState(0);
 
@@ -35,6 +36,33 @@ export function SavingsScreen() {
   return (
     <div className="px-5 pt-6 pb-24 max-w-2xl mx-auto">
       <ScreenHeader title="Savings" subtitle="Save for your goals — your money, your choice" />
+
+      <Card className="p-4 mb-5 animate-slide-up">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-xs font-semibold text-gray-400">Automatic savings</p>
+            <h2 className="text-lg font-extrabold text-gray-900">{autoSavePercent}% of every wage</h2>
+          </div>
+          <div className="rounded-full bg-accent-50 px-2 py-1 text-xs font-bold text-accent-600">Demo setting</div>
+        </div>
+        <input
+          type="range"
+          min={5}
+          max={40}
+          step={5}
+          value={autoSavePercent}
+          onChange={(e) => setAutoSavePercent(Number(e.target.value))}
+          className="w-full accent-brand-600"
+        />
+        <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
+          <span>5%</span>
+          <span>20%</span>
+          <span>40%</span>
+        </div>
+        <Button variant="secondary" className="w-full mt-4" onClick={() => handleSave(Math.max(20, Math.round(workerStats.availableBalance * (autoSavePercent / 100))))}>
+          Save Now
+        </Button>
+      </Card>
 
       {/* Emergency Fund Highlight */}
       <Card className="overflow-hidden mb-5 animate-slide-up">

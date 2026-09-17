@@ -1,8 +1,9 @@
-import { HardHat, Building2, Bell } from 'lucide-react';
+import { HardHat, Building2, Bell, Globe } from 'lucide-react';
 import { useApp } from '@/AppContext';
+import { LANGUAGES } from '@/i18n';
 
 export function TopBar() {
-  const { role, conversations } = useApp();
+  const { role, conversations, lang, setLang } = useApp();
   const unread = conversations.reduce((s, c) => s + c.unread, 0);
 
   return (
@@ -15,6 +16,19 @@ export function TopBar() {
           <span className="font-extrabold text-gray-900 text-sm">Mango Bytes</span>
         </div>
         <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2 py-1.5 shadow-sm">
+            <Globe size={14} className="text-gray-500" />
+            <select
+              aria-label="Select language"
+              value={lang}
+              onChange={(e) => setLang(e.target.value as any)}
+              className="bg-transparent text-[11px] font-medium text-gray-700 outline-none"
+            >
+              {LANGUAGES.map((language) => (
+                <option key={language.code} value={language.code}>{language.nativeLabel}</option>
+              ))}
+            </select>
+          </div>
           <button className="relative w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">
             <Bell size={20} />
             {unread > 0 && (
