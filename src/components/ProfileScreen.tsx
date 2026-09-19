@@ -15,8 +15,13 @@ import { Card, ScreenHeader, Badge, Button, ProgressBar, formatINR } from './ui'
 import { workerProfile } from '@/mockData';
 
 export function ProfileScreen() {
-  const { earnings, setRole } = useApp();
+  const { earnings, setRole, setScreen, registrationProfile } = useApp();
 
+  const profile = registrationProfile;
+  const displayName = profile?.name || '';
+  const displaySkill = profile?.primarySkill || '';
+  const displaySkills = profile?.skills?.length ? profile.skills : [];
+  const displayLanguages = profile?.languages?.length ? profile.languages : [];
   const totalPaid = earnings.filter((e) => e.status === 'paid').reduce((s, e) => s + e.amount, 0);
   const totalPending = earnings.filter((e) => e.status === 'pending').reduce((s, e) => s + e.amount, 0);
 
@@ -29,21 +34,29 @@ export function ProfileScreen() {
           <div className="-mt-10 mb-3">
             <div className="w-20 h-20 rounded-3xl bg-white p-1.5 shadow-card">
               <div className="w-full h-full rounded-2xl bg-brand-100 flex items-center justify-center text-brand-700 font-extrabold text-2xl">
-                {workerProfile.avatar}
+                {displayName ? displayName.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase() : '?'}
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-extrabold text-gray-900">{workerProfile.name}</h1>
-            {workerProfile.verified && (
-              <Badge color="green"><CheckCircle2 size={12} /> Verified</Badge>
-            )}
+            <h1 className="text-xl font-extrabold text-gray-900">{displayName || 'Your name'}</h1>
+
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-            <MapPin size={14} /> {workerProfile.location}
+            <MapPin size={14} /> {profile?.location || 'Location not provided'}
             <span>·</span>
-            <Briefcase size={14} /> {workerProfile.primarySkill}
+            <Briefcase size={14} /> {displaySkill || 'Skill not provided'}
           </div>
+        </div>
+      </Card>
+
+      {/* Entered registration details */}
+      <Card className="p-4 mb-5 animate-slide-up">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Detail label="Mobile" value={profile?.phone || 'Not provided'} />
+          <Detail label="Qualification" value={profile?.qualification || 'Not provided'} />
+          <Detail label="Monthly income" value={profile?.monthlyIncome ? formatINR(profile.monthlyIncome) : 'Not provided'} />
+          <Detail label="Emergency contact" value={profile?.emergencyContact || 'Not provided'} />
         </div>
       </Card>
 
@@ -53,8 +66,8 @@ export function ProfileScreen() {
           <Shield size={24} />
         </div>
         <div className="flex-1">
-          <p className="font-bold text-gray-900 text-sm">Identity Verified</p>
-          <p className="text-xs text-gray-500">Aadhaar and phone number confirmed</p>
+          <p className="font-bold text-gray-900 text-sm">Profile information</p>
+          <p className="text-xs text-gray-500">Shown from the details you entered during prototype registration.</p>
         </div>
         <CheckCircle2 size={20} className="text-accent-500" />
       </Card>
@@ -62,11 +75,11 @@ export function ProfileScreen() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-2 mb-5">
         <Card className="p-3 text-center">
-          <p className="text-xl font-extrabold text-gray-900">{workerProfile.workCount}</p>
+          <p className="text-xl font-extrabold text-gray-900">{profile ? '—' : workerProfile.workCount}</p>
           <p className="text-xs text-gray-400 mt-0.5">Jobs Done</p>
         </Card>
         <Card className="p-3 text-center">
-          <p className="text-xl font-extrabold text-gray-900">{workerProfile.experience}</p>
+          <p className="text-xl font-extrabold text-gray-900">{profile?.experience || '—'}</p>
           <p className="text-xs text-gray-400 mt-0.5">Experience</p>
         </Card>
         <Card className="p-3 text-center">
@@ -81,7 +94,7 @@ export function ProfileScreen() {
       <SectionTitle>Skills</SectionTitle>
       <Card className="p-4 mb-5 animate-slide-up">
         <div className="flex flex-wrap gap-2">
-          {workerProfile.skills.map((skill) => (
+          {displaySkills.map((skill) => (
             <Badge key={skill} color="blue">{skill}</Badge>
           ))}
         </div>
@@ -103,7 +116,7 @@ export function ProfileScreen() {
       <SectionTitle>Languages</SectionTitle>
       <Card className="p-4 mb-5 animate-slide-up">
         <div className="flex flex-wrap gap-2">
-          {workerProfile.languages.map((lang) => (
+          {displayLanguages.map((lang) => (
             <div key={lang} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-50">
               <Languages size={14} className="text-gray-400" />
               <span className="text-sm font-semibold text-gray-700">{lang}</span>
@@ -115,7 +128,7 @@ export function ProfileScreen() {
       {/* Work History */}
       <SectionTitle>Work History</SectionTitle>
       <div className="space-y-2 mb-5">
-        {workerProfile.workHistory.map((wh, i) => (
+        {profile ? [] : workerProfile.workHistory.map((wh, i) => (
           <Card key={i} className="p-4 animate-slide-up">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600">
@@ -164,12 +177,29 @@ export function ProfileScreen() {
         </div>
       </Card>
 
+      <Card className="p-4 mb-5 animate-slide-up flex items-center justify-between cursor-pointer" onClick={() => setScreen('insurance')}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600">
+            <Shield size={20} />
+          </div>
+          <div>
+            <p className="font-bold text-gray-900 text-sm">Insurance</p>
+            <p className="text-xs text-gray-500">View yearly protection and skill-based insurance recommendations</p>
+          </div>
+        </div>
+        <span className="text-xs font-bold text-brand-600">View</span>
+      </Card>
+
       {/* Logout */}
       <Button variant="ghost" className="w-full text-error-600 hover:bg-error-50" onClick={() => setRole(null)}>
         <LogOut size={18} className="mr-2" /> Switch Role
       </Button>
     </div>
   );
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-xl bg-gray-50 p-3"><p className="text-[10px] font-semibold text-gray-400">{label}</p><p className="text-sm font-bold text-gray-800 mt-1 break-words">{value}</p></div>;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {

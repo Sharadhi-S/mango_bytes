@@ -1,4 +1,4 @@
-import { Home, Briefcase, Wallet, PiggyBank, User, LayoutDashboard, Users, CreditCard, MessageSquare } from 'lucide-react';
+import { Home, Briefcase, Wallet, PiggyBank, User, LayoutDashboard, Users, CreditCard, MessageSquare, ShieldCheck } from 'lucide-react';
 import { useApp } from '@/AppContext';
 import type { ScreenId } from '@/types';
 
@@ -12,7 +12,8 @@ const labourerNav: NavItem[] = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'jobs', label: 'Jobs', icon: Briefcase },
   { id: 'earnings', label: 'Earnings', icon: Wallet },
-  { id: 'savings', label: 'Savings', icon: PiggyBank },
+  { id: 'savings', label: 'Money', icon: Wallet },
+  { id: 'insurance', label: 'Insurance', icon: ShieldCheck },
   { id: 'profile', label: 'Profile', icon: User },
 ];
 
@@ -22,6 +23,7 @@ const contractorNav: NavItem[] = [
   { id: 'postJob', label: 'Post Job', icon: Briefcase },
   { id: 'wages', label: 'Wages', icon: CreditCard },
   { id: 'messages', label: 'Messages', icon: MessageSquare },
+  { id: 'profile', label: 'Profile', icon: User },
 ];
 
 export function BottomNav() {

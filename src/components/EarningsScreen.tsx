@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import { CheckCircle2, Clock, X, Briefcase, Calendar, User, Clock3, IndianRupee } from 'lucide-react';
+import { CheckCircle2, Clock, X, Briefcase, Calendar, User, Clock3, IndianRupee, TrendingUp, ArrowRight } from 'lucide-react';
 import { useApp } from '@/AppContext';
 import { Card, ScreenHeader, formatINR, Badge } from './ui';
+import { PerformancePayScreen } from './PerformancePayScreen';
 import type { EarningEntry } from '@/types';
 
 export function EarningsScreen() {
   const { earnings } = useApp();
   const [selected, setSelected] = useState<EarningEntry | null>(null);
+  const [showPerformancePay, setShowPerformancePay] = useState(false);
+
+  if (showPerformancePay) return <PerformancePayScreen />;
 
   return (
     <div className="px-5 pt-6 pb-24 max-w-2xl mx-auto">
@@ -23,6 +27,19 @@ export function EarningsScreen() {
           <p className="text-2xl font-extrabold mt-1 text-gray-900">₹10,500</p>
         </Card>
       </div>
+
+      <Card className="p-4 mb-5 border border-brand-100 bg-brand-50/60 cursor-pointer" onClick={() => setShowPerformancePay(true)}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white text-brand-600 flex items-center justify-center"><TrendingUp size={20} /></div>
+            <div>
+              <p className="font-bold text-gray-900 text-sm">Performance-Based Pay</p>
+              <p className="text-xs text-gray-500">Base wage protected · bonus for quality · overtime added</p>
+            </div>
+          </div>
+          <ArrowRight size={18} className="text-gray-300" />
+        </div>
+      </Card>
 
       {/* History */}
       <div className="space-y-3">

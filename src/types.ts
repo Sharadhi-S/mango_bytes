@@ -10,7 +10,25 @@ export type ScreenId =
   | 'workers'
   | 'postJob'
   | 'attendance'
-  | 'wages';
+  | 'wages'
+  | 'register'
+  | 'insurance';
+
+
+export interface RegistrationProfile {
+  name: string;
+  phone: string;
+  primarySkill: string;
+  skills: string[];
+  experience: string;
+  qualification: string;
+  languages: string[];
+  location: string;
+  monthlyIncome: number;
+  company?: string;
+  workersManaged?: number;
+  emergencyContact: string;
+}
 
 export interface EarningEntry {
   id: string;

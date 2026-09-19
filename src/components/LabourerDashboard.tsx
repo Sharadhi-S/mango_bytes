@@ -3,6 +3,7 @@ import {
   PiggyBank,
   Briefcase,
   MessageSquare,
+  ShieldCheck,
   TrendingUp,
   Clock,
   CheckCircle2,
@@ -14,7 +15,7 @@ import { Card, Button, formatINR, ProgressBar } from './ui';
 import { todayEarningsBreakdown } from '@/mockData';
 
 export function LabourerDashboard() {
-  const { workerStats, setScreen, earnings, conversations } = useApp();
+  const { workerStats, setScreen, earnings, conversations, registrationProfile } = useApp();
   const unreadCount = conversations.reduce((sum, c) => sum + c.unread, 0);
   const recentEarning = earnings[0];
 
@@ -23,6 +24,7 @@ export function LabourerDashboard() {
     { label: 'Save Money', icon: PiggyBank, screen: 'savings' as const, color: 'bg-accent-50 text-accent-600' },
     { label: 'Find Work', icon: Briefcase, screen: 'jobs' as const, color: 'bg-warning-50 text-warning-600' },
     { label: 'Messages', icon: MessageSquare, screen: 'messages' as const, color: 'bg-error-50 text-error-600', badge: unreadCount },
+    { label: 'Insurance', icon: ShieldCheck, screen: 'insurance' as const, color: 'bg-brand-50 text-brand-600' },
   ];
 
   return (
@@ -30,7 +32,7 @@ export function LabourerDashboard() {
       {/* Greeting */}
       <div className="animate-slide-up">
         <p className="text-sm text-gray-500">Good morning,</p>
-        <h1 className="text-2xl font-extrabold text-gray-900">Ravi Kumar</h1>
+        <h1 className="text-2xl font-extrabold text-gray-900">{registrationProfile?.name || 'Your name'}</h1>
       </div>
 
       {/* Earnings Hero Card */}
@@ -87,7 +89,7 @@ export function LabourerDashboard() {
       {/* Quick Actions */}
       <div className="animate-slide-up">
         <h2 className="text-sm font-bold text-gray-700 mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
@@ -131,6 +133,38 @@ export function LabourerDashboard() {
               <span>Site B, Mysuru</span>
             </div>
           </div>
+        </div>
+      </Card>
+
+      {/* Insurance & PF Mini */}
+      <Card className="p-4 animate-slide-up" onClick={() => setScreen('insurance')}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600">
+              <ShieldCheck size={20} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-gray-900">Insurance</p>
+              <p className="text-xs text-gray-500">Skill-based cover · yearly protection plans</p>
+            </div>
+          </div>
+          <ArrowRight size={18} className="text-gray-300" />
+        </div>
+      </Card>
+
+      {/* Performance Pay Mini */}
+      <Card className="p-4 animate-slide-up" onClick={() => setScreen('earnings')}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-accent-50 flex items-center justify-center text-accent-600">
+              <TrendingUp size={20} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-gray-900">Performance Pay</p>
+              <p className="text-xs text-gray-500">Earn more for quality, safety & overtime</p>
+            </div>
+          </div>
+          <ArrowRight size={18} className="text-gray-300" />
         </div>
       </Card>
 

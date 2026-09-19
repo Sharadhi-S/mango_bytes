@@ -19,7 +19,7 @@ export const LANGUAGES: LangOption[] = [
 type Dict = Record<string, string>;
 
 const en: Dict = {
-  appName: 'Mango Bytes',
+  appName: 'ShramaSetu - A Mango Bytes initiative',
   tagline: 'Work. Wages. Together.',
   chooseRole: 'Choose how you want to continue',
   iAmLabourer: 'I am a Labourer',
@@ -191,7 +191,7 @@ const en: Dict = {
 };
 
 const hi: Dict = {
-  appName: 'Mango Bytes',
+  appName: 'ShramaSetu - A Mango Bytes initiative',
   tagline: 'काम. मजदूरी. साथ में.',
   chooseRole: 'आगे कैसे जाना है चुनें',
   iAmLabourer: 'मैं मजदूर हूं',
@@ -359,7 +359,7 @@ const hi: Dict = {
 };
 
 const kn: Dict = {
-  appName: 'Mango Bytes',
+  appName: 'ShramaSetu - A Mango Bytes initiative',
   tagline: 'ಕೆಲಸ. ಸಂಬಳ. ಒಟ್ಟಿಗೆ.',
   chooseRole: 'ಹೇಗೆ ಮುಂದುವರಿಸಬೇಕು ಆಯ್ಕೆಮಾಡಿ',
   iAmLabourer: 'ನಾನು ಕಾರ್ಮಿಕ',
@@ -531,7 +531,7 @@ const kn: Dict = {
 
 const ta: Dict = {
   ...en,
-  appName: 'Mango Bytes',
+  appName: 'ShramaSetu - A Mango Bytes initiative',
   tagline: 'வேலை. கூலி. ஒன்றாக.',
   goodMorning: 'காலை வணக்கம்,',
   todayEarnings: 'இன்றைய வருவாய்',
@@ -572,7 +572,7 @@ const ta: Dict = {
 
 const te: Dict = {
   ...en,
-  appName: 'Mango Bytes',
+  appName: 'ShramaSetu - A Mango Bytes initiative',
   tagline: 'పని. వేతనం. కలిసి.',
   goodMorning: 'శుభోదయం,',
   todayEarnings: 'నేటి సంపాదన',
@@ -613,7 +613,7 @@ const te: Dict = {
 
 const mr: Dict = {
   ...en,
-  appName: 'Mango Bytes',
+  appName: 'ShramaSetu - A Mango Bytes initiative',
   tagline: 'काम. वेतन. एकत्र.',
   goodMorning: 'शुभ सकाळ,',
   todayEarnings: 'आजची कमाई',
@@ -654,7 +654,7 @@ const mr: Dict = {
 
 const bn: Dict = {
   ...en,
-  appName: 'Mango Bytes',
+  appName: 'ShramaSetu - A Mango Bytes initiative',
   tagline: 'কাজ. মজুরি. একসাথে.',
   goodMorning: 'সুপ্রভাত,',
   todayEarnings: 'আজকের উপার্জন',
