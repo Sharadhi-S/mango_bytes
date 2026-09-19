@@ -13,6 +13,9 @@ import { WorkersScreen } from './components/WorkersScreen';
 import { PostJobScreen } from './components/PostJobScreen';
 import { AttendanceScreen } from './components/AttendanceScreen';
 import { WagesScreen } from './components/WagesScreen';
+import { RegistrationScreen } from './components/RegistrationScreen';
+import { InsuranceScreen } from './components/InsuranceScreen';
+import { AIChatbot } from './components/AIChatbot';
 
 function AppContent() {
   const { role, screen, conversations } = useApp();
@@ -20,6 +23,8 @@ function AppContent() {
   if (!role) return <RoleSelect />;
 
   const renderScreen = () => {
+    if (screen === 'register') return <RegistrationScreen />;
+
     if (role === 'labourer') {
       switch (screen) {
         case 'home': return <LabourerDashboard />;
@@ -28,11 +33,13 @@ function AppContent() {
         case 'jobs': return <JobsScreen />;
         case 'messages': return <MessagesScreen />;
         case 'profile': return <ProfileScreen />;
+        case 'insurance': return <InsuranceScreen />;
         default: return <LabourerDashboard />;
       }
     } else {
       switch (screen) {
         case 'home': return <ContractorDashboard />;
+        case 'profile': return <ContractorDashboard showProfileInitially />;
         case 'workers': return <WorkersScreen />;
         case 'postJob': return <PostJobScreen />;
         case 'attendance': return <AttendanceScreen />;
@@ -49,7 +56,8 @@ function AppContent() {
       <main key={screen} className="animate-fade-in">
         {renderScreen()}
       </main>
-      <BottomNav />
+      {screen !== 'register' && <BottomNav />}
+      {screen !== 'register' && <AIChatbot />}
     </div>
   );
 }

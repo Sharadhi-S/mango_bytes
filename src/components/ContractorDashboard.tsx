@@ -4,17 +4,27 @@ import {
   Calendar,
   CreditCard,
   MessageSquare,
-  TrendingUp,
   IndianRupee,
   AlertCircle,
   ArrowRight,
+  User,
+  Languages,
+  GraduationCap,
+  ArrowLeftRight,
+  ChevronRight,
+  Phone,
+  MapPin,
+  X,
 } from 'lucide-react';
+import { useState } from 'react';
 import { useApp } from '@/AppContext';
 import { Card, ScreenHeader, formatINR } from './ui';
 import { contractorStats } from '@/mockData';
 
-export function ContractorDashboard() {
-  const { setScreen, wages, postedJobs, attendance } = useApp();
+export function ContractorDashboard({ showProfileInitially = false }: { showProfileInitially?: boolean }) {
+  const { setScreen, setRole, wages, postedJobs, attendance, registrationProfile } = useApp();
+  const [showProfile, setShowProfile] = useState(showProfileInitially);
+  const [showSwitchUser, setShowSwitchUser] = useState(false);
 
   const pendingWages = wages.filter((w) => w.status === 'pending').reduce((s, w) => s + w.totalEarned, 0);
   const presentCount = attendance.filter((a) => a.status === 'present').length;
@@ -34,11 +44,168 @@ export function ContractorDashboard() {
     { label: 'Messages', icon: MessageSquare, screen: 'messages' as const, color: 'bg-brand-50 text-brand-600' },
   ];
 
+  const switchToLabourer = () => {
+    setShowSwitchUser(false);
+    setRole('labourer');
+    setScreen('home');
+  };
+
+  if (showProfile) {
+    return (
+      <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8">
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => { setShowProfile(false); setScreen('home'); }}
+            className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-700 active:scale-95 transition-transform"
+            aria-label="Back to dashboard"
+          >
+            <ArrowRight size={19} className="rotate-180" />
+          </button>
+          <div>
+            <h1 className="text-xl font-extrabold text-gray-900">Contractor Profile</h1>
+            <p className="text-xs text-gray-500">Professional information</p>
+          </div>
+        </div>
+
+        <Card className="p-5 mb-4">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-brand-100 text-brand-700 flex items-center justify-center text-2xl font-extrabold">
+              {(registrationProfile?.name || 'Contractor').split(' ').filter(Boolean).map((part) => part[0]).slice(0, 2).join('').toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-lg font-extrabold text-gray-900">{registrationProfile?.name || 'Your name'}</h2>
+              <p className="text-sm text-gray-500">{registrationProfile?.company || 'Contractor'} · Contractor</p>
+              <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1">
+                <MapPin size={14} />
+                <span>{registrationProfile?.location || 'Location not provided'}</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <div className="space-y-3">
+          <Card className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center">
+                <GraduationCap size={20} />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-400">Qualification</p>
+                <p className="font-bold text-gray-900 mt-0.5">{registrationProfile?.qualification || 'Qualification not provided'}</p>
+                <p className="text-xs text-gray-500 mt-1">Experience: {registrationProfile?.experience || 'Not provided'}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-accent-50 text-accent-600 flex items-center justify-center">
+                <Languages size={20} />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-400">Languages</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {(registrationProfile?.languages?.length ? registrationProfile.languages : []).map((language) => (
+                    <span key={language} className="px-3 py-1.5 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold">
+                      {language}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-warning-50 text-warning-600 flex items-center justify-center">
+                <Phone size={19} />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-400">Contact</p>
+                <p className="font-bold text-gray-900 mt-0.5">{registrationProfile?.phone || 'Mobile number not provided'}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <button
+          onClick={() => setShowSwitchUser(true)}
+          className="w-full mt-5 p-4 rounded-2xl bg-gray-900 text-white flex items-center justify-between active:scale-[0.99] transition-transform"
+        >
+          <div className="flex items-center gap-3">
+            <ArrowLeftRight size={20} />
+            <div className="text-left">
+              <p className="font-bold text-sm">Switch User</p>
+              <p className="text-xs text-gray-300">Switch between Contractor and Labourer</p>
+            </div>
+          </div>
+          <ChevronRight size={18} />
+        </button>
+
+        {showSwitchUser && (
+          <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-4">
+            <Card className="w-full max-w-md p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-extrabold text-gray-900">Switch User</h3>
+                  <p className="text-xs text-gray-500 mt-1">Choose the account type to continue</p>
+                </div>
+                <button
+                  onClick={() => setShowSwitchUser(false)}
+                  className="w-9 h-9 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center"
+                  aria-label="Close"
+                >
+                  <X size={17} />
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowSwitchUser(false)}
+                className="w-full p-4 rounded-2xl border border-brand-200 bg-brand-50 flex items-center gap-3 mb-2"
+              >
+                <div className="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center">
+                  <Briefcase size={19} />
+                </div>
+                <div className="text-left flex-1">
+                  <p className="font-bold text-gray-900">Contractor</p>
+                  <p className="text-xs text-gray-500">Kumar Constructions</p>
+                </div>
+                <span className="text-xs font-bold text-brand-600">Current</span>
+              </button>
+
+              <button
+                onClick={switchToLabourer}
+                className="w-full p-4 rounded-2xl border border-gray-200 bg-white flex items-center gap-3 hover:bg-gray-50"
+              >
+                <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center">
+                  <User size={19} />
+                </div>
+                <div className="text-left flex-1">
+                  <p className="font-bold text-gray-900">Labourer</p>
+                  <p className="text-xs text-gray-500">Switch to worker account</p>
+                </div>
+                <ChevronRight size={18} className="text-gray-300" />
+              </button>
+            </Card>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8">
-      <ScreenHeader title="Dashboard" subtitle="Kumar Constructions" />
+      <div className="flex items-start justify-between gap-3 mb-6">
+        <ScreenHeader title="Dashboard" subtitle={registrationProfile?.company || registrationProfile?.name || 'Contractor workspace'} />
+        <button
+          onClick={() => setShowProfile(true)}
+          className="flex-shrink-0 w-11 h-11 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center active:scale-95 transition-transform"
+          aria-label="Open contractor profile"
+        >
+          <User size={21} />
+        </button>
+      </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         {stats.map((stat, i) => {
           const Icon = stat.icon;
@@ -54,7 +221,6 @@ export function ContractorDashboard() {
         })}
       </div>
 
-      {/* Quick Actions */}
       <h2 className="text-sm font-bold text-gray-700 mb-3">Quick Actions</h2>
       <div className="flex gap-2 overflow-x-auto no-scrollbar mb-6 -mx-5 px-5 lg:mx-0 lg:px-0">
         {quickActions.map((action) => {
@@ -74,7 +240,6 @@ export function ContractorDashboard() {
         })}
       </div>
 
-      {/* Pending Payments Alert */}
       {pendingWages > 0 && (
         <Card className="p-4 mb-5 flex items-center gap-3 border-l-4 border-l-warning-500 animate-slide-up" onClick={() => setScreen('wages')}>
           <div className="w-10 h-10 rounded-xl bg-warning-50 flex items-center justify-center text-warning-600 flex-shrink-0">
@@ -88,7 +253,6 @@ export function ContractorDashboard() {
         </Card>
       )}
 
-      {/* Open Requirements */}
       <h2 className="text-sm font-bold text-gray-700 mb-3">Open Job Requirements</h2>
       <div className="space-y-2">
         {postedJobs.map((job) => (

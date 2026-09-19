@@ -2,8 +2,11 @@ import { HardHat, Building2, Bell } from 'lucide-react';
 import { useApp } from '@/AppContext';
 
 export function TopBar() {
-  const { role, conversations } = useApp();
+  const { role, conversations, registrationProfile } = useApp();
   const unread = conversations.reduce((s, c) => s + c.unread, 0);
+  const initials = registrationProfile?.name
+    ? registrationProfile.name.split(' ').filter(Boolean).map((part) => part[0]).slice(0, 2).join('').toUpperCase()
+    : 'MB';
 
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-gray-50">
@@ -12,7 +15,7 @@ export function TopBar() {
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white ${role === 'labourer' ? 'bg-brand-600' : 'bg-accent-600'}`}>
             {role === 'labourer' ? <HardHat size={18} /> : <Building2 size={18} />}
           </div>
-          <span className="font-extrabold text-gray-900 text-sm">Mango Bytes</span>
+          <span className="font-extrabold text-gray-900 text-sm">ShramaSetu - A Mango Bytes initiative</span>
         </div>
         <div className="flex items-center gap-3">
           <button className="relative w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">
@@ -22,7 +25,7 @@ export function TopBar() {
             )}
           </button>
           <div className={`w-8 h-8 rounded-full ${role === 'labourer' ? 'bg-brand-100 text-brand-700' : 'bg-accent-100 text-accent-700'} flex items-center justify-center text-sm font-bold`}>
-            {role === 'labourer' ? 'RK' : 'KC'}
+            {initials}
           </div>
         </div>
       </div>

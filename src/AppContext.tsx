@@ -10,6 +10,7 @@ import type {
   WageRow,
   PostedJob,
   ChatMessage,
+  RegistrationProfile,
 } from './types';
 import {
   initialEarnings,
@@ -70,6 +71,12 @@ interface AppContextValue {
   setAttendanceStatus: (id: string, status: 'present' | 'absent' | 'half') => void;
   markWagePaid: (id: string) => void;
   postJob: (job: Omit<PostedJob, 'id'>) => void;
+  workerSkill: string;
+  setWorkerSkill: (skill: string) => void;
+  monthlySalary: number;
+  setMonthlySalary: (salary: number) => void;
+  registrationProfile: RegistrationProfile | null;
+  setRegistrationProfile: (profile: RegistrationProfile) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -77,6 +84,9 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Role | null>(null);
   const [screen, setScreen] = useState<ScreenId>('home');
+  const [workerSkill, setWorkerSkill] = useState('Mason');
+  const [monthlySalary, setMonthlySalary] = useState(18000);
+  const [registrationProfile, setRegistrationProfile] = useState<RegistrationProfile | null>(null);
   const [lang, setLang] = useState<LangCode>('en');
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [voiceActive, setVoiceActive] = useState(false);
@@ -194,6 +204,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setAttendanceStatus,
         markWagePaid,
         postJob,
+        workerSkill,
+        setWorkerSkill,
+        monthlySalary,
+        setMonthlySalary,
+        registrationProfile,
+        setRegistrationProfile,
       }}
     >
       {children}
