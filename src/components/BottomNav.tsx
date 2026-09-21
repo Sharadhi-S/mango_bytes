@@ -1,4 +1,4 @@
-import { Home, Briefcase, Wallet, PiggyBank, User, LayoutDashboard, Users, CreditCard, MessageSquare, ShieldCheck } from 'lucide-react';
+import { Home, Briefcase, Wallet, PiggyBank, User, LayoutDashboard, Users, CreditCard, MessageSquare, ShieldCheck, GraduationCap }  from 'lucide-react';
 import { useApp } from '@/AppContext';
 import type { ScreenId } from '@/types';
 
@@ -17,6 +17,14 @@ const labourerNav: NavItem[] = [
   { id: 'profile', label: 'Profile', icon: User },
 ];
 
+const skilledWorkerNav: NavItem[] = [
+  { id: 'home', label: 'Home', icon: Home },
+  { id: 'jobs', label: 'Jobs', icon: Briefcase },
+  { id: 'earnings', label: 'Earnings', icon: Wallet },
+  { id: 'insurance', label: 'Insurance', icon: ShieldCheck },
+  { id: 'profile', label: 'Profile', icon: User },
+];
+
 const contractorNav: NavItem[] = [
   { id: 'home', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'workers', label: 'Workers', icon: Users },
@@ -28,7 +36,7 @@ const contractorNav: NavItem[] = [
 
 export function BottomNav() {
   const { role, screen, setScreen } = useApp();
-  const items = role === 'labourer' ? labourerNav : contractorNav;
+  const items = role === 'contractor' ? contractorNav : role === 'skilledWorker' ? skilledWorkerNav : labourerNav;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">

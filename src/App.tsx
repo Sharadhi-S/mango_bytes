@@ -16,6 +16,9 @@ import { WagesScreen } from './components/WagesScreen';
 import { RegistrationScreen } from './components/RegistrationScreen';
 import { InsuranceScreen } from './components/InsuranceScreen';
 import { AIChatbot } from './components/AIChatbot';
+import { HomeWorkScreen } from './components/HomeWorkScreen';
+import { SkilledWorkerDashboard } from './components/SkilledWorkerDashboard';
+import { ShramaIDScreen } from './components/ShramaIDScreen';
 
 function AppContent() {
   const { role, screen, conversations } = useApp();
@@ -24,6 +27,20 @@ function AppContent() {
 
   const renderScreen = () => {
     if (screen === 'register') return <RegistrationScreen />;
+    if (screen === 'shramId') return <ShramaIDScreen />;
+
+    if (role === 'skilledWorker') {
+      switch (screen) {
+        case 'home': return <SkilledWorkerDashboard />;
+        case 'earnings': return <EarningsScreen />;
+        case 'savings': return <SavingsScreen />;
+        case 'jobs': return <JobsScreen />;
+        case 'messages': return <MessagesScreen />;
+        case 'profile': return <ProfileScreen />;
+        case 'insurance': return <InsuranceScreen />;
+        default: return <SkilledWorkerDashboard />;
+      }
+    }
 
     if (role === 'labourer') {
       switch (screen) {
@@ -34,6 +51,7 @@ function AppContent() {
         case 'messages': return <MessagesScreen />;
         case 'profile': return <ProfileScreen />;
         case 'insurance': return <InsuranceScreen />;
+        case 'homeWork': return <HomeWorkScreen />;
         default: return <LabourerDashboard />;
       }
     } else {
@@ -45,6 +63,7 @@ function AppContent() {
         case 'attendance': return <AttendanceScreen />;
         case 'wages': return <WagesScreen />;
         case 'messages': return <MessagesScreen />;
+        case 'homeWork': return <HomeWorkScreen />;
         default: return <ContractorDashboard />;
       }
     }

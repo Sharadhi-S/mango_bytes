@@ -6,12 +6,16 @@ import {
   ShieldCheck,
   TrendingUp,
   Clock,
+  Target,
+  BookOpen,
+  WalletCards,
   CheckCircle2,
   MapPin,
   ArrowRight,
+  Languages,
 } from 'lucide-react';
 import { useApp } from '@/AppContext';
-import { Card, Button, formatINR, ProgressBar } from './ui';
+import { Card, Button, ScreenHeader, formatINR, ProgressBar } from './ui';
 import { todayEarningsBreakdown } from '@/mockData';
 
 export function LabourerDashboard() {
@@ -29,6 +33,7 @@ export function LabourerDashboard() {
 
   return (
     <div className="px-5 pt-6 pb-24 space-y-5 max-w-2xl mx-auto">
+      <ScreenHeader title="Dashboard" subtitle={registrationProfile?.name ? `Welcome back, ${registrationProfile.name}` : 'Your work and money at a glance'} />
       {/* Greeting */}
       <div className="animate-slide-up">
         <p className="text-sm text-gray-500">Good morning,</p>
@@ -85,6 +90,21 @@ export function LabourerDashboard() {
           <p className="text-xl font-extrabold text-gray-900">{formatINR(workerStats.monthlyEarnings)}</p>
         </Card>
       </div>
+
+      <Card className="p-4 animate-slide-up border-purple-100 bg-purple-50/40">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center"><Target size={19} /></div>
+          <div className="flex-1">
+            <p className="text-xs font-bold text-purple-700 uppercase tracking-wide">My Career Roadmap</p>
+            <p className="font-extrabold text-gray-900 mt-1">Build toward your next better-paying role</p>
+            <p className="text-xs text-gray-500 mt-1">Personalised steps help you stay focused, track progress and decide what skill to learn next.</p>
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              <div className="rounded-xl bg-white p-3"><BookOpen size={16} className="text-brand-600" /><p className="text-xs font-bold mt-2">Learn</p><p className="text-[11px] text-gray-500">Short course / micro-credential</p></div>
+              <div className="rounded-xl bg-white p-3"><WalletCards size={16} className="text-accent-600" /><p className="text-xs font-bold mt-2">Save</p><p className="text-[11px] text-gray-500">Get nudges before unnecessary spending</p></div>
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* Quick Actions */}
       <div className="animate-slide-up">
@@ -152,16 +172,30 @@ export function LabourerDashboard() {
         </div>
       </Card>
 
-      {/* Performance Pay Mini */}
-      <Card className="p-4 animate-slide-up" onClick={() => setScreen('earnings')}>
+      {/* Language Translator */}
+      <Card className="p-4 animate-slide-up border border-purple-100 bg-purple-50/40" onClick={() => window.dispatchEvent(new CustomEvent('open-shramasetu-ai', { detail: 'translator' }))}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-accent-50 flex items-center justify-center text-accent-600">
-              <TrendingUp size={20} />
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-purple-600"><Languages size={20} /></div>
+            <div>
+              <p className="text-sm font-bold text-gray-900">Language Translator</p>
+              <p className="text-xs text-gray-500">Translate work messages, instructions and everyday phrases.</p>
+            </div>
+          </div>
+          <ArrowRight size={18} className="text-gray-300" />
+        </div>
+      </Card>
+
+      {/* Smart Savings Mini */}
+      <Card className="p-4 animate-slide-up border border-brand-100 bg-brand-50/50" onClick={() => setScreen('savings')}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-brand-600">
+              <PiggyBank size={20} />
             </div>
             <div>
-              <p className="text-sm font-bold text-gray-900">Performance Pay</p>
-              <p className="text-xs text-gray-500">Earn more for quality, safety & overtime</p>
+              <p className="text-sm font-bold text-gray-900">Smart Savings</p>
+              <p className="text-xs text-gray-500">0% on low-income days · 2–3% when earnings are stronger</p>
             </div>
           </div>
           <ArrowRight size={18} className="text-gray-300" />

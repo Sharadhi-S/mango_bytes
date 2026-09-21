@@ -5,7 +5,7 @@ import { ScreenHeader, Avatar, Badge } from './ui';
 import type { Conversation } from '@/types';
 
 export function MessagesScreen() {
-  const { conversations, sendMessage, role } = useApp();
+  const { conversations, sendMessage, markConversationRead, role } = useApp();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [input, setInput] = useState('');
 
@@ -27,7 +27,7 @@ export function MessagesScreen() {
           {list.map((c) => (
             <button
               key={c.id}
-              onClick={() => setActiveId(c.id)}
+              onClick={() => { setActiveId(c.id); markConversationRead(c.id); }}
               className="w-full bg-white rounded-2xl shadow-card p-4 flex items-center gap-3 hover:shadow-card-hover transition-shadow text-left animate-slide-up"
             >
               <Avatar initials={c.name.substring(0, 2).toUpperCase()} size="md" />

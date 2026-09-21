@@ -15,6 +15,7 @@ import {
   Phone,
   MapPin,
   X,
+  Home,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useApp } from '@/AppContext';
@@ -42,6 +43,7 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
     { label: 'Attendance', icon: Calendar, screen: 'attendance' as const, color: 'bg-warning-50 text-warning-600' },
     { label: 'Wages', icon: CreditCard, screen: 'wages' as const, color: 'bg-error-50 text-error-600' },
     { label: 'Messages', icon: MessageSquare, screen: 'messages' as const, color: 'bg-brand-50 text-brand-600' },
+    { label: 'Home Work', icon: Home, screen: 'homeWork' as const, color: 'bg-purple-50 text-purple-600' },
   ];
 
   const switchToLabourer = () => {
@@ -252,6 +254,19 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
           <ArrowRight size={18} className="text-gray-300" />
         </Card>
       )}
+
+      <Card className="p-4 mb-5 bg-brand-50 border-brand-100">
+        <div className="flex items-center justify-between mb-3">
+          <div><p className="font-extrabold text-gray-900">Smart Workforce Insights</p><p className="text-xs text-gray-500">Hiring designed for local blue-collar and technical work</p></div>
+          <button onClick={() => setScreen('workers')} className="text-xs font-bold text-brand-600">Find workers</button>
+        </div>
+        <div className="space-y-2">
+          <div className="rounded-xl bg-white p-3"><p className="text-xs font-extrabold text-gray-900">Profile-first hiring</p><p className="text-xs text-gray-500 mt-1">ITI and diploma workers do not need a polished corporate CV. ShramaID highlights practical skills, credentials and past work instead.</p></div>
+          <div className="rounded-xl bg-white p-3"><p className="text-xs font-extrabold text-gray-900">Hyper-local matching</p><p className="text-xs text-gray-500 mt-1">Prioritise workers within a practical <b>5–15 km</b> radius, so local jobs can be filled without expecting low-wage workers to relocate.</p></div>
+          <div className="rounded-xl bg-white p-3"><p className="text-xs font-extrabold text-gray-900">Local businesses can hire directly</p><p className="text-xs text-gray-500 mt-1">Auto garages, small manufacturing units, electricians and other micro-enterprises can post requirements instead of relying only on posters or word-of-mouth.</p></div>
+          <div className="rounded-xl bg-white p-3"><p className="text-xs font-extrabold text-gray-900">Up-skilling bridge</p><p className="text-xs text-gray-500 mt-1">Workers can be connected to short courses and micro-credentials for modern machinery, solar PV, EV charging and other industry needs.</p></div>
+        </div>
+      </Card>
 
       <h2 className="text-sm font-bold text-gray-700 mb-3">Open Job Requirements</h2>
       <div className="space-y-2">

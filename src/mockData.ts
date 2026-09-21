@@ -207,13 +207,17 @@ export const initialConversations: Conversation[] = [
 ];
 
 export const initialContractorWorkers: ContractorWorker[] = [
-  { id: 'w1', name: 'Ravi Kumar', primarySkill: 'Mason', experience: '4 years', location: 'Mysuru', availability: 'Available', workCount: 28, verified: true, avatar: 'RK' },
-  { id: 'w2', name: 'Suresh Patel', primarySkill: 'Construction Helper', experience: '2 years', location: 'Mysuru', availability: 'Available', workCount: 15, verified: true, avatar: 'SP' },
-  { id: 'w3', name: 'Mahesh Yadav', primarySkill: 'Plastering', experience: '5 years', location: 'Mysuru', availability: 'Busy', workCount: 42, verified: true, avatar: 'MY' },
-  { id: 'w4', name: 'Lakshman Reddy', primarySkill: 'Tile Fitter', experience: '3 years', location: 'Mysuru', availability: 'Available', workCount: 20, verified: false, avatar: 'LR' },
-  { id: 'w5', name: 'Imran Khan', primarySkill: 'Mason', experience: '6 years', location: 'Mysuru', availability: 'Available', workCount: 50, verified: true, avatar: 'IK' },
-  { id: 'w6', name: 'Ganesh Naik', primarySkill: 'Construction Helper', experience: '1 year', location: 'Mysuru', availability: 'Available', workCount: 8, verified: false, avatar: 'GN' },
-  { id: 'w7', name: 'Arjun Singh', primarySkill: 'Plastering', experience: '3 years', location: 'Mysuru', availability: 'Busy', workCount: 25, verified: true, avatar: 'AS' },
+  { id: 'w1', category: 'labourer', name: 'Ravi Kumar', primarySkill: 'Mason', experience: '4 years', location: 'Mysuru', availability: 'Available', workCount: 28, verified: true, avatar: 'RK' },
+  { id: 'w2', category: 'labourer', name: 'Suresh Patel', primarySkill: 'Construction Helper', experience: '2 years', location: 'Mysuru', availability: 'Available', workCount: 15, verified: true, avatar: 'SP' },
+  { id: 'w3', category: 'labourer', name: 'Mahesh Yadav', primarySkill: 'Plastering', experience: '5 years', location: 'Mysuru', availability: 'Busy', workCount: 42, verified: true, avatar: 'MY' },
+  { id: 'w4', category: 'labourer', name: 'Lakshman Reddy', primarySkill: 'Tile Fitter', experience: '3 years', location: 'Mysuru', availability: 'Available', workCount: 20, verified: false, avatar: 'LR' },
+  { id: 'w5', category: 'labourer', name: 'Imran Khan', primarySkill: 'Mason', experience: '6 years', location: 'Mysuru', availability: 'Available', workCount: 50, verified: true, avatar: 'IK' },
+  { id: 'w6', category: 'labourer', name: 'Ganesh Naik', primarySkill: 'Construction Helper', experience: '1 year', location: 'Mysuru', availability: 'Available', workCount: 8, verified: false, avatar: 'GN' },
+  { id: 'w7', category: 'labourer', name: 'Arjun Singh', primarySkill: 'Plastering', experience: '3 years', location: 'Mysuru', availability: 'Busy', workCount: 25, verified: true, avatar: 'AS' },
+  { id: 'w8', category: 'skilledWorker', name: 'Ananya Rao', primarySkill: 'Chef', experience: '5 years', location: 'Mysuru', availability: 'Available', workCount: 36, verified: true, avatar: 'AR' },
+  { id: 'w9', category: 'skilledWorker', name: 'Vikram Shetty', primarySkill: 'Driver - Ola/Uber', experience: '6 years', location: 'Mysuru', availability: 'Available', workCount: 61, verified: true, avatar: 'VS' },
+  { id: 'w10', category: 'skilledWorker', name: 'Meera Nair', primarySkill: 'Hotel Management', experience: '4 years', location: 'Mysuru', availability: 'Available', workCount: 29, verified: true, avatar: 'MN' },
+  { id: 'w11', category: 'skilledWorker', name: 'Rahul Das', primarySkill: 'Electrician', experience: '7 years', location: 'Mysuru', availability: 'Busy', workCount: 48, verified: true, avatar: 'RD' },
 ];
 
 export const initialAttendance: AttendanceRow[] = [

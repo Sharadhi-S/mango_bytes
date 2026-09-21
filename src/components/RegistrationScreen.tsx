@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2, Globe2, Languages, UserRound, Brie
 import { useApp } from '@/AppContext';
 import { Card, Button, ScreenHeader } from './ui';
 import { LANGUAGES, type LangCode } from '@/i18n';
-import type { Role } from '@/types';
+import type { Role, Gender } from '@/types';
 
 const registrationCopy: Record<LangCode, Record<string, string>> = {
   en: { title: 'Registration', subtitle: 'Create your demo worker or contractor profile', chooseRole: 'Account type', labourer: 'Labourer', contractor: 'Contractor', language: 'Preferred language', fullName: 'Full name', phone: 'Mobile number', skill: 'Primary skill', experience: 'Experience', qualification: 'Qualification', languages: 'Languages spoken', location: 'Current location', wage: 'Expected monthly income', company: 'Company / business name', workers: 'Workers you manage', emergency: 'Emergency contact', example: 'Use example', continue: 'Create profile', back: 'Back', demo: 'Prototype only — no real registration, payments, insurance or payroll are processed.', skillExample: 'Example: Mason', nameExample: 'Example: Ravi Kumar', qualificationExample: 'Example: ITI / Diploma / Class 10', locationExample: 'Example: Mysuru, Karnataka', companyExample: 'Example: Kumar Constructions', emergencyExample: 'Example: Suresh Kumar — 9123456780', wageExample: 'Example: ₹18,000 / month', workersExample: 'Example: 12' },
@@ -18,7 +18,9 @@ const registrationCopy: Record<LangCode, Record<string, string>> = {
 const skillGroups = {
   'Construction': ['Mason', 'Construction Labour', 'Plumber', 'Electrician', 'Welder', 'Painter', 'Carpenter', 'Bar Bender', 'Tile Worker', 'Scaffolder', 'Roofer'],
   'Industrial': ['Industrial Labour', 'Factory Worker', 'Machine Operator', 'Fitter', 'Lathe Operator', 'Rigger', 'Industrial Electrician', 'Maintenance Technician', 'Production Worker'],
-  'Other': ['Driver', 'Helper', 'Loader', 'Security Guard'],
+  'Hospitality & Services': ['Chef', 'Hotel Management', 'Baker', 'Housekeeping', 'Barista', 'Beautician'],
+  'Transport & Delivery': ['Driver - Ola/Uber', 'Delivery Driver', 'Auto Driver', 'Truck Driver'],
+  'Other': ['Helper', 'Loader', 'Security Guard', 'Caregiver'],
 };
 const skills = Object.values(skillGroups).flat();
 
@@ -27,6 +29,7 @@ export function RegistrationScreen() {
   const [formRole, setFormRole] = useState<Role>(role ?? 'labourer');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [gender, setGender] = useState<Gender>('Prefer not to say');
   const [skill, setSkill] = useState('');
   const [customSkill, setCustomSkill] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -44,16 +47,17 @@ export function RegistrationScreen() {
   const selectedLanguage = useMemo(() => LANGUAGES.find((l) => l.code === lang), [lang]);
 
   const useExample = () => {
-    setName(formRole === 'labourer' ? 'Ravi Kumar' : 'Rajesh Kumar');
+    setName(formRole === 'labourer' ? 'Ravi Kumar' : formRole === 'skilledWorker' ? 'Ananya Sharma' : 'Rajesh Kumar');
     setPhone('9876543210');
-    setSkill(formRole === 'labourer' ? 'Mason' : 'Construction Supervisor');
+    setGender(formRole === 'skilledWorker' ? 'Female' : 'Male');
+    setSkill(formRole === 'labourer' ? 'Mason' : formRole === 'skilledWorker' ? 'Chef' : 'Construction Supervisor');
     setCustomSkill('');
-    setAdditionalSkills(formRole === 'labourer' ? 'Tile Worker, Bar Bender' : 'Site Management, Safety Supervision');
+    setAdditionalSkills(formRole === 'labourer' ? 'Tile Worker, Bar Bender' : formRole === 'skilledWorker' ? 'Indian Cuisine, Food Safety' : 'Site Management, Safety Supervision');
     setExperience('4 years');
-    setQualification(formRole === 'labourer' ? 'ITI - Civil' : 'Diploma in Civil Engineering');
+    setQualification(formRole === 'labourer' ? 'ITI - Civil' : formRole === 'skilledWorker' ? 'Hotel Management Certificate' : 'Diploma in Civil Engineering');
     setSpokenLanguages('Kannada, Hindi, English');
     setLocation('Mysuru, Karnataka');
-    setMonthlyIncome(formRole === 'labourer' ? '18000' : '45000');
+    setMonthlyIncome(formRole === 'labourer' ? '18000' : formRole === 'skilledWorker' ? '24000' : '45000');
     setCompany('Kumar Constructions');
     setWorkers('12');
     setEmergency('Suresh Kumar - 9123456780');
@@ -90,14 +94,14 @@ export function RegistrationScreen() {
     setWorkerSkill(result.selectedSkill);
     setMonthlySalary(salary || 0);
     setRegistrationProfile({
-      name: name.trim(), phone: phone.trim(), primarySkill: result.selectedSkill, skills: Array.from(new Set(skills)),
+      name: name.trim(), phone: phone.trim(), gender, category: formRole === 'skilledWorker' ? 'skilledWorker' : 'labourer', primarySkill: result.selectedSkill, skills: Array.from(new Set(skills)),
       experience: experience.trim(), qualification: qualification.trim(),
       languages: spokenLanguages.split(',').map((item) => item.trim()).filter(Boolean), location: location.trim(),
       monthlyIncome: salary || 0, company: company.trim() || undefined, workersManaged: Number(workers) || undefined,
       emergencyContact: emergency.trim(),
     });
-    showToast('Demo profile created — no real data was submitted.');
-    setScreen('home');
+    showToast('Demo profile created — your ShramaID is ready.');
+    setScreen(formRole === 'labourer' || formRole === 'skilledWorker' ? 'shramId' : 'home');
   };
 
   return (
@@ -123,7 +127,7 @@ export function RegistrationScreen() {
 
       <Card className="p-4 mb-4">
         <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">{c.chooseRole}</p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <button onClick={() => setFormRole('labourer')} className={`p-4 rounded-2xl border text-left ${formRole === 'labourer' ? 'border-brand-500 bg-brand-50' : 'border-gray-200 bg-white'}`}>
             <UserRound size={20} className={formRole === 'labourer' ? 'text-brand-600' : 'text-gray-400'} />
             <p className="font-bold text-gray-900 mt-2">{c.labourer}</p>
@@ -131,6 +135,11 @@ export function RegistrationScreen() {
           <button onClick={() => setFormRole('contractor')} className={`p-4 rounded-2xl border text-left ${formRole === 'contractor' ? 'border-accent-500 bg-accent-50' : 'border-gray-200 bg-white'}`}>
             <BriefcaseBusiness size={20} className={formRole === 'contractor' ? 'text-accent-600' : 'text-gray-400'} />
             <p className="font-bold text-gray-900 mt-2">{c.contractor}</p>
+          </button>
+          <button onClick={() => setFormRole('skilledWorker')} className={`p-4 rounded-2xl border text-left ${formRole === 'skilledWorker' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white'}`}>
+            <BriefcaseBusiness size={20} className={formRole === 'skilledWorker' ? 'text-purple-600' : 'text-gray-400'} />
+            <p className="font-bold text-gray-900 mt-2">Skilled Worker</p>
+            <p className="text-xs text-gray-500 mt-1">Chef, driver, hotel & other skilled jobs</p>
           </button>
         </div>
       </Card>
@@ -142,6 +151,15 @@ export function RegistrationScreen() {
       <Card className="p-5 space-y-4">
         <Field label={c.fullName} icon={<UserRound size={16} />} value={name} onChange={(value) => { setName(value); setErrors((prev) => ({ ...prev, name: '' })); }} placeholder={c.nameExample} error={errors.name} />
         <Field label={c.phone} icon={<Phone size={16} />} value={phone} onChange={(value) => { setPhone(value.replace(/\D/g, '').slice(0, 10)); setErrors((prev) => ({ ...prev, phone: '' })); }} placeholder="Example: 9876543210" inputMode="tel" maxLength={10} error={errors.phone} />
+        <div>
+          <label className="block text-xs font-bold text-gray-600 mb-1.5">Gender</label>
+          <select value={gender} onChange={(e) => setGender(e.target.value as Gender)} className="w-full px-3.5 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-400">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Non-binary">Non-binary</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </div>
         <div>
           <label className="block text-xs font-bold text-gray-600 mb-1.5"><span className="inline-flex items-center gap-1.5"><BriefcaseBusiness size={16} />{c.skill}</span></label>
           <select value={skill} onChange={(e) => { setSkill(e.target.value); setErrors((prev) => ({ ...prev, skill: '' })); }} className={`w-full px-3.5 py-3 rounded-xl border ${errors.skill ? 'border-error-400 bg-error-50' : 'border-gray-200 bg-gray-50'} text-sm text-gray-900 outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-400`}>
