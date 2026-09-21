@@ -11,6 +11,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useApp } from '@/AppContext';
+import { getShramaId } from './ShramaIDScreen';
 import { Card, ScreenHeader, Badge, Button, ProgressBar, formatINR } from './ui';
 import { workerProfile } from '@/mockData';
 
@@ -57,6 +58,14 @@ export function ProfileScreen() {
           <Detail label="Qualification" value={profile?.qualification || 'Not provided'} />
           <Detail label="Monthly income" value={profile?.monthlyIncome ? formatINR(profile.monthlyIncome) : 'Not provided'} />
           <Detail label="Emergency contact" value={profile?.emergencyContact || 'Not provided'} />
+        </div>
+      </Card>
+
+      {/* Profile basics */}
+      <Card className="p-4 mb-5 animate-slide-up">
+        <div className="grid grid-cols-2 gap-3">
+          <div><p className="text-xs font-semibold text-gray-400">Gender</p><p className="font-bold text-gray-900 mt-1">{profile?.gender || 'Not provided'}</p></div>
+          <button onClick={() => setScreen('shramId')} className="text-left rounded-xl p-2 -m-2 hover:bg-brand-50 transition-colors"><p className="text-xs font-semibold text-gray-400">ShramaID</p><p className="font-bold text-brand-700 mt-1">{getShramaId(profile?.name, profile?.phone)}</p><p className="text-[10px] text-brand-600 font-bold mt-1">Open ShramaID →</p></button>
         </div>
       </Card>
 

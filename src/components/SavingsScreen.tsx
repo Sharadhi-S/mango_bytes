@@ -13,6 +13,8 @@ import {
   ShieldCheck,
   Smartphone,
   Wallet,
+  PiggyBank,
+  Sparkles,
   X,
 } from 'lucide-react';
 import { useApp } from '@/AppContext';
@@ -54,6 +56,10 @@ export function SavingsScreen() {
   const demoName = registrationProfile?.name?.split(' ')[0] || 'Worker';
   const primaryBankBalance = Math.max(0, workerStats.availableBalance + workerStats.emergencySavings);
   const recent = earnings.slice(0, 3);
+  const todayEarnings = earnings.find((item) => item.date === 'Today')?.amount ?? 0;
+  // Demo rule: low-income day = 0%; stronger day = 2%; very good day = 3%.
+  const smartSavingsRate = todayEarnings < 700 ? 0 : todayEarnings < 1500 ? 0.02 : 0.03;
+  const smartSavingsAmount = Math.round(todayEarnings * smartSavingsRate);
 
   return (
     <div className="px-5 pt-6 pb-28 max-w-2xl mx-auto">
@@ -162,6 +168,30 @@ export function SavingsScreen() {
             </div>
           ))}
           {!recent.length && <p className="text-sm text-gray-400 text-center py-3">No activity yet.</p>}
+        </div>
+      </Card>
+
+      <h2 className="text-sm font-bold text-gray-700 mb-3">Smart Savings</h2>
+      <Card className="p-5 mb-5 border border-brand-100 bg-brand-50/60 animate-slide-up">
+        <div className="flex items-start gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-white text-brand-600 flex items-center justify-center shrink-0"><PiggyBank size={22} /></div>
+          <div className="flex-1">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-extrabold text-gray-900">Automatic savings from today's earnings</p>
+                <p className="text-xs text-gray-500 mt-1">No fixed deduction. The amount changes with how much you earned today.</p>
+              </div>
+              <span className="shrink-0 px-2.5 py-1 rounded-full bg-brand-100 text-brand-700 text-xs font-extrabold">{smartSavingsRate * 100}%</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="rounded-2xl bg-white p-3"><p className="text-[11px] text-gray-400 font-semibold">Today's earnings</p><p className="text-lg font-extrabold text-gray-900 mt-1">{formatINR(todayEarnings)}</p></div>
+              <div className="rounded-2xl bg-white p-3"><p className="text-[11px] text-gray-400 font-semibold">Auto-saved today</p><p className="text-lg font-extrabold text-accent-600 mt-1">{formatINR(smartSavingsAmount)}</p></div>
+            </div>
+            <div className="mt-3 flex items-start gap-2 text-xs text-gray-600">
+              <Sparkles size={15} className="text-brand-600 shrink-0 mt-0.5" />
+              <p>{smartSavingsRate === 0 ? 'Today is treated as a low-income day, so nothing is deducted for savings.' : smartSavingsRate === 0.02 ? 'Today is a stronger earning day, so 2% is automatically moved to savings.' : 'Today is a very good earning day, so 3% is automatically moved to savings.'}</p>
+            </div>
+          </div>
         </div>
       </Card>
 

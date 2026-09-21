@@ -1,4 +1,4 @@
-import { HardHat, Building2, ArrowRight } from 'lucide-react';
+import { HardHat, Building2, ArrowRight, ChefHat } from 'lucide-react';
 import { useApp } from '@/AppContext';
 
 export function RoleSelect() {
@@ -48,6 +48,22 @@ export function RoleSelect() {
               <p className="text-sm text-gray-500 mt-0.5">Hire workers, manage attendance & wages</p>
             </div>
             <ArrowRight size={22} className="text-gray-300 group-hover:text-accent-500 group-hover:translate-x-1 transition-all" />
+          </div>
+        </button>
+
+        <button
+          onClick={() => { setRole('skilledWorker'); setScreen('register'); }}
+          className="w-full group bg-white rounded-3xl p-6 shadow-card hover:shadow-card-hover transition-all active:scale-[0.98] text-left"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-100 transition-colors">
+              <ChefHat size={32} strokeWidth={2} />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-bold text-gray-900">I am a Skilled Worker</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Chef, driver, hotel, delivery & other skills</p>
+            </div>
+            <ArrowRight size={22} className="text-gray-300 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
           </div>
         </button>
       </div>

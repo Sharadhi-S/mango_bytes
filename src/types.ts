@@ -1,4 +1,4 @@
-export type Role = 'labourer' | 'contractor';
+export type Role = 'labourer' | 'contractor' | 'skilledWorker';
 
 export type ScreenId =
   | 'home'
@@ -12,13 +12,19 @@ export type ScreenId =
   | 'attendance'
   | 'wages'
   | 'register'
-  | 'insurance';
+  | 'insurance'
+  | 'homeWork'
+  | 'shramId';
 
+
+export type Gender = 'Male' | 'Female' | 'Non-binary' | 'Prefer not to say';
 
 export interface RegistrationProfile {
   name: string;
   phone: string;
+  gender: Gender;
   primarySkill: string;
+  category?: 'labourer' | 'skilledWorker';
   skills: string[];
   experience: string;
   qualification: string;
@@ -94,6 +100,7 @@ export interface WorkerProfile {
 
 export interface ContractorWorker {
   id: string;
+  category: 'labourer' | 'skilledWorker';
   name: string;
   primarySkill: string;
   experience: string;

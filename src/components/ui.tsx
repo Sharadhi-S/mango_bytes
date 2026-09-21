@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { useApp } from '@/AppContext';
 
 export function Card({
   children,
@@ -128,11 +130,26 @@ export function ProgressBar({ value, max, colorClass = 'bg-brand-500' }: { value
   );
 }
 
-export function ScreenHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+export function ScreenHeader({ title, subtitle, showBack = true }: { title: string; subtitle?: string; showBack?: boolean }) {
+  const { goBack } = useApp();
   return (
     <div className="mb-5 animate-slide-up">
-      <h1 className="text-2xl font-extrabold text-gray-900">{title}</h1>
-      {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+      <div className="flex items-start gap-3">
+        {showBack && (
+          <button
+            type="button"
+            onClick={goBack}
+            aria-label="Go back"
+            className="mt-0.5 w-10 h-10 shrink-0 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center hover:bg-gray-200 active:scale-95 transition-all"
+          >
+            <ArrowLeft size={19} />
+          </button>
+        )}
+        <div className="min-w-0">
+          <h1 className="text-2xl font-extrabold text-gray-900">{title}</h1>
+          {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+        </div>
+      </div>
     </div>
   );
 }

@@ -43,6 +43,7 @@ interface AppContextValue {
   setRole: (r: Role | null) => void;
   screen: ScreenId;
   setScreen: (s: ScreenId) => void;
+  goBack: () => void;
   lang: LangCode;
   setLang: (l: LangCode) => void;
   t: (key: string) => string;
@@ -62,6 +63,7 @@ interface AppContextValue {
   saveMoney: (goalId: string, amount: number) => void;
   applyJob: (jobId: string) => void;
   sendMessage: (conversationId: string, text: string) => void;
+  markConversationRead: (conversationId: string) => void;
   transferToBank: () => void;
 
   // contractor state
@@ -82,12 +84,38 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [role, setRole] = useState<Role | null>(null);
-  const [screen, setScreen] = useState<ScreenId>('home');
+  const [role, setRoleState] = useState<Role | null>(null);
+  const [screen, setScreenState] = useState<ScreenId>('home');
+  const [screenHistory, setScreenHistory] = useState<ScreenId[]>([]);
+
+  const setRole = useCallback((nextRole: Role | null) => {
+    setRoleState(nextRole);
+    setScreenHistory([]);
+  }, []);
   const [workerSkill, setWorkerSkill] = useState('Mason');
   const [monthlySalary, setMonthlySalary] = useState(18000);
   const [registrationProfile, setRegistrationProfile] = useState<RegistrationProfile | null>(null);
   const [lang, setLang] = useState<LangCode>('en');
+
+  const setScreen = useCallback((next: ScreenId) => {
+    setScreenState((current) => {
+      if (current === next) return current;
+      setScreenHistory((history) => [...history, current]);
+      return next;
+    });
+  }, []);
+
+  const goBack = useCallback(() => {
+    setScreenHistory((history) => {
+      if (!history.length) {
+        setScreenState('home');
+        return history;
+      }
+      const previous = history[history.length - 1];
+      setScreenState(previous);
+      return history.slice(0, -1);
+    });
+  }, []);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [voiceActive, setVoiceActive] = useState(false);
   const [voiceText, setVoiceText] = useState('');
@@ -150,6 +178,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   }, [role]);
 
+  const markConversationRead = useCallback((conversationId: string) => {
+    setConversations((prev) =>
+      prev.map((conversation) => conversation.id === conversationId ? { ...conversation, unread: 0 } : conversation)
+    );
+  }, []);
+
   const transferToBank = useCallback(() => {
     showToast(translate(lang, 'toastTransferBank'));
     setTimeout(() => showToast(translate(lang, 'toastTransferDone')), 1000);
@@ -180,6 +214,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setRole,
         screen,
         setScreen,
+        goBack,
         lang,
         setLang,
         t,
@@ -197,6 +232,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         saveMoney,
         applyJob,
         sendMessage,
+        markConversationRead,
         transferToBank,
         attendance,
         wages,
