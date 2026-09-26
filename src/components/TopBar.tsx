@@ -2,7 +2,7 @@ import { HardHat, Building2, Bell, ChefHat } from 'lucide-react';
 import { useApp } from '@/AppContext';
 
 export function TopBar() {
-  const { role, conversations, registrationProfile } = useApp();
+  const { role, conversations, registrationProfile, setScreen } = useApp();
   const unread = conversations.reduce((s, c) => s + c.unread, 0);
   const initials = registrationProfile?.name
     ? registrationProfile.name.split(' ').filter(Boolean).map((part) => part[0]).slice(0, 2).join('').toUpperCase()
@@ -24,9 +24,13 @@ export function TopBar() {
               <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-error-500 ring-2 ring-white" />
             )}
           </button>
-          <div className={`w-8 h-8 rounded-full ${role === 'labourer' ? 'bg-brand-100 text-brand-700' : role === 'skilledWorker' ? 'bg-purple-100 text-purple-700' : 'bg-accent-100 text-accent-700'} flex items-center justify-center text-sm font-bold`}>
+          <button
+            onClick={() => setScreen('profile')}
+            className={`w-8 h-8 rounded-full ${role === 'labourer' ? 'bg-brand-100 text-brand-700' : role === 'skilledWorker' ? 'bg-purple-100 text-purple-700' : 'bg-accent-100 text-accent-700'} flex items-center justify-center text-sm font-bold active:scale-95 transition-transform`}
+            aria-label="Open profile"
+          >
             {initials}
-          </div>
+          </button>
         </div>
       </div>
     </header>
