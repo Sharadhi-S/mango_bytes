@@ -16,17 +16,69 @@ import {
   MapPin,
   X,
   Home,
+  CheckCircle2,
+  XCircle,
+  Building2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from '@/AppContext';
 import { Card, ScreenHeader, formatINR } from './ui';
 import { contractorStats } from '@/mockData';
 
+interface EmployerRequest {
+  id: string;
+  tenderId: string;
+  tenderTitle: string;
+  location: string;
+  budget: number;
+  scopeDescription: string;
+  status: 'pending' | 'accepted' | 'declined';
+  employer: { name: string; company: string };
+}
+
 export function ContractorDashboard({ showProfileInitially = false }: { showProfileInitially?: boolean }) {
-  const { setScreen, setRole, wages, postedJobs, attendance, registrationProfile, role } = useApp();
+  const { setScreen, setRole, wages, postedJobs, attendance, registrationProfile, role, showToast } = useApp();
   const [showProfile, setShowProfile] = useState(showProfileInitially);
   const [showSwitchUser, setShowSwitchUser] = useState(false);
+  const [employerRequests, setEmployerRequests] = useState<EmployerRequest[]>([]);
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const roleLabel = role === 'employer' ? 'Employer' : 'Contractor';
+
+  useEffect(() => {
+    if (role !== 'contractor') return;
+    let active = true;
+    fetch('/api/contractor-links/inbox')
+      .then(async (response) => {
+        const result = await response.json() as { links?: EmployerRequest[]; error?: string };
+        if (!response.ok) throw new Error(result.error || 'Could not load employer requests.');
+        return result.links || [];
+      })
+      .then((links) => {
+        if (active) setEmployerRequests(links);
+      })
+      .catch(() => {
+        if (active) setEmployerRequests([]);
+      });
+    return () => { active = false; };
+  }, [role]);
+
+  const respondToEmployer = async (requestId: string, status: 'accepted' | 'declined') => {
+    setRespondingTo(requestId);
+    try {
+      const response = await fetch(`/api/contractor-links/${requestId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || 'Could not update employer request.');
+      setEmployerRequests((previous) => previous.map((request) => request.id === requestId ? { ...request, status } : request));
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Could not update employer request.');
+    } finally {
+      setRespondingTo(null);
+    }
+  };
 
   const pendingWages = wages.filter((w) => w.status === 'pending').reduce((s, w) => s + w.totalEarned, 0);
   const presentCount = attendance.filter((a) => a.status === 'present').length;
@@ -224,6 +276,40 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
           );
         })}
       </div>
+
+      {role === 'contractor' && employerRequests.length > 0 && (
+        <section className="mb-6 space-y-3" aria-labelledby="employer-requests-title">
+          <h2 id="employer-requests-title" className="text-sm font-bold text-gray-700">Employer Requests</h2>
+          {employerRequests.map((request) => (
+            <Card key={request.id} className="p-4 border border-brand-100">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Building2 size={15} className="text-brand-600" />
+                    <p className="text-xs font-bold text-brand-700">{request.employer.company}</p>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${request.status === 'accepted' ? 'bg-accent-100 text-accent-700' : request.status === 'declined' ? 'bg-error-100 text-error-700' : 'bg-warning-100 text-warning-700'}`}>
+                      {request.status === 'pending' ? 'Pending' : request.status === 'accepted' ? 'Accepted' : 'Declined'}
+                    </span>
+                  </div>
+                  <h3 className="mt-1 text-sm font-extrabold text-gray-900">{request.tenderTitle}</h3>
+                  <p className="mt-1 text-xs text-gray-500">{request.location} · {formatINR(request.budget)}</p>
+                  {request.scopeDescription && <p className="mt-2 text-xs text-gray-600">{request.scopeDescription}</p>}
+                </div>
+                {request.status === 'pending' && (
+                  <div className="flex shrink-0 gap-2">
+                    <button disabled={respondingTo === request.id} onClick={() => respondToEmployer(request.id, 'accepted')} className="flex items-center gap-1 rounded-lg bg-accent-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-60">
+                      <CheckCircle2 size={14} /> Accept
+                    </button>
+                    <button disabled={respondingTo === request.id} onClick={() => respondToEmployer(request.id, 'declined')} className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold text-gray-600 disabled:opacity-60">
+                      <XCircle size={14} /> Decline
+                    </button>
+                  </div>
+                )}
+              </div>
+            </Card>
+          ))}
+        </section>
+      )}
 
       <h2 className="text-sm font-bold text-gray-700 mb-3">Quick Actions</h2>
       <div className="flex gap-2 overflow-x-auto no-scrollbar mb-6 -mx-5 px-5 lg:mx-0 lg:px-0">

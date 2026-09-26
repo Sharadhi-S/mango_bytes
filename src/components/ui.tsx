@@ -28,9 +28,11 @@ export function Button({
   size = 'md',
   className = '',
   disabled = false,
+  type = 'button',
 }: {
   children: ReactNode;
   onClick?: () => void;
+  type?: 'button' | 'submit' | 'reset';
   variant?: 'primary' | 'secondary' | 'ghost' | 'success' | 'danger' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -51,6 +53,7 @@ export function Button({
   };
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled}
       className={`font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${variants[variant]} ${sizes[size]} ${className}`}

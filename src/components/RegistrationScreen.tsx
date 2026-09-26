@@ -26,7 +26,7 @@ const skillGroups = {
 const skills = Object.values(skillGroups).flat();
 
 export function RegistrationScreen() {
-  const { role, setRole, setScreen, lang, setLang, setWorkerSkill, setMonthlySalary, setRegistrationProfile, showToast, showWellbeingAlertNow } = useApp();
+  const { role, setRole, setScreen, lang, setLang, setRegistrationProfile, showToast, showWellbeingAlertNow } = useApp();
   const [formRole, setFormRole] = useState<Role>(role ?? 'labourer');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -51,6 +51,7 @@ export function RegistrationScreen() {
   const [upiId, setUpiId] = useState('');
   const [savingsRate, setSavingsRate] = useState(1);
   const [savingsBank, setSavingsBank] = useState('AU Small Finance Bank');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const c = registrationCopy[lang];
   const skilledWorkerLabel: Record<string, string> = { en: 'Skilled Worker', hi: 'कुशल कामगार', kn: 'ಕುಶಲ ಕಾರ್ಮಿಕ', ta: 'திறமையான தொழிலாளர்', te: 'నైపుణ్య కార్మికుడు', mr: 'कुशल कामगार', bn: 'দক্ষ কর্মী' };
@@ -84,6 +85,7 @@ export function RegistrationScreen() {
     const selectedSkill = skill === 'Other' ? customSkill.trim() : skill.trim();
 
     if (!nameValue) next.name = 'Name is required.';
+    else if (nameValue.length < 2) next.name = 'Name must be at least 2 characters.';
     else if (!/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u.test(nameValue)) next.name = 'Name should contain letters and spaces only.';
 
     if (!/^\d{10}$/.test(phoneValue)) next.phone = 'Mobile number must be exactly 10 digits.';
@@ -100,7 +102,8 @@ export function RegistrationScreen() {
     return { valid: Object.keys(next).length === 0, selectedSkill };
   };
 
-  const submit = () => {
+  const submit = async () => {
+    if (isSubmitting) return;
     const result = validate();
     if (!result.valid) {
       showToast('Please correct the highlighted registration fields.');
@@ -108,9 +111,6 @@ export function RegistrationScreen() {
     }
     const skills = [result.selectedSkill, ...additionalSkills.split(',').map((s) => s.trim()).filter(Boolean)].filter(Boolean);
     const salary = Number(monthlyIncome);
-    setRole(formRole);
-    setWorkerSkill(result.selectedSkill);
-    setMonthlySalary(salary || 0);
     const profile: RegistrationProfile = {
       name: name.trim(), phone: phone.trim(), gender, category: formRole === 'skilledWorker' ? 'skilledWorker' : 'labourer', primarySkill: result.selectedSkill, skills: Array.from(new Set(skills)),
       experience: experience.trim(), qualification: qualification.trim(),
@@ -118,18 +118,25 @@ export function RegistrationScreen() {
       monthlyIncome: salary || 0, company: company.trim() || undefined, workersManaged: Number(workers) || undefined,
       emergencyContact: emergency.trim(),
     };
-    setRegistrationProfile(profile, { showWellbeing: false });
-    const account = { shramaId: getShramaId(profile.name, profile.phone), phone: profile.phone, role: formRole, profile, lang };
-    const accounts = JSON.parse(localStorage.getItem('shrama-accounts') || '[]');
-    const nextAccounts = [...accounts.filter((a: any) => a.shramaId !== account.shramaId), account];
-    localStorage.setItem('shrama-accounts', JSON.stringify(nextAccounts));
-    localStorage.setItem('shrama-demo-account', JSON.stringify(account));
-    showToast('Demo profile created — your ShramaID is ready.');
-    if (formRole === 'skilledWorker') {
-      setSkilledPaymentOpen(true);
-      return;
+    setIsSubmitting(true);
+    try {
+      await setRegistrationProfile(profile, { showWellbeing: false, accountRole: formRole });
+      const account = { shramaId: getShramaId(profile.name, profile.phone), phone: profile.phone, role: formRole, profile, lang };
+      const accounts = JSON.parse(localStorage.getItem('shrama-accounts') || '[]');
+      const nextAccounts = [...accounts.filter((a: any) => a.shramaId !== account.shramaId || a.role !== account.role), account];
+      localStorage.setItem('shrama-accounts', JSON.stringify(nextAccounts));
+      localStorage.setItem('shrama-demo-account', JSON.stringify(account));
+      showToast('Demo profile created — your ShramaID is ready.');
+      if (formRole === 'skilledWorker') {
+        setSkilledPaymentOpen(true);
+        return;
+      }
+      setScreen(formRole === 'labourer' ? 'shramId' : 'home');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Registration failed.');
+    } finally {
+      setIsSubmitting(false);
     }
-    setScreen(formRole === 'labourer' ? 'shramId' : 'home');
   };
 
   return (
@@ -271,7 +278,7 @@ export function RegistrationScreen() {
 
       <div className="flex gap-3 mt-5">
         <Button variant="ghost" className="flex-1" onClick={() => { setRole(null); setScreen('home'); }}><ArrowLeft size={16} className="mr-2" />{c.back}</Button>
-        <Button className="flex-[2]" onClick={submit}>{c.continue}<ArrowRight size={16} className="ml-2" /></Button>
+        <Button className="flex-[2]" onClick={submit} disabled={isSubmitting}>{isSubmitting ? 'Creating profile...' : c.continue}<ArrowRight size={16} className="ml-2" /></Button>
       </div>
 
       {skilledPaymentOpen && (

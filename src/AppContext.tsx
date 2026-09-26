@@ -13,6 +13,7 @@ import type {
   RegistrationProfile,
   WorkerAvailability,
   DailyWorkStatus,
+  ThemeMode,
   Tender,
   TenderWorkforceItem,
   WorkforcePlan,
@@ -53,7 +54,25 @@ interface Toast {
   message: string;
 }
 
+interface AccountSnapshot {
+  role: Role;
+  profile: RegistrationProfile;
+  savingsGoals: SavingsGoal[];
+  workerStats: WorkerStats;
+  workerData?: WorkerAccountData | null;
+}
+
+interface WorkerAccountData {
+  jobs: JobListing[];
+  earnings: EarningEntry[];
+  conversations: Conversation[];
+  availability: WorkerAvailability;
+  dailyWorkStatus: DailyWorkStatus;
+}
+
 interface AppContextValue {
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
   role: Role | null;
   setRole: (r: Role | null) => void;
   screen: ScreenId;
@@ -75,10 +94,10 @@ interface AppContextValue {
   jobs: JobListing[];
   conversations: Conversation[];
   workerStats: WorkerStats;
-  saveMoney: (goalId: string, amount: number) => void;
-  applyJob: (jobId: string) => void;
-  sendMessage: (conversationId: string, text: string, attachment?: ChatMessage['attachment']) => void;
-  markConversationRead: (conversationId: string) => void;
+  saveMoney: (goalId: string, amount: number) => Promise<void>;
+  applyJob: (jobId: string) => Promise<void>;
+  sendMessage: (conversationId: string, text: string, attachment?: ChatMessage['attachment']) => Promise<void>;
+  markConversationRead: (conversationId: string) => Promise<void>;
   transferToBank: () => void;
 
   // contractor state
@@ -93,12 +112,18 @@ interface AppContextValue {
   monthlySalary: number;
   setMonthlySalary: (salary: number) => void;
   registrationProfile: RegistrationProfile | null;
-  setRegistrationProfile: (profile: RegistrationProfile, options?: { showWellbeing?: boolean }) => void;
+  setRegistrationProfile: (profile: RegistrationProfile, options?: {
+    showWellbeing?: boolean;
+    accountRole?: Role;
+    signIn?: boolean;
+    shramaId?: string;
+  }) => Promise<void>;
+  signInAccount: (shramaId: string, phone: string, accountRole: Role) => Promise<RegistrationProfile>;
   showWellbeingAlertNow: () => void;
   availability: WorkerAvailability;
   dailyWorkStatus: DailyWorkStatus;
-  setAvailability: (value: WorkerAvailability) => void;
-  setDailyWorkStatus: (value: DailyWorkStatus) => void;
+  setAvailability: (value: WorkerAvailability) => Promise<void>;
+  setDailyWorkStatus: (value: DailyWorkStatus) => Promise<void>;
   wellbeingAlertOpen: boolean;
   dismissWellbeingAlert: () => void;
   // employer real-time state
@@ -126,8 +151,20 @@ interface AppContextValue {
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
+const workerRoles = new Set<Role>(['labourer', 'skilledWorker']);
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
+    const storedTheme = localStorage.getItem('shrama-theme');
+    const initialTheme: ThemeMode = storedTheme === 'dark' || storedTheme === 'high-contrast' ? storedTheme : 'light';
+    document.documentElement.dataset.theme = initialTheme;
+    return initialTheme;
+  });
+  const setTheme = useCallback((nextTheme: ThemeMode) => {
+    setThemeState(nextTheme);
+    localStorage.setItem('shrama-theme', nextTheme);
+    document.documentElement.dataset.theme = nextTheme;
+  }, []);
   const [role, setRoleState] = useState<Role | null>(null);
   const [screen, setScreenState] = useState<ScreenId>('home');
   const [screenHistory, setScreenHistory] = useState<ScreenId[]>([]);
@@ -139,8 +176,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [workerSkill, setWorkerSkill] = useState('Mason');
   const [monthlySalary, setMonthlySalary] = useState(18000);
   const [registrationProfile, setRegistrationProfileState] = useState<RegistrationProfile | null>(null);
-  const [availability, setAvailability] = useState<WorkerAvailability>('available');
-  const [dailyWorkStatus, setDailyWorkStatus] = useState<DailyWorkStatus>('workDone');
+  const [availability, setAvailabilityState] = useState<WorkerAvailability>('available');
+  const [dailyWorkStatus, setDailyWorkStatusState] = useState<DailyWorkStatus>('workDone');
   const [wellbeingAlertOpen, setWellbeingAlertOpen] = useState(false);
 
   const wellbeingIntervalMs = 20 * 60 * 1000;
@@ -152,10 +189,76 @@ export function AppProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(wellbeingStorageKey, String(now));
   }, []);
 
-  const setRegistrationProfile = useCallback((profile: RegistrationProfile, options?: { showWellbeing?: boolean }) => {
-    setRegistrationProfileState(profile);
+  const setRegistrationProfile = useCallback(async (profile: RegistrationProfile, options?: {
+    showWellbeing?: boolean;
+    accountRole?: Role;
+    signIn?: boolean;
+    shramaId?: string;
+  }) => {
+    const accountRole = options?.accountRole ?? role;
+    if (!accountRole) throw new Error('Choose an account type before continuing.');
+    const workerSeed = workerRoles.has(accountRole) ? {
+      jobs: initialJobs,
+      earnings: initialEarnings,
+      conversations: initialConversations,
+      availability: 'available' as const,
+      dailyWorkStatus: 'workDone' as const,
+    } : undefined;
+    let response = await fetch(options?.signIn ? '/api/signin' : '/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(options?.signIn
+        ? { shramaId: options.shramaId, phone: profile.phone, role: accountRole }
+        : { role: accountRole, profile, workerData: workerSeed }),
+    });
+    if (options?.signIn && response.status === 401) {
+      response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: accountRole, profile, workerData: workerSeed }),
+      });
+    }
+    const result = await response.json() as { account?: AccountSnapshot; error?: string };
+    if (!response.ok || !result.account) throw new Error(result.error || 'Could not save your account.');
+    setRoleState(result.account.role);
+    setRegistrationProfileState(result.account.profile);
+    setWorkerSkill(result.account.profile.primarySkill);
+    setMonthlySalary(result.account.profile.monthlyIncome);
+    setSavingsGoals(result.account.savingsGoals);
+    setWorkerStats(result.account.workerStats);
+    if (result.account.workerData) {
+      setJobs(result.account.workerData.jobs);
+      setEarningsState(result.account.workerData.earnings);
+      setConversations(result.account.workerData.conversations);
+      setAvailabilityState(result.account.workerData.availability);
+      setDailyWorkStatusState(result.account.workerData.dailyWorkStatus);
+    }
     if (options?.showWellbeing !== false) showWellbeingAlertNow();
-  }, [showWellbeingAlertNow]);
+  }, [role, showWellbeingAlertNow]);
+
+  const signInAccount = useCallback(async (shramaId: string, phone: string, accountRole: Role) => {
+    const response = await fetch('/api/signin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ shramaId, phone, role: accountRole }),
+    });
+    const result = await response.json() as { account?: AccountSnapshot; error?: string };
+    if (!response.ok || !result.account) throw new Error(result.error || 'Sign in failed.');
+    setRoleState(result.account.role);
+    setRegistrationProfileState(result.account.profile);
+    setWorkerSkill(result.account.profile.primarySkill);
+    setMonthlySalary(result.account.profile.monthlyIncome);
+    setSavingsGoals(result.account.savingsGoals);
+    setWorkerStats(result.account.workerStats);
+    if (result.account.workerData) {
+      setJobs(result.account.workerData.jobs);
+      setEarningsState(result.account.workerData.earnings);
+      setConversations(result.account.workerData.conversations);
+      setAvailabilityState(result.account.workerData.availability);
+      setDailyWorkStatusState(result.account.workerData.dailyWorkStatus);
+    }
+    return result.account.profile;
+  }, []);
 
   useEffect(() => {
     if (!registrationProfile) return;
@@ -352,7 +455,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [voiceActive, setVoiceActive] = useState(false);
   const [voiceText, setVoiceText] = useState('');
 
-  const [earnings] = useState<EarningEntry[]>(initialEarnings);
+  const [earnings, setEarningsState] = useState<EarningEntry[]>(initialEarnings);
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(initialSavingsGoals);
   const [jobs, setJobs] = useState<JobListing[]>(initialJobs);
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
@@ -372,6 +475,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }, 3000);
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    fetch('/api/session')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Could not restore account session.');
+        return response.json() as Promise<{ account: AccountSnapshot | null }>;
+      })
+      .then(({ account }) => {
+        if (!active || !account) return;
+        setRoleState(account.role);
+        setRegistrationProfileState(account.profile);
+        setWorkerSkill(account.profile.primarySkill);
+        setMonthlySalary(account.profile.monthlyIncome);
+        setSavingsGoals(account.savingsGoals);
+        setWorkerStats(account.workerStats);
+        if (account.workerData) {
+          setJobs(account.workerData.jobs);
+          setEarningsState(account.workerData.earnings);
+          setConversations(account.workerData.conversations);
+          setAvailabilityState(account.workerData.availability);
+          setDailyWorkStatusState(account.workerData.dailyWorkStatus);
+        }
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
   const playVoice = useCallback((text?: string) => {
     const narration = text || translate(lang, 'voiceIntro');
     setVoiceText(narration);
@@ -382,39 +512,107 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setVoiceActive(false);
   }, []);
 
-  const saveMoney = useCallback((goalId: string, amount: number) => {
-    setSavingsGoals((prev) =>
-      prev.map((g) => (g.id === goalId ? { ...g, current: g.current + amount } : g))
-    );
-    setWorkerStats((prev) => ({
-      ...prev,
-      availableBalance: prev.availableBalance - amount,
-      emergencySavings:
-        goalId === 'emergency' ? prev.emergencySavings + amount : prev.emergencySavings,
-    }));
+  const saveMoney = useCallback(async (goalId: string, amount: number) => {
+    const response = await fetch('/api/savings/deposits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ goalId, amount }),
+    });
+    const result = await response.json() as { account?: AccountSnapshot; error?: string };
+    if (!response.ok || !result.account) throw new Error(result.error || 'Savings deposit failed.');
+    setSavingsGoals(result.account.savingsGoals);
+    setWorkerStats(result.account.workerStats);
   }, []);
 
-  const applyJob = useCallback((jobId: string) => {
-    setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, applied: true } : j)));
+  const applyWorkerData = useCallback((data: WorkerAccountData) => {
+    setJobs(data.jobs);
+    setEarningsState(data.earnings);
+    setConversations(data.conversations);
+    setAvailabilityState(data.availability);
+    setDailyWorkStatusState(data.dailyWorkStatus);
   }, []);
 
-  const sendMessage = useCallback((conversationId: string, text: string, attachment?: ChatMessage['attachment']) => {
-    const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    const newMsg: ChatMessage = { id: `m-${Date.now()}`, sender: role === 'contractor' || role === 'employer' ? 'contractor' : 'worker', text, time: now, attachment };
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.id === conversationId
-          ? { ...c, messages: [...c.messages, newMsg], lastMessage: text, time: now, unread: 0 }
-          : c
-      )
-    );
-  }, [role]);
+  const workerMutation = useCallback(async (
+    path: string,
+    payload: Record<string, unknown>,
+    method: 'POST' | 'PATCH' = 'POST',
+  ) => {
+    const response = await fetch(path, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...payload,
+        workerData: { jobs, earnings, conversations, availability, dailyWorkStatus },
+      }),
+    });
+    const result = await response.json() as { workerData?: WorkerAccountData; error?: string };
+    if (!response.ok || !result.workerData) throw new Error(result.error || 'Could not update worker account.');
+    applyWorkerData(result.workerData);
+  }, [jobs, earnings, conversations, availability, dailyWorkStatus, applyWorkerData]);
 
-  const markConversationRead = useCallback((conversationId: string) => {
-    setConversations((prev) =>
-      prev.map((conversation) => conversation.id === conversationId ? { ...conversation, unread: 0 } : conversation)
-    );
-  }, []);
+  const applyJob = useCallback(async (jobId: string) => {
+    try {
+      await workerMutation('/api/jobs/apply', { jobId });
+      showToast('Your application was saved.');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Could not submit job application.');
+    }
+  }, [workerMutation, showToast]);
+
+  const sendMessage = useCallback(async (conversationId: string, text: string, attachment?: ChatMessage['attachment']) => {
+    if (!role || !workerRoles.has(role)) {
+      const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      const newMessage: ChatMessage = {
+        id: `m-${Date.now()}`,
+        sender: 'contractor',
+        text,
+        time: now,
+        attachment,
+      };
+      setConversations((previous) => previous.map((conversation) => conversation.id === conversationId
+        ? { ...conversation, messages: [...conversation.messages, newMessage], lastMessage: text, time: now, unread: 0 }
+        : conversation));
+      return;
+    }
+    try {
+      await workerMutation('/api/messages', { conversationId, text, attachment });
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Could not send message.');
+    }
+  }, [role, workerMutation, showToast]);
+
+  const markConversationRead = useCallback(async (conversationId: string) => {
+    if (!role || !workerRoles.has(role)) {
+      setConversations((previous) => previous.map((conversation) => conversation.id === conversationId
+        ? { ...conversation, unread: 0 }
+        : conversation));
+      return;
+    }
+    try {
+      await workerMutation('/api/messages/read', { conversationId });
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Could not update conversation.');
+    }
+  }, [role, workerMutation, showToast]);
+
+  const setAvailability = useCallback(async (value: WorkerAvailability) => {
+    try {
+      await workerMutation('/api/availability', {
+        availability: value,
+        dailyWorkStatus: value === 'available' ? 'workDone' : dailyWorkStatus,
+      }, 'PATCH');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Could not update availability.');
+    }
+  }, [workerMutation, dailyWorkStatus, showToast]);
+
+  const setDailyWorkStatus = useCallback(async (value: DailyWorkStatus) => {
+    try {
+      await workerMutation('/api/availability', { availability, dailyWorkStatus: value }, 'PATCH');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Could not update daily work status.');
+    }
+  }, [workerMutation, availability, showToast]);
 
   const transferToBank = useCallback(() => {
     showToast(translate(lang, 'toastTransferBank'));
@@ -442,6 +640,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider
       value={{
+        theme,
+        setTheme,
         role,
         setRole,
         screen,
@@ -478,6 +678,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setMonthlySalary,
         registrationProfile,
         setRegistrationProfile,
+        signInAccount,
         availability,
         dailyWorkStatus,
         setAvailability,

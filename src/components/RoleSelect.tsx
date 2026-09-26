@@ -1,11 +1,15 @@
 import { HardHat, Building2, ArrowRight, ChefHat } from 'lucide-react';
 import { useApp } from '@/AppContext';
+import { ThemeSelector } from './ThemeSelector';
 
 export function RoleSelect() {
   const { setRole, setScreen } = useApp();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-brand-50 via-white to-accent-50 flex flex-col items-center justify-center px-6 py-10">
+    <div className="relative min-h-screen bg-gradient-to-b from-brand-50 via-white to-accent-50 flex flex-col items-center justify-center px-6 py-10">
+      <div className="absolute right-4 top-4 z-10">
+        <ThemeSelector />
+      </div>
       {/* Logo / Brand */}
       <div className="mb-12 text-center animate-slide-up">
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-brand-600 text-white shadow-float mb-4">

@@ -33,8 +33,15 @@ export function MessagesScreen() {
   const attachPhoto = (file: File | undefined) => {
     if (!file || !activeId) return;
     if (!file.type.startsWith('image/')) { showToast('Please select an image file.'); return; }
-    const url = URL.createObjectURL(file);
-    sendMessage(activeId, `Photo shared: ${file.name}`, { type: 'image', url, name: file.name });
+    if (file.size > 2 * 1024 * 1024) { showToast('Choose an image smaller than 2 MB.'); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        void sendMessage(activeId, `Photo shared: ${file.name}`, { type: 'image', url: reader.result, name: file.name });
+      }
+    };
+    reader.onerror = () => showToast('Could not read the selected image.');
+    reader.readAsDataURL(file);
   };
 
   if (!active) {

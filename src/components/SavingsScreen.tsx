@@ -44,20 +44,24 @@ export function SavingsScreen() {
   const [moneyGoal, setMoneyGoal] = useState('10000');
   const [dailySavePlan, setDailySavePlan] = useState('10');
 
-  const handleSave = (amount: number) => {
+  const handleSave = async (amount: number) => {
     if (!activeGoal || amount <= 0) return;
     if (amount > workerStats.availableBalance) {
       showToast('Not enough available balance for this prototype action.');
       return;
     }
-    saveMoney(activeGoal.id, amount);
-    setSavedAmount(amount);
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      setActiveGoal(null);
-      setCustomAmount('');
-    }, 1600);
+    try {
+      await saveMoney(activeGoal.id, amount);
+      setSavedAmount(amount);
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setActiveGoal(null);
+        setCustomAmount('');
+      }, 1600);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Savings deposit failed.');
+    }
   };
 
   const demoName = registrationProfile?.name?.split(' ')[0] || 'Worker';

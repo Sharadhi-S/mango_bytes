@@ -1,16 +1,49 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MapPin, CheckCircle2, Briefcase, Phone, UserPlus, X, Star, ShieldCheck, Home } from 'lucide-react';
 import { Card, ScreenHeader, Avatar, Badge, Button } from './ui';
+import { useApp } from '@/AppContext';
 import { initialContractorWorkers } from '@/mockData';
 import type { ContractorWorker } from '@/types';
 
 export function WorkersScreen() {
+  const { showToast } = useApp();
   const [selected, setSelected] = useState<ContractorWorker | null>(null);
   const [assigned, setAssigned] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('All');
+  const [registeredWorkers, setRegisteredWorkers] = useState<ContractorWorker[]>([]);
 
-  const filtered = useMemo(() => initialContractorWorkers.filter((worker) => {
+  useEffect(() => {
+    let active = true;
+    fetch('/api/workers')
+      .then(async (response) => {
+        const result = await response.json() as { workers?: ContractorWorker[]; assignedWorkerIds?: string[]; error?: string };
+        if (!response.ok) throw new Error(result.error || 'Could not load registered workers.');
+        return result;
+      })
+      .then((result) => {
+        if (!active) return;
+        setRegisteredWorkers(result.workers || []);
+        setAssigned(new Set(result.assignedWorkerIds || []));
+      })
+      .catch((error: unknown) => {
+        if (active) showToast(error instanceof Error ? error.message : 'Could not load registered workers.');
+      });
+    return () => { active = false; };
+  }, [showToast]);
+
+  const availableWorkers = useMemo(() => {
+    const seen = new Set<string>();
+    return [...registeredWorkers, ...initialContractorWorkers].filter((worker) => {
+      const city = worker.location.split(',')[0].trim().toLowerCase();
+      const key = `${worker.name.trim().toLowerCase()}|${worker.primarySkill.trim().toLowerCase()}|${city}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [registeredWorkers]);
+
+  const filtered = useMemo(() => availableWorkers.filter((worker) => {
     const q = query.toLowerCase().trim();
     const matchesQuery = !q || [worker.name, worker.primarySkill, worker.location].some((v) => v.toLowerCase().includes(q));
     const matchesFilter = filter === 'All' ||
@@ -19,10 +52,24 @@ export function WorkersScreen() {
       (filter === 'Mason' && worker.primarySkill === 'Mason') ||
       (filter === 'Skilled Workers' && worker.category === 'skilledWorker');
     return matchesQuery && matchesFilter;
-  }), [query, filter]);
+  }), [availableWorkers, query, filter]);
 
-  const handleAssign = (id: string) => setAssigned((prev) => new Set(prev).add(id));
-  const shramaId = (id: string) => `SHR-${id.toUpperCase()}-${id === 'w1' ? '4821' : id === 'w2' ? '7314' : '5906'}`;
+  const handleAssign = async (id: string) => {
+    try {
+      const response = await fetch('/api/workers/assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workerId: id }),
+      });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || 'Could not assign worker.');
+      setAssigned((previous) => new Set(previous).add(id));
+      showToast('Worker linked to your contractor account.');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Could not assign worker.');
+    }
+  };
+  const shramaId = (worker: ContractorWorker) => worker.shramaId || `SHR-${worker.id.toUpperCase()}-${worker.id === 'w1' ? '4821' : worker.id === 'w2' ? '7314' : '5906'}`;
 
   return (
     <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8">
@@ -105,7 +152,7 @@ export function WorkersScreen() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2"><h3 className="text-xl font-extrabold text-gray-900 truncate">{selected.name}</h3>{selected.verified && <CheckCircle2 size={18} className="text-accent-500" />}</div>
                 <p className="text-sm text-gray-500">{selected.primarySkill} · {selected.experience}</p>
-                <p className="text-xs text-brand-700 font-bold mt-1">ShramaID: {shramaId(selected.id)}</p>
+                <p className="text-xs text-brand-700 font-bold mt-1">ShramaID: {shramaId(selected)}</p>
               </div>
             </div>
 

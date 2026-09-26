@@ -1,4 +1,5 @@
 export type Role = 'labourer' | 'contractor' | 'employer' | 'skilledWorker';
+export type ThemeMode = 'light' | 'dark' | 'high-contrast';
 
 export type ScreenId =
   | 'home'
@@ -116,6 +117,7 @@ export interface ContractorWorker {
   workCount: number;
   verified: boolean;
   avatar: string;
+  shramaId?: string;
 }
 
 export interface AttendanceRow {
@@ -197,6 +199,7 @@ export interface ContractorMatch {
   licenses?: string[];
   contactNumber?: string;
   rfpSent?: boolean;
+  accountBacked?: boolean;
 }
 
 export type TenderStatus = 'draft' | 'analyzed' | 'requirements_configured' | 'fee_paid' | 'contractor_matched';

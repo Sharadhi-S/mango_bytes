@@ -2,6 +2,7 @@ import { HardHat, Building2, Bell, ChefHat, ArrowLeftRight, X } from 'lucide-rea
 import { LANGUAGES } from '@/i18n';
 import { useState } from 'react';
 import { useApp } from '@/AppContext';
+import { ThemeSelector } from './ThemeSelector';
 import type { Role } from '@/types';
 
 export function TopBar() {
@@ -13,7 +14,7 @@ export function TopBar() {
     : 'MB';
 
   return (
-    <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-gray-50">
+    <header className="relative sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-gray-50">
       <div className="max-w-4xl mx-auto px-5 lg:px-8 h-14 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white ${role === 'labourer' ? 'bg-brand-600' : role === 'skilledWorker' ? 'bg-purple-600' : 'bg-accent-600'}`}>
@@ -21,8 +22,9 @@ export function TopBar() {
           </div>
           <span className="font-extrabold text-gray-900 text-sm">ShramaSetu - A Mango Bytes initiative</span>
         </div>
-        <div className="flex items-center gap-3">
-          <select aria-label="Language" value={lang} onChange={(e) => setLang(e.target.value as any)} className="max-w-[105px] text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 outline-none">{LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.nativeLabel}</option>)}</select>
+        <div className="flex items-center gap-1 sm:gap-3">
+          <ThemeSelector />
+          <select aria-label="Language" value={lang} onChange={(e) => setLang(e.target.value as any)} className="max-w-[84px] px-1.5 sm:max-w-[105px] sm:px-2 text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg py-1.5 outline-none">{LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.nativeLabel}</option>)}</select>
           <button onClick={() => setScreen('alerts')} className="relative w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">
             <Bell size={20} />
             {unread > 0 && (

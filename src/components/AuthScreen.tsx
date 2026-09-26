@@ -4,10 +4,10 @@ import { useApp } from '@/AppContext';
 import { Card, Button, ScreenHeader } from './ui';
 import { getShramaId } from './ShramaIDScreen';
 import { LANGUAGES } from '@/i18n';
-import type { Role } from '@/types';
+import type { RegistrationProfile, Role } from '@/types';
 
 export function AuthScreen() {
-  const { role, setRole, setScreen, setRegistrationProfile, setLang, showToast } = useApp();
+  const { role, setRole, setScreen, setRegistrationProfile, signInAccount, setLang, showToast } = useApp();
   const [mode, setMode] = useState<'choice' | 'signin'>('choice');
   const [shramaId, setShramaId] = useState('');
   const [phone, setPhone] = useState('');
@@ -28,18 +28,29 @@ export function AuthScreen() {
     setError('');
   };
 
-  const signIn = () => {
+  const signIn = async () => {
     const accounts = JSON.parse(localStorage.getItem('shrama-accounts') || '[]') as Array<{ shramaId: string; phone: string; role: Role; profile: any; lang?: string }>;
-    const match = accounts.find((a) => a.shramaId.toUpperCase() === shramaId.trim().toUpperCase() && a.phone === phone.trim());
-    if (!match) {
-      setError('ShramaID and mobile number do not match. You can only open the account linked to both details.');
-      return;
+    const accountRole = role ?? 'labourer';
+    const match = accounts.find((a) => a.role === accountRole && a.shramaId.toUpperCase() === shramaId.trim().toUpperCase() && a.phone === phone.trim());
+    try {
+      let profile: RegistrationProfile;
+      if (match) {
+        await setRegistrationProfile(match.profile, {
+          accountRole,
+          signIn: true,
+          shramaId: match.shramaId,
+          showWellbeing: false,
+        });
+        profile = match.profile;
+      } else {
+        profile = await signInAccount(shramaId.trim(), phone.trim(), accountRole);
+      }
+      if (match?.lang && LANGUAGES.some((l) => l.code === match.lang)) setLang(match.lang as any);
+      setScreen(accountRole === 'labourer' || accountRole === 'skilledWorker' ? 'shramId' : 'home');
+      showToast(`Signed in as ${profile.name}`);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Sign in failed.');
     }
-    setRole(match.role);
-    setRegistrationProfile(match.profile);
-    if (match.lang && LANGUAGES.some((l) => l.code === match.lang)) setLang(match.lang as any);
-    setScreen(match.role === 'labourer' || match.role === 'skilledWorker' ? 'shramId' : 'home');
-    showToast(`Signed in as ${match.profile.name}`);
   };
 
   if (mode === 'signin') {

@@ -2,7 +2,13 @@
 
 A mobile-first financial inclusion prototype for blue-collar workers and contractors.
 
-Built with React, Vite, Tailwind CSS, and mock data for hackathon demo flows.
+Built with React, Vite, Tailwind CSS, and a local Node.js + SQLite API for demo account and savings persistence.
+
+## Local backend
+
+Use Node.js 24 or newer, then run `npm install` and `npm run dev`. The command starts the Vite app and API together. The API stores data in `.data/shramasetu.sqlite`; this file is local and ignored by Git. Registration and ShramaID sign-in create persistent sessions. Worker job applications, conversations/read state, availability, and savings deposits are stored per account. Employers can browse registered worker profiles and availability. `npm run test:backend` runs the API tests.
+
+All balances and savings are prototype data. The backend does not connect to banks, process UPI, or make real payments. The demo sign-in/session flow is not suitable for production identity verification or financial data.
 
 
 ## Prototype additions
@@ -10,7 +16,7 @@ Built with React, Vite, Tailwind CSS, and mock data for hackathon demo flows.
 - Primary and additional skills cover construction and industrial roles.
 - Insurance recommendations analyse all entered skills and show prototype mandatory coverage.
 - Mango AI Assistant is a local prototype chatbot with canned guidance; it does not call an external AI service.
-- Registration profile details are stored in in-memory app state and displayed from the user-entered values.
+- Registration profiles are stored in the local SQLite API; seeded earnings and jobs remain demo data.
 
 ## Updated prototype features
 - ShramaSetu branding with Labourer, Contractor and Skilled Worker registration paths.

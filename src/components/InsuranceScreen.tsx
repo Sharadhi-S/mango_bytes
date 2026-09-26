@@ -30,7 +30,7 @@ function mandatoryForSkills(skills: string[], role?: string): PlanKey[] {
 export function InsuranceScreen() {
   const { workerSkill, showToast, setScreen, registrationProfile, role } = useApp();
   const analyzedSkills = registrationProfile?.skills?.length ? registrationProfile.skills : [workerSkill];
-  const mandatory = useMemo(() => mandatoryForSkills(analyzedSkills, role), [analyzedSkills, role]);
+  const mandatory = useMemo(() => mandatoryForSkills(analyzedSkills, role ?? undefined), [analyzedSkills, role]);
   const [selected, setSelected] = useState<PlanKey[]>(Array.from(new Set(role === 'labourer' ? [] : [...mandatory, 'health'])));
   const annualPremium = selected.reduce((sum, key) => sum + annualPlans[key].premium, 0);
   const togglePlan = (key: PlanKey) => {

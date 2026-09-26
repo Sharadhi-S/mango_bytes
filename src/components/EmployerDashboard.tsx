@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '@/AppContext';
 import { Card, ScreenHeader, formatINR, Button } from './ui';
-import type { Tender, TenderWorkforceItem, ContractorMatch } from '@/types';
+import type { Tender, TenderWorkforceItem, ContractorMatch, ContractorWorker } from '@/types';
 import { calculateDynamicTenderFee } from '@/backend/employerBackend';
 
 const CATALOG_TRADES = [
@@ -71,6 +71,15 @@ type EmployerDashboardView =
   | 'alerts'
   | 'profile';
 
+interface EmployerRfpLink {
+  id: string;
+  contractorId: string;
+  contractorName: string;
+  tenderId: string;
+  tenderTitle: string;
+  status: 'pending' | 'accepted' | 'declined';
+}
+
 export function EmployerDashboard() {
   const {
     tenders,
@@ -94,6 +103,65 @@ export function EmployerDashboard() {
   const [category, setCategory] = useState('All');
   const [isEditingReqs, setIsEditingReqs] = useState(false);
   const [selectedNewTrade, setSelectedNewTrade] = useState(CATALOG_TRADES[0]);
+  const [registeredWorkers, setRegisteredWorkers] = useState<ContractorWorker[]>([]);
+  const [registeredContractors, setRegisteredContractors] = useState<ContractorMatch[]>([]);
+  const [outgoingRfps, setOutgoingRfps] = useState<EmployerRfpLink[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/workers')
+      .then(async (response) => {
+        const result = await response.json() as { workers?: ContractorWorker[]; error?: string };
+        if (!response.ok) throw new Error(result.error || 'Could not load registered workers.');
+        return result.workers || [];
+      })
+      .then((workers) => {
+        if (active) setRegisteredWorkers(workers);
+      })
+      .catch((error: unknown) => {
+        if (active) showToast(error instanceof Error ? error.message : 'Could not load registered workers.');
+      });
+    return () => { active = false; };
+  }, [showToast]);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/contractors')
+      .then(async (response) => {
+        const result = await response.json() as { contractors?: ContractorMatch[]; error?: string };
+        if (!response.ok) throw new Error(result.error || 'Could not load contractor accounts.');
+        return result.contractors || [];
+      })
+      .then((contractors) => {
+        if (active) setRegisteredContractors(contractors);
+      })
+      .catch((error: unknown) => {
+        if (active) showToast(error instanceof Error ? error.message : 'Could not load contractor accounts.');
+      });
+    return () => { active = false; };
+  }, [showToast]);
+
+  useEffect(() => {
+    let active = true;
+    const refreshOutbox = async () => {
+      try {
+        const response = await fetch('/api/contractor-links/outbox');
+        const result = await response.json() as { links?: EmployerRfpLink[]; error?: string };
+        if (!response.ok) throw new Error(result.error || 'Could not load contractor responses.');
+        if (active) setOutgoingRfps(result.links || []);
+      } catch (error) {
+        if (active) showToast(error instanceof Error ? error.message : 'Could not load contractor responses.');
+      }
+    };
+    void refreshOutbox();
+    const refreshTimer = window.setInterval(() => {
+      if (!document.hidden) void refreshOutbox();
+    }, 10000);
+    return () => {
+      active = false;
+      window.clearInterval(refreshTimer);
+    };
+  }, [showToast]);
 
   // Fallback safe selected tender
   const selected: Tender = useMemo(() => {
@@ -119,6 +187,13 @@ export function EmployerDashboard() {
       status: 'analyzed',
     };
   }, [tenders, selectedTenderId]);
+
+  const matchedRegisteredWorkers = useMemo(() => {
+    const requiredSkills = selected.workforceRequirements?.map((requirement) => requirement.skill.toLowerCase()) || [];
+    return registeredWorkers.filter((worker) => requiredSkills.some((skill) =>
+      skill.includes(worker.primarySkill.toLowerCase()) || worker.primarySkill.toLowerCase().includes(skill)
+    ));
+  }, [registeredWorkers, selected.workforceRequirements]);
 
   // Editable requirements state
   const [editedRequirements, setEditedRequirements] = useState<TenderWorkforceItem[]>(
@@ -334,9 +409,35 @@ export function EmployerDashboard() {
   };
 
   // Handle Send RFP to contractor
-  const handleSendRfp = (contractorId: string) => {
-    sendRfpToContractor(selected.id, contractorId);
-    showToast(t('rfpSentToast') || 'Request for Proposal (RFP) dispatched in real time!');
+  const handleSendRfp = async (contractorId: string) => {
+    const contractor = registeredContractors.find((item) => item.id === contractorId && item.accountBacked);
+    if (!contractor) {
+      sendRfpToContractor(selected.id, contractorId);
+      showToast('Demo RFP saved locally; this sample contractor has no linked account.');
+      return;
+    }
+    try {
+      const response = await fetch('/api/contractor-links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contractorId,
+          tenderId: selected.id,
+          tenderTitle: selected.title,
+          location: selected.location,
+          budget: selected.value,
+          scopeDescription: selected.scopeDescription || '',
+        }),
+      });
+      const result = await response.json() as { link?: Omit<EmployerRfpLink, 'contractorName'>; error?: string };
+      if (!response.ok || !result.link) throw new Error(result.error || 'Could not send contractor request.');
+      const savedLink: EmployerRfpLink = { ...result.link, contractorName: contractor.name };
+      setOutgoingRfps((previous) => [savedLink, ...previous.filter((link) => link.id !== savedLink.id)]);
+      sendRfpToContractor(selected.id, contractorId);
+      showToast('RFP sent to ' + contractor.name + '.');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Could not send contractor request.');
+    }
   };
 
   // Metrics
@@ -767,7 +868,7 @@ export function EmployerDashboard() {
   if (view === 'contractors') {
     const rawContractors = selected.unlockedContractors || [];
     // Ensure fallback sample contractors if empty
-    const contractors: ContractorMatch[] = rawContractors.length > 0 ? rawContractors : [
+    const demoContractors: ContractorMatch[] = rawContractors.length > 0 ? rawContractors : [
       {
         id: 'c-shree-balaji',
         name: 'R. K. Balaji',
@@ -835,6 +936,15 @@ export function EmployerDashboard() {
         rfpSent: false,
       },
     ];
+    const contractors: ContractorMatch[] = [
+      ...registeredContractors.map((contractor) => ({
+        ...contractor,
+        rfpSent: outgoingRfps.some((link) => link.contractorId === contractor.id && link.tenderId === selected.id),
+      })),
+      ...demoContractors.filter((contractor) => !registeredContractors.some((registered) =>
+        registered.name.trim().toLowerCase() === contractor.name.trim().toLowerCase()
+      )),
+    ];
 
     return (
       <div className="px-5 pt-6 pb-24 max-w-5xl mx-auto lg:px-8 space-y-6">
@@ -868,6 +978,7 @@ export function EmployerDashboard() {
             const displayTrades = c.specialties || c.trades || [];
             const displayLicenses = c.licenses || ['CPWD Class 1', 'BOCW Active'];
             const compName = c.companyName || c.company || 'Verified Enterprise';
+            const rfpStatus = outgoingRfps.find((link) => link.contractorId === c.id && link.tenderId === selected.id)?.status;
 
             return (
               <Card key={c.id} className="p-5 border border-gray-200 hover:shadow-card-hover transition-all space-y-4">
@@ -926,6 +1037,11 @@ export function EmployerDashboard() {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {rfpStatus && (
+                      <span className={`rounded-lg px-2.5 py-2 text-[11px] font-bold ${rfpStatus === 'accepted' ? 'bg-accent-50 text-accent-700' : rfpStatus === 'declined' ? 'bg-error-50 text-error-700' : 'bg-warning-50 text-warning-700'}`}>
+                        {rfpStatus === 'accepted' ? 'Accepted' : rfpStatus === 'declined' ? 'Declined' : 'Pending'}
+                      </span>
+                    )}
                     <button
                       type="button"
                       onClick={() => showToast('Opening direct communication channel with ' + c.name)}
@@ -1469,6 +1585,28 @@ export function EmployerDashboard() {
               </button>
             </div>
           </div>
+
+          <section className="border-t border-gray-100 pt-4" aria-labelledby="registered-workers-title">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <h4 id="registered-workers-title" className="text-xs font-bold uppercase tracking-wider text-gray-500">Registered workers matching this plan</h4>
+              <span className="text-xs text-gray-400">{matchedRegisteredWorkers.length} profiles</span>
+            </div>
+            {matchedRegisteredWorkers.length ? (
+              <div className="divide-y divide-gray-100 rounded-xl border border-gray-100 bg-white px-3">
+                {matchedRegisteredWorkers.slice(0, 8).map((worker) => (
+                  <div key={worker.id} className="flex items-center justify-between gap-3 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-gray-900">{worker.name}</p>
+                      <p className="truncate text-xs text-gray-500">{worker.primarySkill} · {worker.experience} · {worker.location}</p>
+                    </div>
+                    <span className="shrink-0 text-[11px] font-semibold text-brand-700">{worker.shramaId}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl bg-gray-50 p-3 text-sm text-gray-500">No registered worker profiles match these trades yet.</p>
+            )}
+          </section>
 
           <div className="pt-2 flex flex-col sm:flex-row gap-2">
             <Button
