@@ -7,7 +7,7 @@ const STORAGE_KEY = 'shramasetu_rfps_v1';
 const INITIAL_RFPS: ContractorRFP[] = [
   {
     id: 'rfp-1042',
-    projectId: 'tender-1',
+    projectId: 'T-BELAGAVI-1042',
     projectTitle: 'Belagavi Highway & Flyover Expansion',
     employerId: 'emp-demo',
     employerName: 'Demo Infrastructure Pvt Ltd',
@@ -28,7 +28,11 @@ export function getRfps(): ContractorRFP[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      return JSON.parse(raw);
+      const parsed: ContractorRFP[] = JSON.parse(raw);
+      return parsed.map((r) => ({
+        ...r,
+        projectId: r.projectId === 'tender-1' ? 'T-BELAGAVI-1042' : r.projectId,
+      }));
     }
   } catch (e) {
     // ignore
