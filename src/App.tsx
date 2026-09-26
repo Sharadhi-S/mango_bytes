@@ -22,6 +22,7 @@ import { ShramaIDScreen } from './components/ShramaIDScreen';
 import { AuthScreen } from './components/AuthScreen';
 import { AlertsScreen } from './components/AlertsScreen';
 import { EmployerDashboard } from './components/EmployerDashboard';
+import { ProjectCommandCenter } from './components/ProjectCommandCenter';
 import { Card } from './components/ui';
 
 function AppContent() {
@@ -34,6 +35,7 @@ function AppContent() {
     if (screen === 'register') return <RegistrationScreen />;
     if (screen === 'alerts') return <AlertsScreen />;
     if (screen === 'shramId') return <ShramaIDScreen />;
+    if (screen === 'projectDetail') return <ProjectCommandCenter />;
 
     if (role === 'labourer') {
       switch (screen) {

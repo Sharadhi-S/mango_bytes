@@ -16,7 +16,8 @@ export type ScreenId =
   | 'homeWork'
   | 'shramId'
   | 'auth'
-  | 'alerts';
+  | 'alerts'
+  | 'projectDetail';
 
 
 export type Gender = 'Male' | 'Female' | 'Non-binary' | 'Prefer not to say';
@@ -152,9 +153,42 @@ export interface TenderWorkforceItem {
   id: string;
   skill: string;
   headcount: number;
+  assignedCount?: number;
   dailyWageRate: number;
   category: 'skilled' | 'semi-skilled' | 'unskilled';
   notes?: string;
+  requiredSkills?: string[];
+  requiredExperience?: string;
+  certifications?: string[];
+}
+
+export interface AssignedProjectWorker {
+  id: string;
+  workerId: string;
+  name: string;
+  role: string;
+  category: 'labourer' | 'skilledWorker';
+  dailyWage: number;
+  phone: string;
+  location: string;
+  experience: string;
+  matchScore: number;
+  matchReasons: string[];
+  assignedDate: string;
+  daysWorked: number;
+  attendanceToday: 'present' | 'absent' | 'half';
+  wageStatus: 'paid' | 'pending';
+  avatar: string;
+}
+
+export interface TenderOtherRequirements {
+  workingHours?: string;
+  accommodation?: string;
+  transportation?: string;
+  safety?: string;
+  experience?: string;
+  certifications?: string[];
+  compliance?: string[];
 }
 
 export interface TenderMilestone {
@@ -199,11 +233,13 @@ export interface ContractorMatch {
   rfpSent?: boolean;
 }
 
-export type TenderStatus = 'draft' | 'analyzed' | 'requirements_configured' | 'fee_paid' | 'contractor_matched';
+export type TenderStatus = 'draft' | 'analyzed' | 'requirements_configured' | 'fee_paid' | 'contractor_matched' | 'active_fulfillment' | 'ready_to_deploy';
 
 export interface Tender {
   id: string;
+  tenderId?: string;
   title: string;
+  client?: string;
   dept: string;
   location: string;
   value: number;
@@ -212,6 +248,11 @@ export interface Tender {
   match: number;
   duration: string;
   durationMonths?: number;
+  startDate?: string;
+  endDate?: string;
+  documentName?: string;
+  documentSize?: string;
+  aiExtracted?: boolean;
   skills: string[];
   eligibility: string[];
   docs: string[];
@@ -219,6 +260,9 @@ export interface Tender {
   milestones?: TenderMilestone[];
   scopeDescription?: string;
   boqDetails?: string;
+  otherRequirements?: TenderOtherRequirements;
+  assignedWorkers?: AssignedProjectWorker[];
+  fulfillmentPercent?: number;
   dynamicFee: DynamicFeeCalculation;
   status: TenderStatus;
   unlockedContractors?: ContractorMatch[];

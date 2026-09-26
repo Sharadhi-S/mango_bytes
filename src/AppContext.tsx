@@ -15,6 +15,7 @@ import type {
   DailyWorkStatus,
   Tender,
   TenderWorkforceItem,
+  AssignedProjectWorker,
   WorkforcePlan,
   ContractorMatch,
   DynamicFeeCalculation,
@@ -122,7 +123,15 @@ interface AppContextValue {
   toggleSaveTender: (tenderId: string) => void;
   createWorkforcePlan: (tenderId: string, requirements?: TenderWorkforceItem[]) => WorkforcePlan;
   requestPartnerConnection: (categoryName: string) => void;
-
+  selectedProjectId: string | null;
+  setSelectedProjectId: (id: string | null) => void;
+  addTender: (newTender: Tender) => void;
+  updateTender: (updatedTender: Tender) => void;
+  assignWorkerToProject: (tenderId: string, worker: AssignedProjectWorker) => void;
+  updateProjectWorkerAttendance: (tenderId: string, workerId: string, status: 'present' | 'absent' | 'half') => void;
+  markProjectWorkerWagePaid: (tenderId: string, workerId: string) => void;
+  markAllProjectWorkersPresent: (tenderId: string) => void;
+  payAllProjectWages: (tenderId: string) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -324,6 +333,113 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPartnerRequests((prev) => ({ ...prev, [categoryName]: true }));
   }, []);
 
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>('T-BELAGAVI-1042');
+
+  const addTender = useCallback((newTender: Tender) => {
+    setTenders((prev) => [newTender, ...prev.filter((t) => t.id !== newTender.id)]);
+  }, []);
+
+  const updateTender = useCallback((updatedTender: Tender) => {
+    setTenders((prev) => prev.map((t) => (t.id === updatedTender.id ? updatedTender : t)));
+  }, []);
+
+  const assignWorkerToProject = useCallback((tenderId: string, worker: AssignedProjectWorker) => {
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== tenderId) return t;
+        const currentWorkers = t.assignedWorkers || [];
+        if (currentWorkers.some((w) => w.workerId === worker.workerId || w.id === worker.id)) {
+          return t;
+        }
+        const updatedWorkers = [worker, ...currentWorkers];
+
+        const updatedReqs = (t.workforceRequirements || []).map((r) => {
+          const normSkill = r.skill.toLowerCase();
+          const normWorkerRole = worker.role.toLowerCase();
+          const matches =
+            normSkill.includes(normWorkerRole) ||
+            normWorkerRole.includes(normSkill) ||
+            (normSkill.includes('operator') && normWorkerRole.includes('operator')) ||
+            (normSkill.includes('mason') && normWorkerRole.includes('mason')) ||
+            (normSkill.includes('helper') && (normWorkerRole.includes('helper') || normWorkerRole.includes('labour')));
+          if (matches) {
+            return { ...r, assignedCount: (r.assignedCount ?? 0) + 1 };
+          }
+          return r;
+        });
+
+        const totalReq = updatedReqs.reduce((sum, r) => sum + r.headcount, 0) || 100;
+        const totalAssigned = updatedReqs.reduce((sum, r) => sum + (r.assignedCount ?? 0), 0);
+        const fulfillmentPercent = Math.min(100, Math.round((totalAssigned / totalReq) * 100));
+        const status = fulfillmentPercent >= 100 ? ('ready_to_deploy' as const) : t.status;
+
+        return {
+          ...t,
+          assignedWorkers: updatedWorkers,
+          workforceRequirements: updatedReqs,
+          fulfillmentPercent,
+          status,
+        };
+      })
+    );
+  }, []);
+
+  const updateProjectWorkerAttendance = useCallback((tenderId: string, workerId: string, status: 'present' | 'absent' | 'half') => {
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== tenderId) return t;
+        const updatedWorkers = (t.assignedWorkers || []).map((w) => {
+          if (w.id === workerId || w.workerId === workerId) {
+            return { ...w, attendanceToday: status };
+          }
+          return w;
+        });
+        return { ...t, assignedWorkers: updatedWorkers };
+      })
+    );
+  }, []);
+
+  const markProjectWorkerWagePaid = useCallback((tenderId: string, workerId: string) => {
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== tenderId) return t;
+        const updatedWorkers = (t.assignedWorkers || []).map((w) => {
+          if (w.id === workerId || w.workerId === workerId) {
+            return { ...w, wageStatus: 'paid' as const };
+          }
+          return w;
+        });
+        return { ...t, assignedWorkers: updatedWorkers };
+      })
+    );
+  }, []);
+
+  const markAllProjectWorkersPresent = useCallback((tenderId: string) => {
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== tenderId) return t;
+        const updatedWorkers = (t.assignedWorkers || []).map((w) => ({
+          ...w,
+          attendanceToday: 'present' as const,
+        }));
+        return { ...t, assignedWorkers: updatedWorkers };
+      })
+    );
+  }, []);
+
+  const payAllProjectWages = useCallback((tenderId: string) => {
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== tenderId) return t;
+        const updatedWorkers = (t.assignedWorkers || []).map((w) => ({
+          ...w,
+          wageStatus: 'paid' as const,
+        }));
+        return { ...t, assignedWorkers: updatedWorkers };
+      })
+    );
+  }, []);
+
 
 
   const [lang, setLang] = useState<LangCode>(() => (localStorage.getItem('shrama-lang') as LangCode) || 'en');
@@ -496,6 +612,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         toggleSaveTender,
         createWorkforcePlan,
         requestPartnerConnection,
+        selectedProjectId,
+        setSelectedProjectId,
+        addTender,
+        updateTender,
+        assignWorkerToProject,
+        updateProjectWorkerAttendance,
+        markProjectWorkerWagePaid,
+        markAllProjectWorkersPresent,
+        payAllProjectWages,
       }}
     >
       {children}

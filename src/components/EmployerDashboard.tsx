@@ -38,6 +38,7 @@ import { useApp } from '@/AppContext';
 import { Card, ScreenHeader, formatINR, Button } from './ui';
 import type { Tender, TenderWorkforceItem, ContractorMatch } from '@/types';
 import { calculateDynamicTenderFee } from '@/backend/employerBackend';
+import { AddTenderModal } from './AddTenderModal';
 
 const CATALOG_TRADES = [
   'Civil Engineers',
@@ -86,9 +87,13 @@ export function EmployerDashboard() {
     registrationProfile,
     showToast,
     t,
+    setSelectedProjectId,
+    setScreen,
+    addTender,
   } = useApp();
 
   const [view, setView] = useState<EmployerDashboardView>('dashboard');
+  const [showAddTenderModal, setShowAddTenderModal] = useState(false);
   const [selectedTenderId, setSelectedTenderId] = useState<string>(tenders[0]?.id || 'T-1001');
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
@@ -1619,6 +1624,14 @@ export function EmployerDashboard() {
         {/* Action Header Buttons */}
         <div className="flex items-center gap-2">
           <Button
+            onClick={() => setShowAddTenderModal(true)}
+            className="px-3.5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-sm"
+          >
+            <Sparkles size={15} />
+            AI Work Order Upload
+          </Button>
+
+          <Button
             onClick={() => setView('enterTender')}
             className="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-float"
           >
@@ -1710,13 +1723,17 @@ export function EmployerDashboard() {
         </div>
 
         <div className="space-y-3">
-          {tenders.slice(0, 3).map((tItem) => (
+          {tenders.slice(0, 4).map((tItem) => (
             <TenderCard
               key={tItem.id}
               tender={tItem}
               saved={savedTenderIds.includes(tItem.id)}
               onOpen={() => openSummary(tItem)}
               onSave={() => handleToggleSave(tItem.id)}
+              onViewCommandCenter={() => {
+                setSelectedProjectId(tItem.id);
+                setScreen('projectDetail');
+              }}
               t={t}
             />
           ))}
@@ -1753,6 +1770,19 @@ export function EmployerDashboard() {
           <ChevronRight size={18} className="text-gray-300" />
         </Card>
       </div>
+
+      {showAddTenderModal && (
+        <AddTenderModal
+          isOpen={true}
+          onClose={() => setShowAddTenderModal(false)}
+          onSave={(newTender) => {
+            addTender(newTender);
+            setSelectedProjectId(newTender.id);
+            setShowAddTenderModal(false);
+            setScreen('projectDetail');
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1765,12 +1795,14 @@ function TenderCard({
   saved,
   onOpen,
   onSave,
+  onViewCommandCenter,
   t,
 }: {
   tender: Tender;
   saved: boolean;
   onOpen: () => void;
   onSave: () => void;
+  onViewCommandCenter?: () => void;
   t: (k: string) => string;
 }) {
   const totalHeadcount = tender.workforceRequirements?.reduce((sum, r) => sum + r.headcount, 0) || 0;
@@ -1792,9 +1824,11 @@ function TenderCard({
             <span className={`px-2 py-0.5 rounded-lg text-[10px] font-extrabold whitespace-nowrap ${
               tender.status === 'contractor_matched'
                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : tender.status === 'active_fulfillment'
+                ? 'bg-amber-50 text-amber-800 border border-amber-200'
                 : 'bg-brand-50 text-brand-700 border border-brand-200'
             }`}>
-              {tender.status === 'contractor_matched' ? '✓ Contractors Unlocked' : 'AI Analyzed'}
+              {tender.status === 'contractor_matched' ? '✓ Contractors Unlocked' : tender.status === 'active_fulfillment' ? 'Active Fulfillment' : 'AI Analyzed'}
             </span>
           </div>
 
@@ -1810,10 +1844,19 @@ function TenderCard({
             </span>
           </div>
 
-          <div className="flex gap-2 pt-1">
+          <div className="flex flex-wrap gap-2 pt-1">
+            {onViewCommandCenter && (
+              <button
+                onClick={onViewCommandCenter}
+                className="px-3 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-extrabold transition-colors shadow-sm flex items-center gap-1 shrink-0"
+              >
+                <span>Command Center</span>
+                <ArrowRight size={13} />
+              </button>
+            )}
             <button
               onClick={onOpen}
-              className="flex-1 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-extrabold transition-colors shadow-sm"
+              className="flex-1 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-extrabold transition-colors shadow-sm"
             >
               {t('viewSummary')}
             </button>

@@ -16,16 +16,33 @@ import {
   MapPin,
   X,
   Home,
+  HardHat,
+  Plus,
+  CheckCircle2,
+  FileText,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useApp } from '@/AppContext';
 import { Card, ScreenHeader, formatINR } from './ui';
 import { contractorStats } from '@/mockData';
+import { AddTenderModal } from './AddTenderModal';
 
 export function ContractorDashboard({ showProfileInitially = false }: { showProfileInitially?: boolean }) {
-  const { setScreen, setRole, wages, postedJobs, attendance, registrationProfile, role } = useApp();
+  const {
+    setScreen,
+    setRole,
+    wages,
+    postedJobs,
+    attendance,
+    registrationProfile,
+    role,
+    tenders,
+    setSelectedProjectId,
+    addTender,
+  } = useApp();
   const [showProfile, setShowProfile] = useState(showProfileInitially);
   const [showSwitchUser, setShowSwitchUser] = useState(false);
+  const [showAddTenderModal, setShowAddTenderModal] = useState(false);
   const roleLabel = role === 'employer' ? 'Employer' : 'Contractor';
 
   const pendingWages = wages.filter((w) => w.status === 'pending').reduce((s, w) => s + w.totalEarned, 0);
@@ -225,6 +242,120 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
         })}
       </div>
 
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h2 className="text-base font-extrabold text-gray-900">My Projects & Work Orders</h2>
+          <p className="text-xs text-gray-500">Tender-won contracts & workforce deployment</p>
+        </div>
+        <button
+          onClick={() => setShowAddTenderModal(true)}
+          className="px-3 py-1.5 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 active:scale-95 transition-all flex items-center gap-1.5 shadow-sm"
+        >
+          <Plus size={15} />
+          Add Tender / Work Order
+        </button>
+      </div>
+
+      <div className="space-y-3 mb-6">
+        {tenders.map((proj) => {
+          const reqs = proj.workforceRequirements || [];
+          const totalReq = reqs.reduce((s, r) => s + r.headcount, 0) || 100;
+          const assignedCount = reqs.reduce((s, r) => s + (r.assignedCount ?? 0), 0) || (proj.assignedWorkers?.length ?? 88);
+          const fulfillment = proj.fulfillmentPercent ?? Math.min(100, Math.round((assignedCount / totalReq) * 100));
+          const shortage = Math.max(0, totalReq - assignedCount);
+
+          return (
+            <Card
+              key={proj.id}
+              className="p-4 sm:p-5 border border-gray-100 hover:border-brand-300 transition-all shadow-sm"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200">
+                      {proj.tenderId || 'Tender #KA-2026-1042'}
+                    </span>
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                        fulfillment === 100
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}
+                    >
+                      {fulfillment === 100 ? (
+                        <>
+                          <CheckCircle2 size={11} /> Ready to Deploy
+                        </>
+                      ) : (
+                        <>
+                          <HardHat size={11} /> Active Fulfillment
+                        </>
+                      )}
+                    </span>
+                  </div>
+                  <h3 className="font-extrabold text-gray-900 text-base sm:text-lg">
+                    {proj.title}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-x-3 text-xs text-gray-500 mt-1">
+                    <span className="flex items-center gap-1">
+                      <MapPin size={12} className="text-gray-400" />
+                      {proj.location}
+                    </span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <Calendar size={12} className="text-gray-400" />
+                      Starts {proj.startDate || '10 Oct 2026'} ({proj.duration})
+                    </span>
+                    <span>•</span>
+                    <span className="font-bold text-gray-800">
+                      {formatINR(proj.value)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="sm:text-right shrink-0">
+                  <button
+                    onClick={() => {
+                      setSelectedProjectId(proj.id);
+                      setScreen('projectDetail');
+                    }}
+                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                  >
+                    View Project Command Center
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Fulfillment Progress */}
+              <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-semibold">
+                  <span className="text-gray-700">
+                    Workforce Fulfillment: <strong>{assignedCount} / {totalReq} workers</strong>
+                  </span>
+                  <span className={`font-extrabold ${fulfillment === 100 ? 'text-emerald-700' : 'text-brand-700'}`}>
+                    {fulfillment}%
+                  </span>
+                </div>
+                <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      fulfillment === 100 ? 'bg-emerald-500' : 'bg-brand-600'
+                    }`}
+                    style={{ width: `${fulfillment}%` }}
+                  />
+                </div>
+                {shortage > 0 && (
+                  <p className="text-[11px] font-semibold text-amber-700 mt-1">
+                    ⚠️ Shortage: {shortage} workers needed before project start ({proj.startDate || '10 Oct 2026'}).
+                  </p>
+                )}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
       <h2 className="text-sm font-bold text-gray-700 mb-3">Quick Actions</h2>
       <div className="flex gap-2 overflow-x-auto no-scrollbar mb-6 -mx-5 px-5 lg:mx-0 lg:px-0">
         {quickActions.map((action) => {
@@ -289,6 +420,19 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
           </Card>
         ))}
       </div>
+
+      {showAddTenderModal && (
+        <AddTenderModal
+          isOpen={true}
+          onClose={() => setShowAddTenderModal(false)}
+          onSave={(newTender) => {
+            addTender(newTender);
+            setSelectedProjectId(newTender.id);
+            setShowAddTenderModal(false);
+            setScreen('projectDetail');
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -300,6 +300,18 @@ export const initialContractorWorkers: ContractorWorker[] = [
   { id: 'w9', category: 'skilledWorker', name: 'Vikram Shetty', primarySkill: 'Driver - Ola/Uber', experience: '6 years', location: 'Mysuru', availability: 'Available', workCount: 61, verified: true, avatar: 'VS' },
   { id: 'w10', category: 'skilledWorker', name: 'Meera Nair', primarySkill: 'Hotel Management', experience: '4 years', location: 'Mysuru', availability: 'Available', workCount: 29, verified: true, avatar: 'MN' },
   { id: 'w11', category: 'skilledWorker', name: 'Rahul Das', primarySkill: 'Electrician', experience: '7 years', location: 'Mysuru', availability: 'Busy', workCount: 48, verified: true, avatar: 'RD' },
+  { id: 'w12', category: 'skilledWorker', name: 'Ramesh Kumar', primarySkill: 'Equipment Operator', experience: '4 years', location: 'Belagavi', availability: 'Available', workCount: 34, verified: true, avatar: 'RK' },
+  { id: 'w13', category: 'skilledWorker', name: 'Somanna Patil', primarySkill: 'Equipment Operator', experience: '6 years', location: 'Belagavi', availability: 'Available', workCount: 45, verified: true, avatar: 'SP' },
+  { id: 'w14', category: 'skilledWorker', name: 'Prakash Hegde', primarySkill: 'Equipment Operator', experience: '3 years', location: 'Hubballi', availability: 'Available', workCount: 22, verified: true, avatar: 'PH' },
+  { id: 'w15', category: 'skilledWorker', name: 'Manjunath K', primarySkill: 'Equipment Operator', experience: '5 years', location: 'Dharwad', availability: 'Available', workCount: 39, verified: true, avatar: 'MK' },
+  { id: 'w16', category: 'labourer', name: 'Basavaraj B', primarySkill: 'Mason', experience: '5 years', location: 'Belagavi', availability: 'Available', workCount: 41, verified: true, avatar: 'BB' },
+  { id: 'w17', category: 'labourer', name: 'Shivappa Gowda', primarySkill: 'Mason', experience: '4 years', location: 'Belagavi', availability: 'Available', workCount: 29, verified: true, avatar: 'SG' },
+  { id: 'w18', category: 'labourer', name: 'Kallappa Kuruba', primarySkill: 'Mason', experience: '7 years', location: 'Belagavi', availability: 'Available', workCount: 53, verified: true, avatar: 'KK' },
+  { id: 'w19', category: 'labourer', name: 'Yallappa M', primarySkill: 'Construction Helper', experience: '2 years', location: 'Belagavi', availability: 'Available', workCount: 18, verified: true, avatar: 'YM' },
+  { id: 'w20', category: 'labourer', name: 'Dundappa N', primarySkill: 'Construction Helper', experience: '3 years', location: 'Belagavi', availability: 'Available', workCount: 21, verified: true, avatar: 'DN' },
+  { id: 'w21', category: 'labourer', name: 'Ningappa K', primarySkill: 'Construction Helper', experience: '1 year', location: 'Belagavi', availability: 'Available', workCount: 12, verified: true, avatar: 'NK' },
+  { id: 'w22', category: 'skilledWorker', name: 'Anand Kulkarni', primarySkill: 'Electrician', experience: '5 years', location: 'Belagavi', availability: 'Available', workCount: 38, verified: true, avatar: 'AK' },
+  { id: 'w23', category: 'skilledWorker', name: 'Chandru Naik', primarySkill: 'Site Supervisor', experience: '8 years', location: 'Belagavi', availability: 'Available', workCount: 62, verified: true, avatar: 'CN' },
 ];
 
 export const initialAttendance: AttendanceRow[] = [

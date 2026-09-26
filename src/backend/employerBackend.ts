@@ -7,7 +7,9 @@ import type {
   WorkforcePlan,
 } from '../types';
 
-export const STORAGE_KEY = 'shramasetu_employer_state_v3';
+import { generateInitialBelagaviWorkers } from './aiExtractionService';
+
+export const STORAGE_KEY = 'shramasetu_employer_state_v4';
 export const BROADCAST_CHANNEL = 'shramasetu_employer_sync';
 
 export interface EmployerBackendState {
@@ -234,39 +236,59 @@ export function generateSuitableContractors(
 // Initial Default Tenders
 export const defaultTenders: Tender[] = [
   {
-    id: 'T-1001',
-    title: 'Road Development & Widening Project',
+    id: 'T-BELAGAVI-1042',
+    tenderId: 'Tender #KA-2026-1042',
+    title: 'Belagavi Highway Construction',
+    client: 'Karnataka State Highway Improvement Project (KSHIP) / PWD',
     dept: 'Karnataka PWD',
-    location: 'Mysuru, Karnataka',
+    location: 'Belagavi, Karnataka',
     value: 82000000,
-    closing: '08 Oct 2026',
+    closing: '10 Oct 2026',
     category: 'Infrastructure',
-    match: 91,
-    duration: '18 months',
-    durationMonths: 18,
-    skills: ['Civil Engineers', 'Site Supervisors', 'Masons', 'Machine Operators', 'Construction Labourers'],
+    match: 96,
+    duration: '6 months',
+    durationMonths: 6,
+    startDate: '10 Oct 2026',
+    endDate: '10 Apr 2027',
+    documentName: 'Belagavi_Highway_Package_4_WorkOrder.pdf',
+    documentSize: '2.4 MB',
+    aiExtracted: true,
+    skills: ['Masons', 'Construction Helpers', 'Electricians', 'Equipment Operators', 'Supervisors'],
     eligibility: [
-      'Valid Class-I contractor registration with Karnataka PWD',
-      'Minimum 5 years demonstrated experience in multi-lane highway works',
-      'Average annual financial turnover exceeding ₹25 Crores over past 3 financial years',
-      'Availability of required technical staff: 2 Senior Engineers & 4 Site Supervisors',
+      'Awarded contract under KSHIP Package-4 highway construction works',
+      'Mandatory mobilization of 100 personnel under BOCW compliance',
+      'Site safety supervisor with certified First-Aid accreditation',
     ],
     docs: [
-      'GST registration certificate & clearance',
-      'Proven experience certificates with completion photos',
-      'Company registration & PAN card copy',
-      'Earnest Money Deposit (EMD) / Bid security declaration',
+      'Signed Work Order Agreement',
+      'BOCW Cess Challan Copy',
+      'EPF & ESIC Registration Code',
+      'Labour Insurance Declaration',
     ],
     workforceRequirements: [
-      { id: 'wf-1', skill: 'Civil Engineers', headcount: 4, dailyWageRate: 1400, category: 'skilled', notes: 'B.E. Civil with highway paving experience' },
-      { id: 'wf-2', skill: 'Site Supervisors', headcount: 6, dailyWageRate: 1100, category: 'skilled', notes: 'Safety protocols & daily muster supervision' },
-      { id: 'wf-3', skill: 'Masons', headcount: 18, dailyWageRate: 900, category: 'skilled', notes: 'Kerb stone laying, culvert masonry' },
-      { id: 'wf-4', skill: 'Machine Operators', headcount: 8, dailyWageRate: 950, category: 'skilled', notes: 'Excavator, road roller, asphalt paver certified' },
-      { id: 'wf-5', skill: 'Construction Labourers', headcount: 45, dailyWageRate: 650, category: 'unskilled', notes: 'General earthwork, leveling, traffic flag helpers' },
+      { id: 'wf-1', skill: 'Masons', headcount: 30, assignedCount: 27, dailyWageRate: 900, category: 'skilled', notes: 'Stone pitching, culvert masonry, kerb laying' },
+      { id: 'wf-2', skill: 'Construction Helpers', headcount: 40, assignedCount: 40, dailyWageRate: 650, category: 'unskilled', notes: 'Subgrade preparation, aggregate handling, flagging' },
+      { id: 'wf-3', skill: 'Electricians', headcount: 10, assignedCount: 10, dailyWageRate: 1050, category: 'skilled', notes: 'High-mast lighting, traffic signaling conduits' },
+      { id: 'wf-4', skill: 'Equipment Operators', headcount: 15, assignedCount: 11, dailyWageRate: 1100, category: 'skilled', notes: 'Excavator, road roller, asphalt paver certified' },
+      { id: 'wf-5', skill: 'Supervisors', headcount: 5, assignedCount: 5, dailyWageRate: 1400, category: 'skilled', notes: 'Safety oversight, muster roll, daily measurement' },
     ],
+    otherRequirements: {
+      workingHours: '8:00 AM – 5:00 PM (1 hr lunch, overtime as per BOCW Act)',
+      accommodation: 'Site labor camp provided at KM 18 with sanitized drinking water and solar lighting',
+      transportation: 'Daily shuttle arranged from Belagavi central bus depot to work zones',
+      safety: 'Mandatory PPE: ISI-marked hard hats, high-visibility reflective vests, steel-toe safety shoes',
+      certifications: ['Heavy Earthmoving Machinery License for Operators', 'Safety induction card'],
+      compliance: [
+        'BOCW Act 1996 active registration',
+        'EPFO & ESIC monthly electronic return filings',
+        'Daily biometric muster verification on site',
+      ],
+    },
+    assignedWorkers: generateInitialBelagaviWorkers(),
+    fulfillmentPercent: 88,
     dynamicFee: calculateDynamicTenderFee(82000000),
-    status: 'analyzed',
-    createdAt: '2026-09-20',
+    status: 'active_fulfillment',
+    createdAt: '2026-09-22',
   },
   {
     id: 'T-1002',
