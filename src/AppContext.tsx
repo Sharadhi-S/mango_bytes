@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import type {
   Role,
   ScreenId,
@@ -17,8 +17,16 @@ import type {
   TenderWorkforceItem,
   AssignedProjectWorker,
   WorkforcePlan,
-  ContractorMatch,
-  DynamicFeeCalculation,
+  ContractorRFP,
+  WorkerInvitation,
+  WorkerAssignment,
+  AttendanceRecord,
+  WageRecord,
+  WorkerEarningsSummary,
+  SavingsGoalDetail,
+  PlatformNotification,
+  WorkerMatchScore,
+  ContractorWorker,
 } from './types';
 import {
   initialEarnings,
@@ -40,6 +48,67 @@ import {
   BROADCAST_CHANNEL as EMPLOYER_CHANNEL,
 } from './backend/employerBackend';
 
+// Import service layer
+import {
+  getRfps,
+  sendRfp as sendRfpService,
+  respondToRfp as respondToRfpService,
+  getRfpsForContractor,
+  getRfpsForEmployer,
+} from './services/rfps';
+import {
+  getWorkerInvitations,
+  getWorkerAssignments,
+  createWorkerInvitation as createInvitationService,
+  respondToWorkerInvitation as respondToInvitationService,
+  getActiveAssignmentForWorker,
+} from './services/assignments';
+import {
+  getAttendanceRecords,
+  getAttendanceForWorker,
+  getAttendanceForProject,
+  markAttendance as markAttendanceService,
+} from './services/attendance';
+import {
+  getWageRecords,
+  getWageRecordsForWorker,
+  getWageRecordsForContractor,
+  disburseWage as disburseWageService,
+  bulkDisbursePendingWages as bulkDisburseService,
+} from './services/wages';
+import {
+  computeWorkerEarnings,
+  getWorkerEarningEntries,
+} from './services/earnings';
+import {
+  getSavingsGoals,
+  createSavingsGoal as createSavingsGoalService,
+  addSavingsContribution as addSavingsContributionService,
+} from './services/savings';
+import {
+  getConversationsForRole,
+  sendMessage as sendRealtimeMessageService,
+} from './services/messages';
+import {
+  getNotifications,
+  createNotification as createNotificationService,
+  markNotificationAsRead as markNotificationReadService,
+  markAllNotificationsAsRead as markAllNotificationsReadService,
+  getUnreadNotificationCount as getUnreadNotificationCountService,
+} from './services/notifications';
+import {
+  getWorkers,
+  matchWorkersForRequirement as matchWorkersService,
+} from './services/workers';
+import {
+  subscribeToAllRealtime,
+  broadcastRealtimeEvent,
+} from './services/realtime';
+import {
+  selectContractorForProject as selectContractorService,
+  getAggregatedProjectMetrics,
+} from './services/projects';
+
 interface WorkerStats {
   todayEarnings: number;
   monthlyEarnings: number;
@@ -54,7 +123,7 @@ interface Toast {
   message: string;
 }
 
-interface AppContextValue {
+export interface AppContextValue {
   role: Role | null;
   setRole: (r: Role | null) => void;
   screen: ScreenId;
@@ -102,6 +171,7 @@ interface AppContextValue {
   setDailyWorkStatus: (value: DailyWorkStatus) => void;
   wellbeingAlertOpen: boolean;
   dismissWellbeingAlert: () => void;
+
   // employer real-time state
   tenders: Tender[];
   savedTenderIds: string[];
@@ -132,27 +202,129 @@ interface AppContextValue {
   markProjectWorkerWagePaid: (tenderId: string, workerId: string) => void;
   markAllProjectWorkersPresent: (tenderId: string) => void;
   payAllProjectWages: (tenderId: string) => void;
+
+  // Real-time Service Layer Extensions
+  rfps: ContractorRFP[];
+  sendRfp: (params: {
+    projectId: string;
+    projectTitle: string;
+    employerId: string;
+    employerName: string;
+    contractorId: string;
+    contractorName: string;
+    budget: number;
+    location: string;
+    duration: string;
+    headcountNeeded: number;
+    message: string;
+  }) => ContractorRFP;
+  respondToRfp: (rfpId: string, status: 'accepted' | 'declined', responseNotes?: string) => void;
+  selectContractor: (projectId: string, contractorId: string, contractorName: string) => void;
+
+  // Worker Invitations & Assignments
+  invitations: WorkerInvitation[];
+  assignments: WorkerAssignment[];
+  activeAssignment: WorkerAssignment | undefined;
+  inviteWorker: (params: {
+    projectId: string;
+    projectTitle: string;
+    contractorId: string;
+    contractorName: string;
+    workerId: string;
+    workerName: string;
+    skill: string;
+    dailyWage: number;
+    location: string;
+    duration?: string;
+    notes?: string;
+  }) => WorkerInvitation;
+  respondToInvitation: (invitationId: string, status: 'accepted' | 'declined') => void;
+
+  // Attendance & Wage Ledger
+  attendanceRecords: AttendanceRecord[];
+  markAttendanceRecord: (params: {
+    projectId: string;
+    workerId: string;
+    workerName: string;
+    contractorId: string;
+    status: 'present' | 'half' | 'absent';
+    dailyWage: number;
+    notes?: string;
+  }) => AttendanceRecord;
+  wageRecords: WageRecord[];
+  disburseWageRecord: (recordId: string, reference?: string) => void;
+  bulkDisburseWageRecords: (contractorId?: string) => void;
+
+  // Worker Earnings
+  workerEarningsSummary: WorkerEarningsSummary;
+
+  // Savings Goals
+  savingsGoalsDetailed: SavingsGoalDetail[];
+  createSavingsGoalDetailed: (params: {
+    workerId: string;
+    title: string;
+    targetAmount: number;
+    currentAmount?: number;
+    targetDate: string;
+    category?: string;
+    icon?: string;
+    color?: string;
+  }) => SavingsGoalDetail;
+  addSavingsContributionDetailed: (goalId: string, amount: number, note?: string) => void;
+
+  // Notifications
+  notifications: PlatformNotification[];
+  unreadNotificationCount: number;
+  markNotificationRead: (id: string) => void;
+  markAllNotificationsRead: () => void;
+
+  // Workers Directory & Smart Matching
+  workersDirectory: ContractorWorker[];
+  matchWorkersForTrade: (skill: string, maxWage?: number, location?: string) => WorkerMatchScore[];
+  projectMetrics: (projectId: string) => ReturnType<typeof getAggregatedProjectMetrics>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [role, setRoleState] = useState<Role | null>(null);
+  const [role, setRoleState] = useState<Role | null>(() => {
+    return (localStorage.getItem('shrama-role') as Role) || 'contractor';
+  });
   const [screen, setScreenState] = useState<ScreenId>('home');
   const [screenHistory, setScreenHistory] = useState<ScreenId[]>([]);
 
   const setRole = useCallback((nextRole: Role | null) => {
     setRoleState(nextRole);
+    if (nextRole) {
+      localStorage.setItem('shrama-role', nextRole);
+    }
     setScreenHistory([]);
   }, []);
+
   const [workerSkill, setWorkerSkill] = useState('Mason');
   const [monthlySalary, setMonthlySalary] = useState(18000);
-  const [registrationProfile, setRegistrationProfileState] = useState<RegistrationProfile | null>(null);
+  const [registrationProfile, setRegistrationProfileState] = useState<RegistrationProfile | null>(() => {
+    return {
+      name: 'Rajesh Kumar',
+      company: 'Kumar Construction Services',
+      phone: '+91 98450 12345',
+      location: 'Belagavi, Karnataka',
+      primarySkill: 'Civil Contractor',
+      skills: ['Roads', 'Masonry', 'Earthwork', 'Concrete'],
+      experience: '12 years',
+      qualification: 'Diploma in Civil Engg',
+      languages: ['Kannada', 'Hindi', 'English'],
+      monthlyIncome: 85000,
+      emergencyContact: '+91 98450 54321',
+      gender: 'Male',
+      workersManaged: 120,
+    };
+  });
+
   const [availability, setAvailability] = useState<WorkerAvailability>('available');
   const [dailyWorkStatus, setDailyWorkStatus] = useState<DailyWorkStatus>('workDone');
   const [wellbeingAlertOpen, setWellbeingAlertOpen] = useState(false);
 
-  const wellbeingIntervalMs = 20 * 60 * 1000;
   const wellbeingStorageKey = 'shrama-wellbeing-last-shown';
 
   const showWellbeingAlertNow = useCallback(() => {
@@ -166,55 +338,224 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (options?.showWellbeing !== false) showWellbeingAlertNow();
   }, [showWellbeingAlertNow]);
 
+  const dismissWellbeingAlert = useCallback(() => {
+    setWellbeingAlertOpen(false);
+  }, []);
+
+  // Worker active ID based on role
+  const activeWorkerId = role === 'labourer' ? 'w2' : 'w1';
+
+  // State slices
+  const [earnings, setEarnings] = useState<EarningEntry[]>(() => getWorkerEarningEntries(activeWorkerId));
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(initialSavingsGoals);
+  const [jobs, setJobs] = useState<JobListing[]>(initialJobs);
+  const [conversations, setConversations] = useState<Conversation[]>(() =>
+    getConversationsForRole(role || 'contractor', activeWorkerId)
+  );
+  const [attendance, setAttendance] = useState<AttendanceRow[]>(initialAttendance);
+  const [wages, setWages] = useState<WageRow[]>(initialWages);
+  const [postedJobs, setPostedJobs] = useState<PostedJob[]>(initialPostedJobs);
+  const [workerStats, setWorkerStats] = useState<WorkerStats>(initialWorkerStats);
+
+  // Real-time Service Layer States
+  const [rfps, setRfps] = useState<ContractorRFP[]>(() => getRfps());
+  const [invitations, setInvitations] = useState<WorkerInvitation[]>(() => getWorkerInvitations());
+  const [assignments, setAssignments] = useState<WorkerAssignment[]>(() => getWorkerAssignments());
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(() => getAttendanceRecords());
+  const [wageRecords, setWageRecords] = useState<WageRecord[]>(() => getWageRecords());
+  const [savingsGoalsDetailed, setSavingsGoalsDetailed] = useState<SavingsGoalDetail[]>(() => getSavingsGoals());
+  const [notifications, setNotifications] = useState<PlatformNotification[]>(() => getNotifications(role || 'contractor'));
+  const [workersDirectory, setWorkersDirectory] = useState<ContractorWorker[]>(() => getWorkers());
+
+  // Worker live earnings computation
+  const workerEarningsSummary = useMemo(() => {
+    return computeWorkerEarnings(activeWorkerId);
+  }, [activeWorkerId, attendanceRecords, wageRecords, assignments]);
+
+  // Active assignment for worker
+  const activeAssignment = useMemo(() => {
+    return getActiveAssignmentForWorker(activeWorkerId);
+  }, [activeWorkerId, assignments]);
+
+  // Employer state
+  const [employerState, setEmployerState] = useState(() => getInitialEmployerState());
+  const [tenders, setTenders] = useState<Tender[]>(() => employerState.tenders);
+  const [savedTenderIds, setSavedTenderIds] = useState<string[]>(() => employerState.savedTenderIds);
+  const [workforcePlans, setWorkforcePlans] = useState<Record<string, WorkforcePlan>>(() => employerState.workforcePlans);
+  const [partnerRequests, setPartnerRequests] = useState<Record<string, boolean>>(() => employerState.partnerRequests);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>('T-BELAGAVI-1042');
+
+  // Sync employer state to localStorage
   useEffect(() => {
-    if (!registrationProfile) return;
-
-    const checkReminder = () => {
-      const lastShown = Number(localStorage.getItem(wellbeingStorageKey) || 0);
-      if (lastShown && Date.now() - lastShown >= wellbeingIntervalMs) {
-        showWellbeingAlertNow();
-      }
-    };
-
-    const intervalId = window.setInterval(checkReminder, 30 * 1000);
-    return () => window.clearInterval(intervalId);
-  }, [registrationProfile, showWellbeingAlertNow]);
-
-  const dismissWellbeingAlert = useCallback(() => setWellbeingAlertOpen(false), []);
-  // Employer real-time persistent state
-  const initialEmployer = getInitialEmployerState();
-  const [tenders, setTenders] = useState<Tender[]>(initialEmployer.tenders);
-  const [savedTenderIds, setSavedTenderIds] = useState<string[]>(initialEmployer.savedTenderIds);
-  const [workforcePlans, setWorkforcePlans] = useState<Record<string, WorkforcePlan>>(initialEmployer.workforcePlans);
-  const [partnerRequests, setPartnerRequests] = useState<Record<string, boolean>>(initialEmployer.partnerRequests);
-
-  // Sync state to persistent localStorage & BroadcastChannel
-  useEffect(() => {
-    saveEmployerState({
+    const nextState = {
       tenders,
       savedTenderIds,
       workforcePlans,
       partnerRequests,
-    });
+    };
+    saveEmployerState(nextState);
   }, [tenders, savedTenderIds, workforcePlans, partnerRequests]);
 
-  // Listen for cross-tab updates
+  // Realtime subscription listener across tabs
   useEffect(() => {
-    if (typeof window === 'undefined' || !('BroadcastChannel' in window)) return;
-    const channel = new BroadcastChannel(EMPLOYER_CHANNEL);
-    channel.onmessage = (event) => {
-      if (event.data?.type === 'EMPLOYER_STATE_UPDATE' && event.data.state) {
-        const s = event.data.state;
-        if (s.tenders) setTenders(s.tenders);
-        if (s.savedTenderIds) setSavedTenderIds(s.savedTenderIds);
-        if (s.workforcePlans) setWorkforcePlans(s.workforcePlans);
-        if (s.partnerRequests) setPartnerRequests(s.partnerRequests);
+    const unsub = subscribeToAllRealtime((event) => {
+      switch (event.type) {
+        case 'PROJECT_UPDATED':
+          setTenders((prev) => {
+            const index = prev.findIndex((t) => t.id === event.payload.id);
+            if (index >= 0) {
+              const copy = [...prev];
+              copy[index] = event.payload;
+              return copy;
+            }
+            return [event.payload, ...prev];
+          });
+          break;
+        case 'RFP_CREATED':
+        case 'RFP_UPDATED':
+          setRfps(getRfps());
+          break;
+        case 'WORKER_INVITED':
+        case 'INVITATION_UPDATED':
+          setInvitations(getWorkerInvitations());
+          break;
+        case 'ASSIGNMENT_CREATED':
+          setAssignments(getWorkerAssignments());
+          break;
+        case 'ATTENDANCE_MARKED':
+          setAttendanceRecords(getAttendanceRecords());
+          setEarnings(getWorkerEarningEntries(activeWorkerId));
+          break;
+        case 'WAGE_RECORD_UPDATED':
+          setWageRecords(getWageRecords());
+          setEarnings(getWorkerEarningEntries(activeWorkerId));
+          break;
+        case 'SAVINGS_GOAL_UPDATED':
+          setSavingsGoalsDetailed(getSavingsGoals());
+          break;
+        case 'NOTIFICATION_CREATED':
+          setNotifications(getNotifications(role || 'contractor'));
+          break;
+        case 'MESSAGE_SENT':
+          setConversations(getConversationsForRole(role || 'contractor', activeWorkerId));
+          break;
       }
-    };
-    return () => channel.close();
+    });
+
+    return unsub;
+  }, [role, activeWorkerId]);
+
+  // Keep conversations and notifications refreshed on role change
+  useEffect(() => {
+    setConversations(getConversationsForRole(role || 'contractor', activeWorkerId));
+    setNotifications(getNotifications(role || 'contractor'));
+    setEarnings(getWorkerEarningEntries(activeWorkerId));
+  }, [role, activeWorkerId]);
+
+  // Language & UI
+  const [lang, setLang] = useState<LangCode>(() => (localStorage.getItem('shrama-lang') as LangCode) || 'en');
+  const changeLang = useCallback((value: LangCode) => {
+    setLang(value);
+    localStorage.setItem('shrama-lang', value);
   }, []);
 
-  
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [voiceActive, setVoiceActive] = useState(false);
+  const [voiceText, setVoiceText] = useState('');
+
+  const t = useCallback((key: string) => translate(lang, key), [lang]);
+
+  const showToast = useCallback((message: string) => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, 3000);
+  }, []);
+
+  const playVoice = useCallback((text?: string) => {
+    const narration = text || translate(lang, 'voiceIntro');
+    setVoiceText(narration);
+    setVoiceActive(true);
+  }, [lang]);
+
+  const stopVoice = useCallback(() => {
+    setVoiceActive(false);
+  }, []);
+
+  // Screen navigation
+  const setScreen = useCallback((next: ScreenId) => {
+    setScreenState((current) => {
+      if (current === next) return current;
+      setScreenHistory((history) => [...history, current]);
+      return next;
+    });
+  }, []);
+
+  const goBack = useCallback(() => {
+    setScreenHistory((history) => {
+      if (!history.length) {
+        setScreenState('home');
+        return history;
+      }
+      const previous = history[history.length - 1];
+      setScreenState(previous);
+      return history.slice(0, -1);
+    });
+  }, []);
+
+  // Worker actions
+  const saveMoney = useCallback((goalId: string, amount: number) => {
+    setSavingsGoals((prev) =>
+      prev.map((g) => (g.id === goalId ? { ...g, current: g.current + amount } : g))
+    );
+    addSavingsContributionService(goalId, amount);
+    setSavingsGoalsDetailed(getSavingsGoals());
+  }, []);
+
+  const applyJob = useCallback((jobId: string) => {
+    setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, applied: true } : j)));
+  }, []);
+
+  const sendMessage = useCallback((conversationId: string, text: string, _attachment?: ChatMessage['attachment']) => {
+    sendRealtimeMessageService({
+      conversationId,
+      senderRole: role || 'contractor',
+      text,
+      senderName: registrationProfile?.name || undefined,
+    });
+    setConversations(getConversationsForRole(role || 'contractor', activeWorkerId));
+  }, [role, registrationProfile, activeWorkerId]);
+
+  const markConversationRead = useCallback((conversationId: string) => {
+    setConversations((prev) =>
+      prev.map((conversation) => (conversation.id === conversationId ? { ...conversation, unread: 0 } : conversation))
+    );
+  }, []);
+
+  const transferToBank = useCallback(() => {
+    showToast('Simulation: ₹2,500 transferred to bank account (demo prototype).');
+  }, [showToast]);
+
+  const setAttendanceStatus = useCallback((id: string, status: 'present' | 'absent' | 'half') => {
+    setAttendance((prev) =>
+      prev.map((a) => {
+        if (a.id !== id) return a;
+        const hours = status === 'present' ? 8 : status === 'half' ? 4 : 0;
+        return { ...a, status, hours };
+      })
+    );
+  }, []);
+
+  const markWagePaid = useCallback((id: string) => {
+    setWages((prev) => prev.map((w) => (w.id === id ? { ...w, status: 'paid' } : w)));
+  }, []);
+
+  const postJob = useCallback((job: Omit<PostedJob, 'id'>) => {
+    setPostedJobs((prev) => [{ ...job, id: `pj-${Date.now()}` }, ...prev]);
+  }, []);
+
+  // Employer actions
   const createAndAnalyzeTender = useCallback((data: {
     title: string;
     dept: string;
@@ -260,6 +601,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     setTenders((prev) => [newTender, ...prev]);
+    broadcastRealtimeEvent('PROJECT_UPDATED', newTender);
     return newTender;
   }, []);
 
@@ -268,12 +610,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTenders((prev) =>
       prev.map((t) => {
         if (t.id !== tenderId) return t;
-        return {
+        const updated = {
           ...t,
           skills: updatedSkills,
           workforceRequirements: requirements,
-          status: t.status === 'analyzed' ? 'requirements_configured' : t.status,
+          status: t.status === 'analyzed' ? ('requirements_configured' as const) : t.status,
         };
+        broadcastRealtimeEvent('PROJECT_UPDATED', updated);
+        return updated;
       })
     );
   }, []);
@@ -283,16 +627,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
       prev.map((t) => {
         if (t.id !== tenderId) return t;
         const matches = generateSuitableContractors(t, t.workforceRequirements);
-        return {
+        const updated = {
           ...t,
-          status: 'contractor_matched',
+          status: 'contractor_matched' as const,
           unlockedContractors: matches,
         };
+        broadcastRealtimeEvent('PROJECT_UPDATED', updated);
+        return updated;
       })
     );
   }, []);
 
   const sendRfpToContractor = useCallback((tenderId: string, contractorId: string) => {
+    const targetTender = tenders.find((t) => t.id === tenderId);
+    if (!targetTender) return;
+
+    sendRfpService({
+      projectId: targetTender.id,
+      projectTitle: targetTender.title,
+      employerId: 'emp-demo',
+      employerName: 'Demo Infrastructure Pvt Ltd',
+      contractorId,
+      contractorName: 'Kumar Construction Services',
+      budget: targetTender.value,
+      location: targetTender.location,
+      duration: targetTender.duration || '6 Months',
+      headcountNeeded: targetTender.workforceRequirements.reduce((sum, r) => sum + r.headcount, 0) || 100,
+      message: `We invite Kumar Construction Services to fulfill the workforce requirements for "${targetTender.title}".`,
+    });
+
     setTenders((prev) =>
       prev.map((t) => {
         if (t.id !== tenderId) return t;
@@ -302,7 +665,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return { ...t, unlockedContractors: updatedContractors };
       })
     );
-  }, []);
+
+    setRfps(getRfps());
+  }, [tenders]);
 
   const toggleSaveTender = useCallback((tenderId: string) => {
     setSavedTenderIds((prev) =>
@@ -333,14 +698,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPartnerRequests((prev) => ({ ...prev, [categoryName]: true }));
   }, []);
 
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>('T-BELAGAVI-1042');
-
   const addTender = useCallback((newTender: Tender) => {
     setTenders((prev) => [newTender, ...prev.filter((t) => t.id !== newTender.id)]);
+    broadcastRealtimeEvent('PROJECT_UPDATED', newTender);
   }, []);
 
   const updateTender = useCallback((updatedTender: Tender) => {
     setTenders((prev) => prev.map((t) => (t.id === updatedTender.id ? updatedTender : t)));
+    broadcastRealtimeEvent('PROJECT_UPDATED', updatedTender);
   }, []);
 
   const assignWorkerToProject = useCallback((tenderId: string, worker: AssignedProjectWorker) => {
@@ -373,13 +738,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const fulfillmentPercent = Math.min(100, Math.round((totalAssigned / totalReq) * 100));
         const status = fulfillmentPercent >= 100 ? ('ready_to_deploy' as const) : t.status;
 
-        return {
+        const updated = {
           ...t,
           assignedWorkers: updatedWorkers,
           workforceRequirements: updatedReqs,
           fulfillmentPercent,
           status,
         };
+        broadcastRealtimeEvent('PROJECT_UPDATED', updated);
+        return updated;
       })
     );
   }, []);
@@ -394,7 +761,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
           return w;
         });
-        return { ...t, assignedWorkers: updatedWorkers };
+        const updated = { ...t, assignedWorkers: updatedWorkers };
+        broadcastRealtimeEvent('PROJECT_UPDATED', updated);
+        return updated;
       })
     );
   }, []);
@@ -409,7 +778,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
           return w;
         });
-        return { ...t, assignedWorkers: updatedWorkers };
+        const updated = { ...t, assignedWorkers: updatedWorkers };
+        broadcastRealtimeEvent('PROJECT_UPDATED', updated);
+        return updated;
       })
     );
   }, []);
@@ -422,7 +793,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ...w,
           attendanceToday: 'present' as const,
         }));
-        return { ...t, assignedWorkers: updatedWorkers };
+        const updated = { ...t, assignedWorkers: updatedWorkers };
+        broadcastRealtimeEvent('PROJECT_UPDATED', updated);
+        return updated;
       })
     );
   }, []);
@@ -435,125 +808,105 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ...w,
           wageStatus: 'paid' as const,
         }));
-        return { ...t, assignedWorkers: updatedWorkers };
+        const updated = { ...t, assignedWorkers: updatedWorkers };
+        broadcastRealtimeEvent('PROJECT_UPDATED', updated);
+        return updated;
       })
     );
   }, []);
 
+  // Real-time Service Dispatchers
+  const sendRfp = useCallback((params: Parameters<typeof sendRfpService>[0]) => {
+    const rfp = sendRfpService(params);
+    setRfps(getRfps());
+    showToast('Workforce RFP dispatched to contractor in real time!');
+    return rfp;
+  }, [showToast]);
 
+  const respondToRfp = useCallback((rfpId: string, status: 'accepted' | 'declined', responseNotes?: string) => {
+    respondToRfpService(rfpId, status, responseNotes);
+    setRfps(getRfps());
+    showToast(`RFP ${status === 'accepted' ? 'Accepted' : 'Declined'} successfully.`);
+  }, [showToast]);
 
-  const [lang, setLang] = useState<LangCode>(() => (localStorage.getItem('shrama-lang') as LangCode) || 'en');
-  const changeLang = useCallback((value: LangCode) => { setLang(value); localStorage.setItem('shrama-lang', value); }, []);
-
-  const setScreen = useCallback((next: ScreenId) => {
-    setScreenState((current) => {
-      if (current === next) return current;
-      setScreenHistory((history) => [...history, current]);
-      return next;
-    });
-  }, []);
-
-  const goBack = useCallback(() => {
-    setScreenHistory((history) => {
-      if (!history.length) {
-        setScreenState('home');
-        return history;
-      }
-      const previous = history[history.length - 1];
-      setScreenState(previous);
-      return history.slice(0, -1);
-    });
-  }, []);
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const [voiceActive, setVoiceActive] = useState(false);
-  const [voiceText, setVoiceText] = useState('');
-
-  const [earnings] = useState<EarningEntry[]>(initialEarnings);
-  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(initialSavingsGoals);
-  const [jobs, setJobs] = useState<JobListing[]>(initialJobs);
-  const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
-  const [workerStats, setWorkerStats] = useState<WorkerStats>(initialWorkerStats);
-
-  const [attendance, setAttendance] = useState<AttendanceRow[]>(initialAttendance);
-  const [wages, setWages] = useState<WageRow[]>(initialWages);
-  const [postedJobs, setPostedJobs] = useState<PostedJob[]>(initialPostedJobs);
-
-  const t = useCallback((key: string) => translate(lang, key), [lang]);
-
-  const showToast = useCallback((message: string) => {
-    const id = Date.now() + Math.random();
-    setToasts((prev) => [...prev, { id, message }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, 3000);
-  }, []);
-
-  const playVoice = useCallback((text?: string) => {
-    const narration = text || translate(lang, 'voiceIntro');
-    setVoiceText(narration);
-    setVoiceActive(true);
-  }, [lang]);
-
-  const stopVoice = useCallback(() => {
-    setVoiceActive(false);
-  }, []);
-
-  const saveMoney = useCallback((goalId: string, amount: number) => {
-    setSavingsGoals((prev) =>
-      prev.map((g) => (g.id === goalId ? { ...g, current: g.current + amount } : g))
+  const selectContractor = useCallback((projectId: string, contractorId: string, contractorName: string) => {
+    selectContractorService(projectId, contractorId, contractorName);
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== projectId) return t;
+        return { ...t, status: 'active_fulfillment' as const };
+      })
     );
-    setWorkerStats((prev) => ({
-      ...prev,
-      availableBalance: prev.availableBalance - amount,
-      emergencySavings:
-        goalId === 'emergency' ? prev.emergencySavings + amount : prev.emergencySavings,
-    }));
-  }, []);
+    showToast(`${contractorName} assigned as lead workforce contractor.`);
+  }, [showToast]);
 
-  const applyJob = useCallback((jobId: string) => {
-    setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, applied: true } : j)));
-  }, []);
+  const inviteWorker = useCallback((params: Parameters<typeof createInvitationService>[0]) => {
+    const inv = createInvitationService(params);
+    setInvitations(getWorkerInvitations());
+    showToast(`Work invitation sent to ${params.workerName} in real time!`);
+    return inv;
+  }, [showToast]);
 
-  const sendMessage = useCallback((conversationId: string, text: string, attachment?: ChatMessage['attachment']) => {
-    const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    const newMsg: ChatMessage = { id: `m-${Date.now()}`, sender: role === 'contractor' || role === 'employer' ? 'contractor' : 'worker', text, time: now, attachment };
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.id === conversationId
-          ? { ...c, messages: [...c.messages, newMsg], lastMessage: text, time: now, unread: 0 }
-          : c
-      )
-    );
+  const respondToInvitation = useCallback((invitationId: string, status: 'accepted' | 'declined') => {
+    respondToInvitationService(invitationId, status);
+    setInvitations(getWorkerInvitations());
+    setAssignments(getWorkerAssignments());
+    showToast(status === 'accepted' ? 'Invitation accepted! Assignment activated.' : 'Invitation declined.');
+  }, [showToast]);
+
+  const markAttendanceRecord = useCallback((params: Parameters<typeof markAttendanceService>[0]) => {
+    const rec = markAttendanceService(params);
+    setAttendanceRecords(getAttendanceRecords());
+    setEarnings(getWorkerEarningEntries(activeWorkerId));
+    showToast(`Attendance marked for ${params.workerName}: ${params.status.toUpperCase()}`);
+    return rec;
+  }, [activeWorkerId, showToast]);
+
+  const disburseWageRecord = useCallback((recordId: string, reference?: string) => {
+    disburseWageService(recordId, reference);
+    setWageRecords(getWageRecords());
+    setEarnings(getWorkerEarningEntries(activeWorkerId));
+    showToast('Wage disbursed successfully (Prototype simulated payout).');
+  }, [activeWorkerId, showToast]);
+
+  const bulkDisburseWageRecords = useCallback((contractorId: string = 'c1') => {
+    bulkDisburseService(contractorId);
+    setWageRecords(getWageRecords());
+    setEarnings(getWorkerEarningEntries(activeWorkerId));
+    showToast('All pending wages marked as paid (Prototype simulated payout).');
+  }, [activeWorkerId, showToast]);
+
+  const createSavingsGoalDetailed = useCallback((params: Parameters<typeof createSavingsGoalService>[0]) => {
+    const goal = createSavingsGoalService(params);
+    setSavingsGoalsDetailed(getSavingsGoals());
+    showToast(`New savings goal "${goal.title}" created! Target: ₹${goal.targetAmount.toLocaleString('en-IN')}`);
+    return goal;
+  }, [showToast]);
+
+  const addSavingsContributionDetailed = useCallback((goalId: string, amount: number, note?: string) => {
+    addSavingsContributionService(goalId, amount, note);
+    setSavingsGoalsDetailed(getSavingsGoals());
+    showToast(`₹${amount.toLocaleString('en-IN')} added to savings goal!`);
+  }, [showToast]);
+
+  const markNotificationRead = useCallback((id: string) => {
+    markNotificationReadService(id);
+    setNotifications(getNotifications(role || 'contractor'));
   }, [role]);
 
-  const markConversationRead = useCallback((conversationId: string) => {
-    setConversations((prev) =>
-      prev.map((conversation) => conversation.id === conversationId ? { ...conversation, unread: 0 } : conversation)
-    );
+  const markAllNotificationsRead = useCallback(() => {
+    markAllNotificationsReadService(role || 'contractor');
+    setNotifications(getNotifications(role || 'contractor'));
+    showToast('All notifications marked as read.');
+  }, [role, showToast]);
+
+  const matchWorkersForTrade = useCallback((skill: string, maxWage?: number, location?: string) => {
+    return matchWorkersService(skill, maxWage, location);
   }, []);
 
-  const transferToBank = useCallback(() => {
-    showToast(translate(lang, 'toastTransferBank'));
-    setTimeout(() => showToast(translate(lang, 'toastTransferDone')), 1000);
-  }, [lang, showToast]);
-
-  const setAttendanceStatus = useCallback((id: string, status: 'present' | 'absent' | 'half') => {
-    setAttendance((prev) =>
-      prev.map((a) => {
-        if (a.id !== id) return a;
-        const hours = status === 'present' ? 8 : status === 'half' ? 4 : 0;
-        return { ...a, status, hours };
-      })
-    );
-  }, []);
-
-  const markWagePaid = useCallback((id: string) => {
-    setWages((prev) => prev.map((w) => (w.id === id ? { ...w, status: 'paid' } : w)));
-  }, []);
-
-  const postJob = useCallback((job: Omit<PostedJob, 'id'>) => {
-    setPostedJobs((prev) => [{ ...job, id: `pj-${Date.now()}` }, ...prev]);
-  }, []);
+  const unreadNotificationCount = useMemo(() => {
+    return getUnreadNotificationCountService(role || 'contractor');
+  }, [role, notifications]);
 
   return (
     <AppContext.Provider
@@ -621,6 +974,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
         markProjectWorkerWagePaid,
         markAllProjectWorkersPresent,
         payAllProjectWages,
+
+        // Real-time Service Extensions
+        rfps,
+        sendRfp,
+        respondToRfp,
+        selectContractor,
+        invitations,
+        assignments,
+        activeAssignment,
+        inviteWorker,
+        respondToInvitation,
+        attendanceRecords,
+        markAttendanceRecord,
+        wageRecords,
+        disburseWageRecord,
+        bulkDisburseWageRecords,
+        workerEarningsSummary,
+        savingsGoalsDetailed,
+        createSavingsGoalDetailed,
+        addSavingsContributionDetailed,
+        notifications,
+        unreadNotificationCount,
+        markNotificationRead,
+        markAllNotificationsRead,
+        workersDirectory,
+        matchWorkersForTrade,
+        projectMetrics: getAggregatedProjectMetrics,
       }}
     >
       {children}
@@ -629,7 +1009,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 }
 
 export function useApp() {
-  const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useApp must be used within AppProvider');
-  return ctx;
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useApp must be used within an AppProvider');
+  }
+  return context;
 }

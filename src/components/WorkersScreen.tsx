@@ -1,154 +1,282 @@
 import { useMemo, useState } from 'react';
-import { MapPin, CheckCircle2, Briefcase, Phone, UserPlus, X, Star, ShieldCheck, Home } from 'lucide-react';
+import { MapPin, CheckCircle2, Briefcase, Phone, UserPlus, X, Star, ShieldCheck, Home, Sparkles, Send, Clock } from 'lucide-react';
 import { Card, ScreenHeader, Avatar, Badge, Button } from './ui';
-import { initialContractorWorkers } from '@/mockData';
+import { useApp } from '@/AppContext';
+import { matchWorker } from '@/services/workers';
 import type { ContractorWorker } from '@/types';
 
 export function WorkersScreen() {
+  const {
+    workersDirectory,
+    invitations,
+    assignments,
+    inviteWorker,
+    selectedProjectId,
+    tenders,
+    showToast,
+  } = useApp();
+
   const [selected, setSelected] = useState<ContractorWorker | null>(null);
-  const [assigned, setAssigned] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('All');
 
-  const filtered = useMemo(() => initialContractorWorkers.filter((worker) => {
-    const q = query.toLowerCase().trim();
-    const matchesQuery = !q || [worker.name, worker.primarySkill, worker.location].some((v) => v.toLowerCase().includes(q));
-    const matchesFilter = filter === 'All' ||
-      (filter === 'Available' && worker.availability === 'Available') ||
-      (filter === 'Verified' && worker.verified) ||
-      (filter === 'Mason' && worker.primarySkill === 'Mason') ||
-      (filter === 'Skilled Workers' && worker.category === 'skilledWorker');
-    return matchesQuery && matchesFilter;
-  }), [query, filter]);
+  const activeProject = tenders.find((t) => t.id === selectedProjectId) || tenders[0];
 
-  const handleAssign = (id: string) => setAssigned((prev) => new Set(prev).add(id));
-  const shramaId = (id: string) => `SHR-${id.toUpperCase()}-${id === 'w1' ? '4821' : id === 'w2' ? '7314' : '5906'}`;
+  const scoredWorkers = useMemo(() => {
+    return workersDirectory.map((worker) => {
+      const match = matchWorker(
+        worker,
+        query || 'Mason',
+        850,
+        activeProject?.location || 'Belagavi'
+      );
+      return { worker, match };
+    });
+  }, [workersDirectory, query, activeProject]);
+
+  const filtered = useMemo(() => {
+    return scoredWorkers.filter(({ worker }) => {
+      const q = query.toLowerCase().trim();
+      const matchesQuery =
+        !q ||
+        [worker.name, worker.primarySkill, worker.location].some((v) =>
+          v.toLowerCase().includes(q)
+        );
+      const matchesFilter =
+        filter === 'All' ||
+        (filter === 'Available' && worker.availability === 'available') ||
+        (filter === 'Verified' && worker.verified) ||
+        (filter === 'Mason' && worker.primarySkill.toLowerCase().includes('mason')) ||
+        (filter === 'Skilled' && worker.category === 'skilledWorker');
+      return matchesQuery && matchesFilter;
+    });
+  }, [scoredWorkers, query, filter]);
+
+  const handleInvite = (worker: ContractorWorker) => {
+    const dailyWage = worker.category === 'labourer' ? 600 : 850;
+    inviteWorker({
+      projectId: activeProject?.id || 'tender-1',
+      projectTitle: activeProject?.title || 'Belagavi Highway & Flyover Expansion',
+      contractorId: 'c1',
+      contractorName: 'Kumar Construction Services',
+      workerId: worker.id,
+      workerName: worker.name,
+      skill: worker.primarySkill,
+      dailyWage,
+      location: worker.location,
+      duration: activeProject?.duration || '30 Days',
+      notes: `Deployment for ${worker.primarySkill} trades on site.`,
+    });
+  };
+
+  const shramaId = (id: string) =>
+    `SHR-${id.toUpperCase()}-${id === 'w1' ? '4821' : id === 'w2' ? '7314' : '5906'}`;
 
   return (
-    <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8">
-      <ScreenHeader title="Find Workers" subtitle="Discover labourers and skilled workers near you" />
+    <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8 space-y-5">
+      <ScreenHeader
+        title="Find & Deploy Workers"
+        subtitle="Deterministic 100-point skill matching & real-time deployment invitations"
+      />
 
-      <Card className="p-4 mb-5 bg-gradient-to-r from-brand-50 to-white border-brand-100">
+      {/* Match Engine Info Banner */}
+      <Card className="p-4 bg-gradient-to-r from-brand-50 to-white border-brand-100 shadow-2xs">
         <div className="flex items-center gap-3">
-          <ShieldCheck className="text-brand-600" size={28} />
+          <div className="w-10 h-10 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center shrink-0">
+            <Sparkles size={22} />
+          </div>
           <div>
-            <p className="font-extrabold text-gray-900">Smart Workforce Matching</p>
-            <p className="text-xs text-gray-500">Search a skill such as <b>Mason</b> to instantly see matching profiles. ShramaID helps verify worker identity and history. Local matching can prioritise workers within 5–15 km.</p>
+            <p className="font-extrabold text-gray-900 text-sm">Deterministic 100-Point Match Algorithm</p>
+            <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+              Scores profiles based on Skill Match (50 pts), Location Proximity (20 pts), Immediate Availability (15 pts), Verified Experience (10 pts), and Wage Fit (5 pts).
+            </p>
           </div>
         </div>
       </Card>
 
-      <div className="mb-4">
-        <input value={query} onChange={(e) => setQuery(e.target.value)} type="search" placeholder="Search by skill, name, or location..." className="w-full px-4 py-3 rounded-xl bg-white border-2 border-gray-100 focus:border-brand-400 outline-none text-sm font-medium text-gray-900 shadow-card" />
+      {/* Search Input */}
+      <div>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          type="search"
+          placeholder="Search by skill (Mason, Helper, Electrician), name, or location..."
+          className="w-full px-4 py-3 rounded-xl bg-white border-2 border-gray-100 focus:border-brand-400 outline-none text-sm font-medium text-gray-900 shadow-xs"
+        />
       </div>
 
-      <div className="flex gap-2 overflow-x-auto no-scrollbar mb-5 -mx-5 px-5 lg:mx-0 lg:px-0">
-        {['All', 'Available', 'Verified', 'Mason', 'Skilled Workers'].map((item) => (
-          <button key={item} onClick={() => setFilter(item)} className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap ${filter === item ? 'bg-brand-600 text-white' : 'bg-white text-gray-600 shadow-card'}`}>{item}</button>
+      {/* Filters */}
+      <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 lg:mx-0 lg:px-0">
+        {['All', 'Available', 'Verified', 'Mason', 'Skilled'].map((item) => (
+          <button
+            key={item}
+            onClick={() => setFilter(item)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
+              filter === item
+                ? 'bg-brand-600 text-white shadow-xs'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            {item}
+          </button>
         ))}
       </div>
 
+      {/* Workers Grid */}
       <div className="grid gap-3 md:grid-cols-2">
-        {filtered.map((worker) => (
-          <Card key={worker.id} className="p-4 animate-slide-up">
-            <div className="flex items-start gap-3 mb-3">
-              <Avatar initials={worker.avatar} size="md" color={worker.verified ? 'brand' : 'warning'} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="font-bold text-gray-900 truncate">{worker.name}</h3>
-                  {worker.verified && <CheckCircle2 size={16} className="text-accent-500 flex-shrink-0" />}
+        {filtered.map(({ worker, match }) => {
+          const isAssigned = assignments.some((a) => a.workerId === worker.id);
+          const isInvited = invitations.some(
+            (i) => i.workerId === worker.id && i.status === 'invited'
+          );
+
+          return (
+            <Card key={worker.id} className="p-4 border border-gray-200 hover:border-brand-300 shadow-xs transition-all">
+              <div className="flex items-start gap-3 mb-3">
+                <Avatar
+                  initials={worker.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()}
+                  size="md"
+                  color={worker.verified ? 'brand' : 'warning'}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <h3 className="font-bold text-gray-900 text-sm truncate">{worker.name}</h3>
+                      {worker.verified && <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />}
+                    </div>
+                    <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                      {match.score}% Match
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 font-medium">
+                    {worker.primarySkill} · {worker.experience}
+                  </p>
+                  <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-0.5">
+                    <MapPin size={11} /> {worker.location}
+                  </div>
                 </div>
-                <p className="text-sm text-gray-500">{worker.primarySkill} · {worker.experience}</p>
-                <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5"><MapPin size={12} /> {worker.location}</div>
               </div>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              <Badge color={worker.availability === 'Available' ? 'green' : 'gray'}>{worker.availability}</Badge>
-              <Badge color="blue"><Briefcase size={12} /> {worker.workCount} jobs</Badge>
-              {worker.category === 'skilledWorker' && <Badge color="blue">Skilled Worker</Badge>}
-              {worker.verified && <Badge color="green"><CheckCircle2 size={12} /> Verified</Badge>}
-            </div>
+              <div className="flex flex-wrap items-center gap-1.5 mb-3 text-[11px]">
+                <Badge color={worker.availability === 'available' ? 'green' : 'gray'}>
+                  {worker.availability === 'available' ? 'Available' : 'Committed'}
+                </Badge>
+                <Badge color="blue">
+                  <Briefcase size={11} className="mr-1 inline" /> {worker.workCount} jobs
+                </Badge>
+                {worker.verified && (
+                  <Badge color="green">
+                    <CheckCircle2 size={11} className="mr-1 inline" /> Verified
+                  </Badge>
+                )}
+              </div>
 
-            <div className="flex gap-2">
-              <Button variant="secondary" size="sm" className="flex-1" onClick={() => setSelected(worker)}>View Profile</Button>
-              <button className="px-3 py-2 rounded-lg bg-accent-50 text-accent-600 active:scale-95 transition-transform" title="Contact"><Phone size={18} /></button>
-              {assigned.has(worker.id) ? (
-                <div className="px-3 py-2 rounded-lg bg-accent-100 text-accent-700 text-sm font-semibold flex items-center gap-1"><CheckCircle2 size={16} /> Assigned</div>
-              ) : (
-                <button onClick={() => handleAssign(worker.id)} className="px-3 py-2 rounded-lg bg-brand-600 text-white active:scale-95 transition-transform text-sm font-semibold flex items-center gap-1"><UserPlus size={16} /> Assign</button>
-              )}
-            </div>
-          </Card>
-        ))}
-      </div>
+              <div className="p-2 rounded-lg bg-gray-50 mb-3 text-[11px] text-gray-600 space-y-0.5">
+                <p className="font-semibold text-gray-800">Match Reasons:</p>
+                {match.matchReasons.slice(0, 2).map((reason, idx) => (
+                  <p key={idx} className="text-gray-500 truncate">
+                    • {reason}
+                  </p>
+                ))}
+              </div>
 
-      {filtered.length === 0 && <Card className="p-8 text-center"><p className="font-bold text-gray-900">No matching profiles</p><p className="text-sm text-gray-500 mt-1">Try another skill, name, or location.</p></Card>}
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="flex-1 text-xs"
+                  onClick={() => setSelected(worker)}
+                >
+                  View Profile
+                </Button>
 
-      {selected && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-5" onClick={() => setSelected(null)}>
-          <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-          <div className="relative bg-white w-full max-w-2xl rounded-3xl p-5 sm:p-6 pb-8 animate-slide-up max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-2.5rem)] overflow-y-auto overscroll-contain no-scrollbar shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-extrabold text-gray-900">Worker Profile</h2>
-              <button onClick={() => setSelected(null)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><X size={20} /></button>
-            </div>
-
-            <Card className="p-4 mb-4 bg-gradient-to-r from-brand-50 to-white border-brand-100">
-              <div className="flex gap-3 items-center">
-<div className="flex-1"><p className="text-xs font-bold text-brand-700 uppercase tracking-wide">Smart Workforce Machine</p><p className="text-lg font-extrabold text-gray-900">ShramaID</p><p className="text-xs text-gray-500">Verified profile + workforce trust history</p></div>
+                {isAssigned ? (
+                  <div className="px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1">
+                    <CheckCircle2 size={14} /> Assigned
+                  </div>
+                ) : isInvited ? (
+                  <div className="px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-bold flex items-center gap-1">
+                    <Clock size={14} /> Invitation Sent
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleInvite(worker)}
+                    className="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white active:scale-95 transition-all text-xs font-bold flex items-center gap-1 shadow-2xs"
+                  >
+                    <Send size={13} /> Invite
+                  </button>
+                )}
               </div>
             </Card>
+          );
+        })}
+      </div>
 
-            <div className="flex items-center gap-4 mb-4">
-              <Avatar initials={selected.avatar} size="lg" color={selected.verified ? 'brand' : 'warning'} />
-              <div className="min-w-0">
-                <div className="flex items-center gap-2"><h3 className="text-xl font-extrabold text-gray-900 truncate">{selected.name}</h3>{selected.verified && <CheckCircle2 size={18} className="text-accent-500" />}</div>
-                <p className="text-sm text-gray-500">{selected.primarySkill} · {selected.experience}</p>
-                <p className="text-xs text-brand-700 font-bold mt-1">ShramaID: {shramaId(selected.id)}</p>
+      {filtered.length === 0 && (
+        <Card className="p-8 text-center border border-gray-100">
+          <p className="font-bold text-gray-900">No matching worker profiles</p>
+          <p className="text-xs text-gray-500 mt-1">Try another trade skill, name, or location.</p>
+        </Card>
+      )}
+
+      {/* Profile Detail Modal */}
+      {selected && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm"
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="relative bg-white w-full max-w-lg rounded-3xl p-5 sm:p-6 shadow-2xl border border-gray-100 animate-scale-up max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-extrabold text-gray-900">Worker Credentials</h2>
+              <button
+                onClick={() => setSelected(null)}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3.5 mb-4">
+              <Avatar
+                initials={selected.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()}
+                size="lg"
+                color={selected.verified ? 'brand' : 'warning'}
+              />
+              <div>
+                <h3 className="text-lg font-extrabold text-gray-900">{selected.name}</h3>
+                <p className="text-xs text-gray-500">
+                  {selected.primarySkill} · {selected.experience}
+                </p>
+                <p className="text-xs text-brand-700 font-bold mt-0.5">
+                  ShramaID: {shramaId(selected.id)}
+                </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-gray-50"><p className="text-xs text-gray-400 font-semibold">Workforce Trust Score</p><p className="font-extrabold text-gray-900 text-lg mt-0.5">{selected.verified ? '94/100' : '76/100'}</p></div>
-              <div className="p-3 rounded-xl bg-gray-50"><p className="text-xs text-gray-400 font-semibold">Rating</p><p className="font-bold text-gray-900 text-sm mt-0.5 flex items-center gap-1">4.8 <Star size={14} className="text-warning-500 fill-warning-500" /> · {selected.workCount} jobs</p></div>
-              <div className="p-3 rounded-xl bg-gray-50"><p className="text-xs text-gray-400 font-semibold">Location</p><p className="font-bold text-gray-900 text-sm mt-0.5">{selected.location}</p></div>
-              <div className="p-3 rounded-xl bg-gray-50"><p className="text-xs text-gray-400 font-semibold">Availability</p><p className="font-bold text-gray-900 text-sm mt-0.5">{selected.availability}</p></div>
-            </div>
-            <div className="mb-4">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Complete profile</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-xl bg-gray-50"><p className="text-[10px] text-gray-400 font-semibold">Phone</p><p className="font-bold text-gray-800 text-sm mt-1">+91 98765 43210</p></div>
-                <div className="p-3 rounded-xl bg-gray-50"><p className="text-[10px] text-gray-400 font-semibold">Qualification</p><p className="font-bold text-gray-800 text-sm mt-1">ITI / Diploma</p></div>
-                <div className="p-3 rounded-xl bg-gray-50"><p className="text-[10px] text-gray-400 font-semibold">Languages</p><p className="font-bold text-gray-800 text-sm mt-1">Kannada, Hindi, English</p></div>
-                <div className="p-3 rounded-xl bg-gray-50"><p className="text-[10px] text-gray-400 font-semibold">Work preference</p><p className="font-bold text-gray-800 text-sm mt-1">Local / nearby sites</p></div>
+            <div className="grid grid-cols-2 gap-2.5 mb-4 text-xs">
+              <div className="p-3 rounded-xl bg-gray-50">
+                <p className="text-gray-400 font-semibold">Location</p>
+                <p className="font-bold text-gray-900 mt-0.5">{selected.location}</p>
               </div>
-            </div>
-
-            <div className="mb-4">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Skills & work history</p>
-              <div className="flex flex-wrap gap-2 mb-3">
-                <Badge color="blue">{selected.primarySkill}</Badge><Badge color="blue">Safety trained</Badge><Badge color="blue">Site experience</Badge>
+              <div className="p-3 rounded-xl bg-gray-50">
+                <p className="text-gray-400 font-semibold">Track Record</p>
+                <p className="font-bold text-gray-900 mt-0.5">{selected.workCount} Completed Contracts</p>
               </div>
-              <div className="space-y-2">
-                {[['Residential construction', 'Kumar Constructions', '3 months'], ['Finishing / repair work', 'Local site projects', '2 months'], ['Previous site assignment', 'Verified employer', '1 month']].map(([job, employer, duration]) => <div key={job} className="p-3 rounded-xl border border-gray-100 bg-white"><div className="flex items-center justify-between gap-2"><p className="text-sm font-bold text-gray-800">{job}</p><span className="text-[10px] text-gray-400">{duration}</span></div><p className="text-xs text-gray-500 mt-1">{employer}</p></div>)}
-              </div>
-            </div>
-
-            <div className="mb-4 p-4 rounded-2xl bg-gray-50">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Work reliability</p>
-              <div className="grid grid-cols-3 gap-2 text-center"><div><p className="font-extrabold text-gray-900">{selected.workCount}</p><p className="text-[10px] text-gray-400">Jobs</p></div><div><p className="font-extrabold text-gray-900">95%</p><p className="text-[10px] text-gray-400">Attendance</p></div><div><p className="font-extrabold text-gray-900">On time</p><p className="text-[10px] text-gray-400">Recent status</p></div></div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-brand-50"><p className="text-xs font-bold text-brand-700">Credential validation</p><p className="text-xs text-gray-600 mt-1">Phone + profile + past work records</p></div>
-              <div className="p-3 rounded-xl bg-accent-50"><p className="text-xs font-bold text-accent-700">Escrow-ready</p><p className="text-xs text-gray-600 mt-1">Milestone payments can be tracked in the prototype</p></div>
             </div>
 
             <div className="flex gap-2">
-              <Button variant="secondary" className="flex-1"><Phone size={18} className="mr-2" /> Contact</Button>
-              <Button variant="secondary" className="flex-1"><Home size={18} className="mr-2" /> Invite Home Work</Button>
-              {assigned.has(selected.id) ? <Button variant="success" className="flex-1" disabled><CheckCircle2 size={18} className="mr-2" /> Assigned</Button> : <Button className="flex-1" onClick={() => { handleAssign(selected.id); setSelected(null); }}><UserPlus size={18} className="mr-2" /> Assign Job</Button>}
+              <button
+                onClick={() => {
+                  handleInvite(selected);
+                  setSelected(null);
+                }}
+                className="w-full py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <Send size={14} /> Send Project Invitation
+              </button>
             </div>
           </div>
         </div>

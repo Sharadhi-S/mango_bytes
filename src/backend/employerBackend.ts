@@ -446,3 +446,6 @@ export function saveEmployerState(state: EmployerBackendState): void {
     }
   } catch {}
 }
+
+export const loadEmployerState = getInitialEmployerState;
+

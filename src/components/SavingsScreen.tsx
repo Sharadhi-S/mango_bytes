@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -7,11 +7,8 @@ import {
   Check,
   ChevronRight,
   CreditCard,
-  LockKeyhole,
   QrCode,
-  ScanLine,
   ShieldCheck,
-  Smartphone,
   Wallet,
   PiggyBank,
   Sparkles,
@@ -19,51 +16,92 @@ import {
   Landmark,
   Lightbulb,
   X,
+  Plus,
+  Calendar,
+  AlertCircle,
 } from 'lucide-react';
 import { useApp } from '@/AppContext';
 import { Card, ScreenHeader, Button, ProgressBar, formatINR } from './ui';
-import type { SavingsGoal } from '@/types';
+import type { SavingsGoalDetail } from '@/types';
 import { calculateDynamicSavingsRate } from '@/utils/dynamicSavings';
 
-const goalIconMap: Record<string, typeof ShieldCheck> = {
-  shield: ShieldCheck,
-  heart: ShieldCheck,
-  sparkles: Banknote,
-  book: Building2,
-};
-
 export function SavingsScreen() {
-  const { savingsGoals, saveMoney, workerStats, showToast, earnings, registrationProfile } = useApp();
-  const [activeGoal, setActiveGoal] = useState<SavingsGoal | null>(null);
+  const {
+    savingsGoalsDetailed,
+    createSavingsGoalDetailed,
+    addSavingsContributionDetailed,
+    workerStats,
+    showToast,
+    earnings,
+    registrationProfile,
+    role,
+  } = useApp();
+
+  const [activeGoal, setActiveGoal] = useState<SavingsGoalDetail | null>(null);
   const [customAmount, setCustomAmount] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [savedAmount, setSavedAmount] = useState(0);
   const [scanOpen, setScanOpen] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
   const [showMyQR, setShowMyQR] = useState(false);
-  const [moneyGoal, setMoneyGoal] = useState('10000');
-  const [dailySavePlan, setDailySavePlan] = useState('10');
+
+  // Create Goal Modal
+  const [showCreateGoalModal, setShowCreateGoalModal] = useState(false);
+  const [newGoalTitle, setNewGoalTitle] = useState('');
+  const [newGoalAmount, setNewGoalAmount] = useState('10000');
+  const [newGoalDays, setNewGoalDays] = useState('60');
+
+  // Computed preview for new goal
+  const newGoalPreview = useMemo(() => {
+    const target = Number(newGoalAmount) || 0;
+    const days = Math.max(1, Number(newGoalDays) || 1);
+    const daily = Math.ceil(target / days);
+    return { target, days, daily };
+  }, [newGoalAmount, newGoalDays]);
+
+  const handleCreateGoal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newGoalTitle.trim() || Number(newGoalAmount) <= 0) {
+      showToast('Please enter a goal title and valid target amount.');
+      return;
+    }
+
+    const d = new Date();
+    d.setDate(d.getDate() + Number(newGoalDays || 60));
+    const targetDate = d.toISOString().split('T')[0];
+
+    createSavingsGoalDetailed({
+      workerId: role === 'labourer' ? 'w2' : 'w1',
+      title: newGoalTitle.trim(),
+      targetAmount: Number(newGoalAmount),
+      currentAmount: 0,
+      targetDate,
+      category: 'General',
+      icon: 'Target',
+    });
+
+    setShowCreateGoalModal(false);
+    setNewGoalTitle('');
+    setNewGoalAmount('10000');
+    setNewGoalDays('60');
+  };
 
   const handleSave = (amount: number) => {
     if (!activeGoal || amount <= 0) return;
-    if (amount > workerStats.availableBalance) {
-      showToast('Not enough available balance for this prototype action.');
-      return;
-    }
-    saveMoney(activeGoal.id, amount);
+    addSavingsContributionDetailed(activeGoal.id, amount);
     setSavedAmount(amount);
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);
       setActiveGoal(null);
       setCustomAmount('');
-    }, 1600);
+    }, 1500);
   };
 
-  const demoName = registrationProfile?.name?.split(' ')[0] || 'Worker';
+  const demoName = registrationProfile?.name?.split(' ')[0] || (role === 'labourer' ? 'Suresh' : 'Ravi');
   const primaryBankBalance = Math.max(0, workerStats.availableBalance + workerStats.emergencySavings);
-  const recent = earnings.slice(0, 3);
-  const todayEarnings = earnings.find((item) => item.date === 'Today')?.amount ?? 0;
+  const todayEarnings = earnings.find((item) => item.date === 'Today')?.amount ?? 850;
+
   const defaultConditions = {
     market: todayEarnings >= 1500 ? 0.85 : todayEarnings >= 900 ? 0.7 : todayEarnings >= 500 ? 0.55 : 0.3,
     weather: 0.72,
@@ -74,6 +112,7 @@ export function SavingsScreen() {
   const [weatherScenario, setWeatherScenario] = useState(defaultConditions.weather);
   const [safetyScenario, setSafetyScenario] = useState(defaultConditions.safety);
   const [productivityScenario, setProductivityScenario] = useState(defaultConditions.productivity);
+
   const dailyConditions = {
     market: marketScenario,
     weather: weatherScenario,
@@ -85,341 +124,401 @@ export function SavingsScreen() {
   const smartSavingsAmount = Math.round(todayEarnings * smartSavingsRate);
 
   return (
-    <div className="px-5 pt-6 pb-28 max-w-2xl mx-auto">
-      <ScreenHeader title="Money" subtitle={`Manage your UPI, bank accounts, earnings and savings, ${demoName}`} />
+    <div className="px-5 pt-6 pb-28 max-w-2xl mx-auto space-y-5">
+      <ScreenHeader
+        title="Savings & Goals"
+        subtitle={`Daily savings plan, goals & payments · ${demoName}`}
+      />
 
-      <Card className="overflow-hidden mb-5 animate-slide-up">
+      {/* Balance Card */}
+      <Card className="overflow-hidden shadow-sm animate-slide-up">
         <div className="bg-gradient-to-br from-brand-600 to-brand-700 p-5 text-white">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2 text-brand-100 text-sm font-semibold">
-              <Wallet size={18} /> Total available balance
+              <Wallet size={18} /> Available Balance
             </div>
             <span className="px-2.5 py-1 rounded-full bg-white/15 text-[10px] font-bold">PROTOTYPE</span>
           </div>
-          <p className="text-3xl font-extrabold">{formatINR(workerStats.availableBalance)}</p>
-          <p className="text-brand-100 text-xs mt-1">Available for spending, saving or transfers</p>
-          <div className="grid grid-cols-2 gap-2 mt-4">
-            <ActionButton icon={ArrowUpFromLine} label="Send Money" onClick={() => showToast('Send Money is a prototype action only.')} />
-            <ActionButton icon={ArrowDownToLine} label="Request Money" onClick={() => showToast('Request Money is a prototype action only.')} />
+          <p className="text-3xl font-extrabold">{formatINR(workerStats.availableBalance || 18500)}</p>
+          <p className="text-brand-100 text-xs mt-1">Available for savings contributions or simulated UPI transfers</p>
+
+          <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-white/20 text-xs">
+            <button
+              onClick={() => setShowBankModal(true)}
+              className="py-2 px-3 rounded-xl bg-white/15 hover:bg-white/20 text-white font-bold text-center transition-colors"
+            >
+              Bank Account (••• 4821)
+            </button>
+            <button
+              onClick={() => setShowMyQR(true)}
+              className="py-2 px-3 rounded-xl bg-white/15 hover:bg-white/20 text-white font-bold text-center transition-colors"
+            >
+              My UPI QR
+            </button>
           </div>
         </div>
       </Card>
 
-      <h2 className="text-sm font-bold text-gray-700 mb-3">UPI & Payments</h2>
-      <Card className="p-4 mb-5 animate-slide-up">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-11 h-11 rounded-2xl bg-accent-50 text-accent-600 flex items-center justify-center">
-            <QrCode size={22} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-gray-900 text-sm">UPI ID</p>
-            <p className="text-xs text-gray-500 truncate">{(registrationProfile?.name || 'worker').toLowerCase().replace(/\s+/g, '.')}.demo@shramasetu</p>
-          </div>
-          <button
-            onClick={() => showToast('UPI ID copied in prototype. No real account is connected.')}
-            className="text-xs font-bold text-brand-600 px-3 py-2 rounded-xl bg-brand-50"
-          >
-            Copy
-          </button>
+      {/* SAVINGS GOALS HEADER & CREATE BUTTON */}
+      <div className="flex items-center justify-between pt-2">
+        <div>
+          <h2 className="text-base font-extrabold text-gray-900">Active Savings Goals</h2>
+          <p className="text-xs text-gray-500">Mathematical daily targets based on your project schedule</p>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => setScanOpen(true)} className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-left hover:bg-gray-100 transition-colors">
-            <ScanLine size={21} className="text-brand-600 mb-2" />
-            <p className="font-bold text-gray-900 text-sm">Scan & Pay</p>
-            <p className="text-[11px] text-gray-500 mt-1">Prototype QR scanner</p>
-          </button>
-          <button onClick={() => setShowMyQR(true)} className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-left hover:bg-gray-100 transition-colors">
-            <QrCode size={21} className="text-accent-600 mb-2" />
-            <p className="font-bold text-gray-900 text-sm">My QR</p>
-            <p className="text-[11px] text-gray-500 mt-1">Show payment QR</p>
-          </button>
-        </div>
-      </Card>
+        <button
+          onClick={() => setShowCreateGoalModal(true)}
+          className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
+        >
+          <Plus size={15} /> New Goal
+        </button>
+      </div>
 
-      <h2 className="text-sm font-bold text-gray-700 mb-3">Bank Accounts</h2>
-      <Card className="p-4 mb-5 animate-slide-up">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center">
-            <Building2 size={21} />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <p className="font-bold text-gray-900 text-sm">ShramaSetu Savings Bank</p>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-accent-100 text-accent-700">Primary</span>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Savings account •••• 4821</p>
-            <p className="text-sm font-extrabold text-gray-900 mt-2">{formatINR(primaryBankBalance)}</p>
-          </div>
-          <ChevronRight size={18} className="text-gray-300" />
-        </div>
-        <div className="grid grid-cols-2 gap-2 mt-4">
-          <button onClick={() => setShowBankModal(true)} className="py-2.5 rounded-xl bg-gray-50 text-gray-700 text-xs font-bold">Manage account</button>
-          <button onClick={() => showToast('Add bank account is a prototype flow.')} className="py-2.5 rounded-xl bg-brand-50 text-brand-700 text-xs font-bold">+ Add bank account</button>
-        </div>
-        <div className="mt-3 flex items-center gap-2 text-[11px] text-gray-400">
-          <LockKeyhole size={13} /> No real bank connection is used in this prototype.
-        </div>
-      </Card>
+      {/* DETAILED SAVINGS GOALS LIST */}
+      <div className="space-y-3">
+        {savingsGoalsDetailed.map((goal) => {
+          const pct = Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100));
+          const isDone = goal.status === 'completed';
 
-      <Card className="p-4 mb-5 animate-slide-up">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-accent-50 text-accent-600 flex items-center justify-center"><CreditCard size={19} /></div>
-          <div className="flex-1">
-            <p className="font-bold text-gray-900 text-sm">Quick Money Tools</p>
-            <p className="text-xs text-gray-500">Keep everyday money tasks in one place</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <ToolButton label="Add money" icon={ArrowDownToLine} onClick={() => showToast('Add Money flow is prototype-only.')} />
-          <ToolButton label="Transfer to bank" icon={ArrowUpFromLine} onClick={() => showToast('Bank transfer is prototype-only.')} />
-          <ToolButton label="Mobile recharge" icon={Smartphone} onClick={() => showToast('Recharge is prototype-only.')} />
-          <ToolButton label="Pay bills" icon={Banknote} onClick={() => showToast('Bill payment is prototype-only.')} />
-        </div>
-      </Card>
-
-      <h2 className="text-sm font-bold text-gray-700 mb-3">Recent Money Activity</h2>
-      <Card className="p-4 mb-5 animate-slide-up">
-        <div className="space-y-3">
-          {recent.map((item) => (
-            <div key={item.id} className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-accent-50 text-accent-600 flex items-center justify-center"><ArrowDownToLine size={16} /></div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-800 text-sm truncate">{item.label}</p>
-                <p className="text-[11px] text-gray-400">{item.date} · {item.employer}</p>
-              </div>
-              <span className="text-sm font-bold text-accent-600">+{formatINR(item.amount)}</span>
-            </div>
-          ))}
-          {!recent.length && <p className="text-sm text-gray-400 text-center py-3">No activity yet.</p>}
-        </div>
-      </Card>
-
-      <h2 className="text-sm font-bold text-gray-700 mb-3">Your Money Plan</h2>
-      <Card className="p-5 mb-5 border border-accent-100 bg-accent-50/50 animate-slide-up">
-        <div className="flex items-start gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-white text-accent-600 flex items-center justify-center shrink-0"><Target size={22} /></div>
-          <div className="flex-1">
-            <p className="font-extrabold text-gray-900">Set a goal. Save at your own pace.</p>
-            <p className="text-xs text-gray-500 mt-1">Your wages stay yours. ShramaSetu helps you decide how much you want to save instead of forcing a fixed deduction.</p>
-
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <label className="block">
-                <span className="text-[11px] font-bold text-gray-600">My savings goal (₹)</span>
-                <input value={moneyGoal} onChange={(e) => setMoneyGoal(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-accent-200" />
-              </label>
-              <label className="block">
-                <span className="text-[11px] font-bold text-gray-600">Daily saving guide (₹)</span>
-                <input value={dailySavePlan} onChange={(e) => setDailySavePlan(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-accent-200" />
-              </label>
-            </div>
-
-            <div className="mt-4 rounded-2xl bg-white p-3 flex items-start gap-2.5">
-              <Lightbulb size={17} className="text-warning-500 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs font-extrabold text-gray-900">Simple daily plan</p>
-                <p className="text-[11px] text-gray-500 mt-0.5">Saving ₹{Number(dailySavePlan || 0).toLocaleString('en-IN')} a day can build a habit without taking away the money you need for today's essentials.</p>
-              </div>
-            </div>
-
-            <div className="mt-3 rounded-2xl bg-white p-3 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center"><Landmark size={17} /></div>
-              <div className="flex-1">
-                <p className="text-xs font-extrabold text-gray-900">Want to grow your savings?</p>
-                <p className="text-[11px] text-gray-500 mt-0.5">Explore investment options only if you want them. Returns are not guaranteed and this prototype does not execute investments.</p>
-              </div>
-              <button onClick={() => showToast('Investment guidance is a prototype-only flow.')} className="px-3 py-2 rounded-xl bg-brand-50 text-brand-700 text-[11px] font-extrabold">Explore</button>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="p-4 mb-5 border border-dashed border-gray-200 bg-white animate-slide-up">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center shrink-0"><Landmark size={18} /></div>
-          <div>
-            <p className="text-sm font-extrabold text-gray-900">Financial partners — prototype concept</p>
-            <p className="text-[11px] text-gray-500 mt-1">ShramaSetu can offer financial institutions an opted-in, low-cost channel to reach active workers who are interested in savings or investment products. No user data is shared automatically in this prototype.</p>
-          </div>
-        </div>
-      </Card>
-
-      <h2 className="text-sm font-bold text-gray-700 mb-3">Smart Savings</h2>
-      <Card className="p-5 mb-5 border border-brand-100 bg-brand-50/60 animate-slide-up">
-        <div className="flex items-start gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-white text-brand-600 flex items-center justify-center shrink-0"><PiggyBank size={22} /></div>
-          <div className="flex-1">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-extrabold text-gray-900">Dynamic savings from today's conditions</p>
-                <p className="text-xs text-gray-500 mt-1">The deduction adjusts based on market demand, weather, safety, and work conditions.</p>
-              </div>
-              <span className="shrink-0 px-2.5 py-1 rounded-full bg-brand-100 text-brand-700 text-xs font-extrabold">{(smartSavingsRate * 100).toFixed(1)}%</span>
-            </div>
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className="rounded-2xl bg-white p-3"><p className="text-[11px] text-gray-400 font-semibold">Today's earnings</p><p className="text-lg font-extrabold text-gray-900 mt-1">{formatINR(todayEarnings)}</p></div>
-              <div className="rounded-2xl bg-white p-3"><p className="text-[11px] text-gray-400 font-semibold">Auto-saved today</p><p className="text-lg font-extrabold text-accent-600 mt-1">{formatINR(smartSavingsAmount)}</p></div>
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-gray-600">
-              <div className="rounded-xl bg-white/80 px-2.5 py-2">
-                <div className="text-gray-500 font-semibold">Market</div>
-                <div className="font-bold text-gray-900 mt-1">{dailyConditions.market >= 0.75 ? 'High' : dailyConditions.market >= 0.55 ? 'Steady' : 'Weak'}</div>
-              </div>
-              <div className="rounded-xl bg-white/80 px-2.5 py-2">
-                <div className="text-gray-500 font-semibold">Weather</div>
-                <div className="font-bold text-gray-900 mt-1">{dailyConditions.weather >= 0.75 ? 'Clear' : dailyConditions.weather >= 0.5 ? 'Fair' : 'Poor'}</div>
-              </div>
-            </div>
-            <div className="mt-3 flex items-start gap-2 text-xs text-gray-600">
-              <Sparkles size={15} className="text-brand-600 shrink-0 mt-0.5" />
-              <p>{dynamicSavings.label}: {dynamicSavings.note}</p>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="p-4 mb-5 border border-dashed border-gray-200 bg-white animate-slide-up">
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <div>
-            <p className="font-extrabold text-gray-900 text-sm">Prototype scenario demo</p>
-            <p className="text-[11px] text-gray-500 mt-0.5">Simulator only — not live market data</p>
-          </div>
-          <span className="px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">Demo</span>
-        </div>
-        <div className="space-y-3">
-          {[
-            { label: 'Market strength', value: marketScenario, onChange: setMarketScenario },
-            { label: 'Weather', value: weatherScenario, onChange: setWeatherScenario },
-            { label: 'Safety / travel', value: safetyScenario, onChange: setSafetyScenario },
-            { label: 'Productivity', value: productivityScenario, onChange: setProductivityScenario },
-          ].map((item) => (
-            <label key={item.label} className="block">
-              <div className="flex items-center justify-between mb-1 text-[11px] font-bold text-gray-600">
-                <span>{item.label}</span>
-                <span>{item.value.toFixed(2)}</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={item.value}
-                onChange={(e) => item.onChange(Number(e.target.value))}
-                className="w-full accent-brand-600"
-              />
-            </label>
-          ))}
-        </div>
-      </Card>
-
-      <h2 className="text-sm font-bold text-gray-700 mb-3">Savings & Safety Net</h2>
-      <Card className="overflow-hidden mb-5 animate-slide-up">
-        <div className="bg-gradient-to-br from-accent-500 to-accent-600 p-5 text-white">
-          <div className="flex items-center gap-2 text-accent-50 mb-1"><ShieldCheck size={18} /><span className="text-sm font-semibold">Emergency Fund</span></div>
-          <div className="flex items-end justify-between">
-            <div><p className="text-3xl font-extrabold">{formatINR(workerStats.emergencySavings)}</p><p className="text-accent-50 text-sm mt-1">of ₹5,000 goal</p></div>
-            <p className="text-2xl font-bold">{Math.round((workerStats.emergencySavings / 5000) * 100)}%</p>
-          </div>
-          <div className="mt-3 h-2.5 bg-white/30 rounded-full overflow-hidden"><div className="h-full bg-white rounded-full transition-all duration-700" style={{ width: `${Math.min(100, (workerStats.emergencySavings / 5000) * 100)}%` }} /></div>
-        </div>
-      </Card>
-
-      <div className="space-y-3 mb-4">
-        {savingsGoals.map((goal) => {
-          const Icon = goalIconMap[goal.icon] || ShieldCheck;
-          const pct = Math.min(100, Math.round((goal.current / goal.target) * 100));
-          const colorClasses: Record<string, { bg: string; bar: string; text: string }> = {
-            brand: { bg: 'bg-brand-50', bar: 'bg-brand-500', text: 'text-brand-600' },
-            accent: { bg: 'bg-accent-50', bar: 'bg-accent-500', text: 'text-accent-600' },
-            warning: { bg: 'bg-warning-50', bar: 'bg-warning-500', text: 'text-warning-600' },
-          };
-          const c = colorClasses[goal.color] || colorClasses.brand;
           return (
-            <Card key={goal.id} className="p-4 animate-slide-up">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${c.bg} ${c.text}`}><Icon size={21} /></div>
-                <div className="flex-1"><p className="font-bold text-gray-900">{goal.name}</p><p className="text-xs text-gray-500">{formatINR(goal.current)} of {formatINR(goal.target)}</p></div>
-                <span className={`text-sm font-bold ${c.text}`}>{pct}%</span>
+            <Card
+              key={goal.id}
+              className={`p-4 border transition-all ${
+                isDone
+                  ? 'border-emerald-200 bg-emerald-50/30'
+                  : 'border-gray-200 hover:border-brand-300 shadow-xs'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      isDone ? 'bg-emerald-100 text-emerald-700' : 'bg-brand-50 text-brand-600'
+                    }`}
+                  >
+                    <Target size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-gray-900 text-sm">{goal.title}</h3>
+                    <p className="text-xs text-gray-500">
+                      {formatINR(goal.currentAmount)} of {formatINR(goal.targetAmount)} ({pct}%)
+                    </p>
+                  </div>
+                </div>
+
+                <span
+                  className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                    isDone
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                      : 'bg-blue-50 text-blue-700 border border-blue-200'
+                  }`}
+                >
+                  {isDone ? '✓ Completed' : `${goal.daysRemaining} days left`}
+                </span>
               </div>
-              <ProgressBar value={goal.current} max={goal.target} colorClass={c.bar} />
-              <button onClick={() => setActiveGoal(goal)} className={`mt-3 w-full py-2.5 rounded-xl text-sm font-semibold ${c.bg} ${c.text} hover:opacity-80 active:scale-[0.98] transition-all`}>Add money</button>
+
+              <div className="my-2.5">
+                <ProgressBar
+                  value={goal.currentAmount}
+                  max={goal.targetAmount}
+                  colorClass={isDone ? 'bg-emerald-500' : 'bg-brand-500'}
+                />
+              </div>
+
+              {!isDone ? (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-gray-100">
+                  <div className="flex items-center gap-1.5 text-xs text-brand-700 font-semibold">
+                    <Lightbulb size={14} className="text-amber-500 shrink-0" />
+                    <span>
+                      Recommended: <strong className="text-gray-900">₹{goal.recommendedDailyAmount}/day</strong> for{' '}
+                      {goal.daysRemaining} days
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setActiveGoal(goal)}
+                    className="px-4 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold active:scale-95 transition-all self-end sm:self-auto"
+                  >
+                    Add Contribution
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold pt-1 border-t border-gray-100">
+                  <Check size={14} /> Goal accomplished! Funds ready for disbursement.
+                </div>
+              )}
             </Card>
           );
         })}
       </div>
 
-      <Card className="p-4 mb-5 border border-warning-100 bg-warning-50/60">
+      {/* DYNAMIC SMART SAVINGS CARD */}
+      <Card className="p-5 border border-brand-100 bg-brand-50/60 animate-slide-up shadow-xs">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white text-warning-600 flex items-center justify-center"><ShieldCheck size={19} /></div>
-          <div>
-            <p className="font-bold text-gray-900 text-sm">Protection & yearly dues</p>
-            <p className="text-xs text-gray-600 mt-1">Your insurance page can show yearly premiums and renewal reminders separately from your everyday money.</p>
+          <div className="w-10 h-10 rounded-xl bg-white text-brand-600 flex items-center justify-center shrink-0">
+            <PiggyBank size={20} />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-extrabold text-gray-900 text-sm">Dynamic condition-based micro-saving</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Algorithmically balances market demand, weather, and current wage rate
+                </p>
+              </div>
+              <span className="shrink-0 px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 text-xs font-extrabold">
+                {(smartSavingsRate * 100).toFixed(1)}%
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5 mt-3">
+              <div className="rounded-xl bg-white p-2.5">
+                <p className="text-[10px] text-gray-400 font-semibold">Today's verified wage</p>
+                <p className="text-base font-extrabold text-gray-900 mt-0.5">{formatINR(todayEarnings)}</p>
+              </div>
+              <div className="rounded-xl bg-white p-2.5">
+                <p className="text-[10px] text-gray-400 font-semibold">Suggested auto-save</p>
+                <p className="text-base font-extrabold text-emerald-600 mt-0.5">{formatINR(smartSavingsAmount)}</p>
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-start gap-2 text-xs text-gray-600">
+              <Sparkles size={15} className="text-brand-600 shrink-0 mt-0.5" />
+              <p>
+                {dynamicSavings.label}: {dynamicSavings.note}
+              </p>
+            </div>
           </div>
         </div>
       </Card>
 
-      <p className="text-[11px] text-gray-400 text-center mb-2">Prototype finance hub — no real UPI, bank, recharge, bill or money transfer is executed.</p>
+      {/* CREATE GOAL MODAL */}
+      {showCreateGoalModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+          onClick={() => setShowCreateGoalModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-gray-100 animate-scale-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-extrabold text-gray-900">Create New Savings Goal</h2>
+                <p className="text-xs text-gray-500">Plan ahead with automated daily targets</p>
+              </div>
+              <button
+                onClick={() => setShowCreateGoalModal(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-      {activeGoal && !showSuccess && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setActiveGoal(null)}>
-          <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-          <div className="relative bg-white w-full max-w-2xl rounded-t-3xl p-6 pb-8 animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5"><div><h2 className="text-lg font-extrabold text-gray-900">Save Money</h2><p className="text-sm text-gray-500">Add to {activeGoal.name}</p></div><button onClick={() => setActiveGoal(null)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><X size={20} /></button></div>
-            <p className="text-sm text-gray-500 mb-3">Choose an amount to save from your available balance ({formatINR(workerStats.availableBalance)})</p>
-            <div className="grid grid-cols-3 gap-3 mb-4">{[20, 50, 100].map((amt) => <button key={amt} onClick={() => handleSave(amt)} className="py-5 rounded-2xl bg-brand-50 text-brand-700 font-bold text-lg">₹{amt}</button>)}</div>
-            <div className="flex gap-2"><input type="number" value={customAmount} onChange={(e) => setCustomAmount(e.target.value)} placeholder="Custom amount" className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-brand-400 outline-none text-sm font-semibold text-gray-900" /><Button onClick={() => handleSave(Number(customAmount))} disabled={!customAmount || Number(customAmount) <= 0}>Save</Button></div>
+            <form onSubmit={handleCreateGoal} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Goal Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Festival Trip, Tools Purchase, Emergency"
+                  value={newGoalTitle}
+                  onChange={(e) => setNewGoalTitle(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold focus:border-brand-500 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Target Amount (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="500"
+                    step="500"
+                    value={newGoalAmount}
+                    onChange={(e) => setNewGoalAmount(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-bold focus:border-brand-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Timeline (Days) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="7"
+                    max="365"
+                    value={newGoalDays}
+                    onChange={(e) => setNewGoalDays(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-bold focus:border-brand-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Live Preview Box */}
+              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs">
+                <div className="flex items-center gap-1.5 font-bold text-amber-900 mb-1">
+                  <Lightbulb size={15} /> Mathematical Recommendation
+                </div>
+                <p className="text-gray-700">
+                  To save <strong>₹{newGoalPreview.target.toLocaleString('en-IN')}</strong> in{' '}
+                  <strong>{newGoalPreview.days} days</strong>:
+                </p>
+                <p className="text-base font-extrabold text-amber-800 mt-1">
+                  Save ₹{newGoalPreview.daily.toLocaleString('en-IN')}/day
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-sm active:scale-95 transition-all"
+              >
+                Create Goal & Start Saving
+              </button>
+            </form>
           </div>
         </div>
       )}
 
-      {showSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-6"><div className="absolute inset-0 bg-black/40" /><div className="relative bg-white rounded-3xl p-8 text-center max-w-xs w-full"><div className="w-16 h-16 rounded-full bg-accent-100 flex items-center justify-center mx-auto mb-4"><Check size={32} className="text-accent-600" /></div><h2 className="text-lg font-extrabold text-gray-900">Saved!</h2><p className="text-sm text-gray-500 mt-1">₹{savedAmount} added to your goal.</p></div></div>
+      {/* CONTRIBUTION MODAL */}
+      {activeGoal && !showSuccess && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          onClick={() => setActiveGoal(null)}
+        >
+          <div className="absolute inset-0 bg-black/40 animate-fade-in" />
+          <div
+            className="relative bg-white w-full max-w-2xl rounded-t-3xl p-6 pb-8 animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-extrabold text-gray-900">Add Contribution</h2>
+                <p className="text-sm text-gray-500">{activeGoal.title}</p>
+              </div>
+              <button
+                onClick={() => setActiveGoal(null)}
+                className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 mb-3">
+              Recommended daily amount: <strong>₹{activeGoal.recommendedDailyAmount}</strong> ({activeGoal.daysRemaining} days remaining)
+            </p>
+
+            <div className="grid grid-cols-3 gap-2.5 mb-4">
+              {[50, 100, activeGoal.recommendedDailyAmount].map((amt) => (
+                <button
+                  key={amt}
+                  onClick={() => handleSave(amt)}
+                  className="py-3.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-base transition-colors"
+                >
+                  ₹{amt}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={customAmount}
+                onChange={(e) => setCustomAmount(e.target.value)}
+                placeholder="Custom amount (₹)"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-400 outline-none text-sm font-semibold text-gray-900"
+              />
+              <Button
+                onClick={() => handleSave(Number(customAmount))}
+                disabled={!customAmount || Number(customAmount) <= 0}
+              >
+                Contribute
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
 
+      {/* SUCCESS MODAL */}
+      {showSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white rounded-3xl p-6 text-center max-w-xs w-full shadow-2xl animate-scale-up">
+            <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+              <Check size={28} />
+            </div>
+            <h2 className="text-lg font-extrabold text-gray-900">Saved Successfully!</h2>
+            <p className="text-xs text-gray-500 mt-1">₹{savedAmount} added to your goal.</p>
+          </div>
+        </div>
+      )}
+
+      {/* QR MODAL */}
       {showMyQR && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-5">
           <div className="absolute inset-0 bg-black/60" onClick={() => setShowMyQR(false)} />
           <div className="relative w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl text-center">
-            <div className="flex items-center justify-between mb-4 text-left"><div><h2 className="text-lg font-extrabold text-gray-900">My UPI QR</h2><p className="text-xs text-gray-500 mt-1">Sample payment QR for the prototype</p></div><button onClick={() => setShowMyQR(false)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><X size={19} /></button></div>
-            <div className="bg-white border border-gray-100 rounded-2xl p-4 inline-flex"><img src="/upi-sample-qr.png" alt="Sample UPI QR" className="w-56 h-56" /></div>
-            <p className="font-bold text-gray-900 text-sm mt-4">{(registrationProfile?.name || 'ShramaSetu Demo')} · UPI</p>
-            <p className="text-xs text-gray-500 mt-1">Demo only — no real payment is processed.</p>
-          </div>
-        </div>
-      )}
-
-      {scanOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center px-5">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setScanOpen(false)} />
-          <div className="relative bg-white rounded-3xl p-6 w-full max-w-sm">
-            <div className="flex items-center justify-between mb-4"><div><h2 className="text-lg font-extrabold text-gray-900">Scan UPI QR</h2><p className="text-xs text-gray-500 mt-1">Camera scanner preview for the prototype</p></div><button onClick={() => setScanOpen(false)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><X size={19} /></button></div>
-            <div className="aspect-square rounded-3xl bg-gray-900 flex items-center justify-center p-8 relative overflow-hidden">
-              <div className="w-full h-full border-2 border-white/80 rounded-2xl flex items-center justify-center"><div className="w-24 h-24 bg-white rounded-xl flex items-center justify-center"><QrCode size={72} className="text-gray-900" /></div></div>
-              <div className="absolute left-8 right-8 top-1/2 h-0.5 bg-brand-400 animate-pulse" />
+            <div className="flex items-center justify-between mb-4 text-left">
+              <div>
+                <h2 className="text-lg font-extrabold text-gray-900">My UPI QR</h2>
+                <p className="text-xs text-gray-500 mt-0.5">Direct worker payout identifier</p>
+              </div>
+              <button
+                onClick={() => setShowMyQR(false)}
+                className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"
+              >
+                <X size={19} />
+              </button>
             </div>
-            <p className="text-xs text-gray-500 text-center mt-4">No camera or payment is connected. This screen demonstrates the intended user flow.</p>
-            <Button className="w-full mt-4" onClick={() => { setScanOpen(false); showToast('QR detected in prototype. No payment was made.'); }}>Simulate QR detected</Button>
+            <div className="bg-white border border-gray-100 rounded-2xl p-4 inline-flex">
+              <div className="w-52 h-52 bg-slate-900 rounded-xl flex items-center justify-center p-4">
+                <QrCode size={160} className="text-white" />
+              </div>
+            </div>
+            <p className="font-bold text-gray-900 text-sm mt-3">{demoName} · UPI ID: {demoName.toLowerCase()}@shramasetu</p>
+            <p className="text-xs text-gray-400 mt-0.5">Demo QR — no actual transaction is executed.</p>
           </div>
         </div>
       )}
 
+      {/* BANK MODAL */}
       {showBankModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center px-5">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowBankModal(false)} />
-          <div className="relative bg-white rounded-3xl p-6 w-full max-w-sm">
-            <div className="flex items-center justify-between mb-4"><div><h2 className="text-lg font-extrabold text-gray-900">Manage bank account</h2><p className="text-xs text-gray-500 mt-1">Prototype account controls</p></div><button onClick={() => setShowBankModal(false)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><X size={19} /></button></div>
-            <div className="rounded-2xl bg-gray-50 p-4"><p className="text-xs font-semibold text-gray-400">Account</p><p className="font-bold text-gray-900 mt-1">Savings Bank •••• 4821</p><p className="text-sm font-extrabold text-gray-900 mt-3">{formatINR(primaryBankBalance)}</p></div>
-            <div className="space-y-2 mt-4"><button onClick={() => showToast('Primary account setting updated in prototype.')} className="w-full p-3 rounded-xl bg-gray-50 text-left text-sm font-semibold">Set as primary</button><button onClick={() => showToast('Bank statement preview opened in prototype.')} className="w-full p-3 rounded-xl bg-gray-50 text-left text-sm font-semibold">View statement</button><button onClick={() => { setShowBankModal(false); showToast('Remove account is disabled in this prototype.'); }} className="w-full p-3 rounded-xl bg-error-50 text-error-700 text-left text-sm font-semibold">Remove account</button></div>
+          <div className="relative bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-extrabold text-gray-900">Direct Benefit Account</h2>
+                <p className="text-xs text-gray-500">Linked Jan Dhan / Savings Bank</p>
+              </div>
+              <button
+                onClick={() => setShowBankModal(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="rounded-2xl bg-gray-50 p-4 border border-gray-100">
+              <p className="text-xs font-semibold text-gray-400">Bank & IFSC</p>
+              <p className="font-bold text-gray-900 mt-0.5">State Bank of India (Belagavi Main)</p>
+              <p className="text-xs text-gray-500 mt-0.5">SBIN0000812 · A/C •••• 4821</p>
+              <div className="mt-3 pt-3 border-t border-gray-200/60 flex justify-between items-center">
+                <span className="text-xs text-gray-500">Verified Status</span>
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  ✓ Aadhaar Linked
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setShowBankModal(false);
+                showToast('Prototype: Bank statement requested.');
+              }}
+              className="w-full mt-3 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold transition-colors"
+            >
+              View Passbook Mini-Statement
+            </button>
           </div>
         </div>
       )}
     </div>
   );
-}
-
-function ActionButton({ icon: Icon, label, onClick }: { icon: typeof ArrowUpFromLine; label: string; onClick: () => void }) {
-  return <button onClick={onClick} className="p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-left flex items-center gap-2"><Icon size={17} /><span className="text-xs font-bold">{label}</span></button>;
-}
-
-function ToolButton({ icon: Icon, label, onClick }: { icon: typeof ArrowUpFromLine; label: string; onClick: () => void }) {
-  return <button onClick={onClick} className="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 flex items-center gap-2 text-left"><Icon size={17} className="text-brand-600" /><span className="text-xs font-semibold text-gray-700">{label}</span></button>;
 }

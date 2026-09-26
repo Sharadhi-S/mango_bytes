@@ -1,3 +1,4 @@
+import { RoleSwitcher } from './RoleSwitcher';
 import { useState, useMemo } from 'react';
 import {
   ArrowLeft,
@@ -1027,38 +1028,58 @@ export function ProjectCommandCenter({ tenderId, onBack }: ProjectCommandCenterP
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => updateProjectWorkerAttendance(project.id, worker.id, 'present')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    {role === 'employer' ? (
+                      <span
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
                           worker.attendanceToday === 'present'
-                            ? 'bg-emerald-600 text-white shadow-sm'
-                            : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            : worker.attendanceToday === 'half'
+                            ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                            : 'bg-gray-100 text-gray-700 border border-gray-200'
                         }`}
                       >
-                        Present (1.0)
-                      </button>
-                      <button
-                        onClick={() => updateProjectWorkerAttendance(project.id, worker.id, 'half')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                          worker.attendanceToday === 'half'
-                            ? 'bg-amber-500 text-white shadow-sm'
-                            : 'bg-gray-100 text-gray-600 hover:bg-amber-50 hover:text-amber-700'
-                        }`}
-                      >
-                        Half Day (0.5)
-                      </button>
-                      <button
-                        onClick={() => updateProjectWorkerAttendance(project.id, worker.id, 'absent')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                          worker.attendanceToday === 'absent'
-                            ? 'bg-gray-800 text-white shadow-sm'
-                            : 'bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-700'
-                        }`}
-                      >
-                        Absent (0)
-                      </button>
-                    </div>
+                        {worker.attendanceToday
+                          ? worker.attendanceToday === 'half'
+                            ? 'Half Day (0.5)'
+                            : worker.attendanceToday === 'present'
+                            ? 'Present (1.0)'
+                            : 'Absent (0)'
+                          : 'Present (1.0)'}
+                      </span>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => updateProjectWorkerAttendance(project.id, worker.id, 'present')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                            worker.attendanceToday === 'present'
+                              ? 'bg-emerald-600 text-white shadow-sm'
+                              : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'
+                          }`}
+                        >
+                          Present (1.0)
+                        </button>
+                        <button
+                          onClick={() => updateProjectWorkerAttendance(project.id, worker.id, 'half')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                            worker.attendanceToday === 'half'
+                              ? 'bg-amber-500 text-white shadow-sm'
+                              : 'bg-gray-100 text-gray-600 hover:bg-amber-50 hover:text-amber-700'
+                          }`}
+                        >
+                          Half Day (0.5)
+                        </button>
+                        <button
+                          onClick={() => updateProjectWorkerAttendance(project.id, worker.id, 'absent')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                            worker.attendanceToday === 'absent'
+                              ? 'bg-gray-800 text-white shadow-sm'
+                              : 'bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-700'
+                          }`}
+                        >
+                          Absent (0)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1071,6 +1092,14 @@ export function ProjectCommandCenter({ tenderId, onBack }: ProjectCommandCenterP
         {/* ========================================================================= */}
         {activeTab === 'wages' && (
           <div className="space-y-6 animate-fade-in">
+            {role === 'employer' && (
+              <div className="p-3.5 bg-purple-50 text-purple-900 border border-purple-200 rounded-xl text-xs font-medium flex items-center gap-2.5">
+                <CreditCard size={18} className="text-purple-600 shrink-0" />
+                <span>
+                  <strong>Client Escrow Oversight:</strong> Worker wage disbursements are executed directly by Kumar Construction Services. Total settled to date: {formatINR(wageStats.paidWages)}.
+                </span>
+              </div>
+            )}
             {/* Financial Summary */}
             <Card className="p-6 border border-gray-200">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1083,7 +1112,7 @@ export function ProjectCommandCenter({ tenderId, onBack }: ProjectCommandCenterP
                   </p>
                 </div>
 
-                {wageStats.pendingWages > 0 && (
+                {role !== 'employer' && wageStats.pendingWages > 0 && (
                   <Button
                     variant="primary"
                     size="sm"
@@ -1177,17 +1206,23 @@ export function ProjectCommandCenter({ tenderId, onBack }: ProjectCommandCenterP
                         </div>
 
                         {!isPaid ? (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => {
-                              markProjectWorkerWagePaid(project.id, worker.id);
-                              showToast(`Paid ${formatINR(earned)} to ${worker.name}`);
-                            }}
-                            className="text-xs font-bold bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200"
-                          >
-                            Mark Paid
-                          </Button>
+                          role === 'employer' ? (
+                            <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                              Disbursement Pending
+                            </span>
+                          ) : (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => {
+                                markProjectWorkerWagePaid(project.id, worker.id);
+                                showToast(`Paid ${formatINR(earned)} to ${worker.name}`);
+                              }}
+                              className="text-xs font-bold bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200"
+                            >
+                              Mark Paid
+                            </Button>
+                          )
                         ) : (
                           <span className="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-extrabold border border-emerald-200 flex items-center gap-1">
                             <Check size={14} /> Settled
@@ -1424,6 +1459,16 @@ export function ProjectCommandCenter({ tenderId, onBack }: ProjectCommandCenterP
           </div>
         </div>
       )}
+
+      {/* Role Switcher Modal */}
+      <RoleSwitcher
+        isOpen={showRoleSwitcher}
+        onClose={() => setShowRoleSwitcher(false)}
+        currentRole={role || 'contractor'}
+        onSelectRole={(nextRole) => {
+          setRole(nextRole);
+        }}
+      />
     </div>
   );
 }

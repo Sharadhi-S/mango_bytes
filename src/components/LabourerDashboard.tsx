@@ -7,247 +7,261 @@ import {
   TrendingUp,
   Clock,
   Target,
-  BookOpen,
-  WalletCards,
   CheckCircle2,
   MapPin,
   ArrowRight,
-  Languages,
+  HardHat,
+  Check,
+  X,
+  Building2,
+  Calendar,
 } from 'lucide-react';
+import { useState } from 'react';
 import { useApp } from '@/AppContext';
-import { Card, Button, ScreenHeader, formatINR, ProgressBar } from './ui';
-import { todayEarningsBreakdown } from '@/mockData';
+import { Card, Button, ScreenHeader, formatINR } from './ui';
+import { RoleSwitcher } from './RoleSwitcher';
 
 export function LabourerDashboard() {
-  const { workerStats, setScreen, earnings, conversations, registrationProfile } = useApp();
-  const unreadCount = conversations.reduce((sum, c) => sum + c.unread, 0);
-  const recentEarning = earnings[0];
+  const {
+    setScreen,
+    setRole,
+    role,
+    registrationProfile,
+    invitations,
+    respondToInvitation,
+    activeAssignment,
+    workerEarningsSummary,
+    savingsGoalsDetailed,
+  } = useApp();
 
-  const quickActions = [
-    { label: 'Earnings', icon: Wallet, screen: 'earnings' as const, color: 'bg-brand-50 text-brand-600' },
-    { label: 'Save Money', icon: PiggyBank, screen: 'savings' as const, color: 'bg-accent-50 text-accent-600' },
-    { label: 'Find Work', icon: Briefcase, screen: 'jobs' as const, color: 'bg-warning-50 text-warning-600' },
-    { label: 'Messages', icon: MessageSquare, screen: 'messages' as const, color: 'bg-error-50 text-error-600', badge: unreadCount },
-    { label: 'Insurance', icon: ShieldCheck, screen: 'insurance' as const, color: 'bg-brand-50 text-brand-600' },
-  ];
+  const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
+
+  // Filter invitations for labourer (w2)
+  const pendingInvs = invitations.filter((i) => i.workerId === 'w2' && i.status === 'invited');
+  const activeGoal = savingsGoalsDetailed.find((g) => g.status === 'active') || savingsGoalsDetailed[0];
 
   return (
     <div className="px-5 pt-6 pb-24 space-y-5 max-w-2xl mx-auto">
-      <ScreenHeader title="Dashboard" subtitle={registrationProfile?.name ? `Welcome back, ${registrationProfile.name}` : 'Your work and money at a glance'} showBack={false} />
-      {/* Greeting */}
-      <div className="animate-slide-up">
-        <p className="text-sm text-gray-500">Good morning,</p>
-        <h1 className="text-2xl font-extrabold text-gray-900">{registrationProfile?.name || 'Your name'}</h1>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
+        <ScreenHeader
+          title="Labourer Dashboard"
+          subtitle={registrationProfile?.name ? `Welcome back, ${registrationProfile.name}` : 'Suresh Patel · Labourer'}
+          showBack={false}
+        />
+        <button
+          onClick={() => setShowRoleSwitcher(true)}
+          className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-xs font-bold transition-colors shadow-2xs"
+        >
+          Switch Persona
+        </button>
       </div>
 
-      {/* Earnings Hero Card */}
-      <Card className="overflow-hidden animate-slide-up" >
-        <div className="bg-gradient-to-br from-brand-600 to-brand-700 p-5 text-white">
-          <div className="flex items-center gap-2 text-brand-100 text-sm mb-1">
-            <TrendingUp size={16} />
-            <span>Today's Earnings</span>
-          </div>
-          <div className="text-4xl font-extrabold tracking-tight">{formatINR(workerStats.todayEarnings)}</div>
-          <div className="text-brand-100 text-sm mt-1">earned today</div>
-
-          {/* Breakdown bar */}
-          <div className="mt-4">
-            <div className="flex h-3 rounded-full overflow-hidden bg-white/20">
-              {todayEarningsBreakdown.map((seg, i) => (
-                <div
-                  key={i}
-                  className={seg.color}
-                  style={{ width: `${(seg.amount / workerStats.todayEarnings) * 100}%` }}
-                />
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-brand-50">
-              {todayEarningsBreakdown.map((seg, i) => (
-                <div key={i} className="flex items-center gap-1.5">
-                  <div className={`w-2.5 h-2.5 rounded-full ${seg.color}`} />
-                  <span>{seg.label}</span>
+      {/* REAL-TIME WORK INVITATION BANNER */}
+      {pendingInvs.length > 0 && (
+        <div className="space-y-3">
+          {pendingInvs.map((inv) => (
+            <Card
+              key={inv.id}
+              className="p-4 border-2 border-emerald-500 bg-emerald-50/70 shadow-md animate-scale-up"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                  <HardHat size={20} />
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 gap-3 animate-slide-up">
-        <Card className="p-4">
-          <div className="flex items-center gap-2 text-gray-400 mb-1">
-            <Wallet size={16} />
-            <span className="text-xs font-semibold">Available Balance</span>
-          </div>
-          <p className="text-xl font-extrabold text-gray-900">{formatINR(workerStats.availableBalance)}</p>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-2 text-gray-400 mb-1">
-            <TrendingUp size={16} />
-            <span className="text-xs font-semibold">This Month</span>
-          </div>
-          <p className="text-xl font-extrabold text-gray-900">{formatINR(workerStats.monthlyEarnings)}</p>
-        </Card>
-      </div>
-
-      <Card className="p-4 animate-slide-up border-purple-100 bg-purple-50/40">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center"><Target size={19} /></div>
-          <div className="flex-1">
-            <p className="text-xs font-bold text-purple-700 uppercase tracking-wide">My Career Roadmap</p>
-            <p className="font-extrabold text-gray-900 mt-1">Build toward your next better-paying role</p>
-            <p className="text-xs text-gray-500 mt-1">Personalised steps help you stay focused, track progress and decide what skill to learn next.</p>
-            <div className="grid grid-cols-2 gap-2 mt-3">
-              <div className="rounded-xl bg-white p-3"><BookOpen size={16} className="text-brand-600" /><p className="text-xs font-bold mt-2">Learn</p><p className="text-[11px] text-gray-500">Short course / micro-credential</p></div>
-              <div className="rounded-xl bg-white p-3"><WalletCards size={16} className="text-accent-600" /><p className="text-xs font-bold mt-2">Save</p><p className="text-[11px] text-gray-500">Get nudges before unnecessary spending</p></div>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Quick Actions */}
-      <div className="animate-slide-up">
-        <h2 className="text-sm font-bold text-gray-700 mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <button
-                key={action.label}
-                onClick={() => setScreen(action.screen)}
-                className="flex flex-col items-center gap-2 group"
-              >
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${action.color} group-active:scale-95 transition-transform relative`}>
-                  <Icon size={24} strokeWidth={2} />
-                  {action.badge ? (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-error-500 text-white text-[10px] font-bold flex items-center justify-center">
-                      {action.badge}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[11px] font-bold px-2 py-0.2 rounded-full bg-emerald-200 text-emerald-900">
+                      ⚡ New Project Invitation
                     </span>
-                  ) : null}
+                    <span className="text-xs text-gray-500">{inv.duration}</span>
+                  </div>
+                  <h3 className="font-extrabold text-gray-900 text-base">{inv.projectTitle}</h3>
+                  <p className="text-xs text-gray-600 mt-0.5 font-medium">
+                    Contractor: <span className="font-bold text-gray-900">{inv.contractorName}</span>
+                  </p>
+                  <p className="text-xs text-emerald-800 font-bold mt-1">
+                    Daily Wage Rate: ₹{inv.dailyWage}/day · {inv.location}
+                  </p>
+                  {inv.notes && (
+                    <p className="text-[11px] text-gray-600 bg-white/70 p-2 rounded-lg mt-2 border border-emerald-200">
+                      "{inv.notes}"
+                    </p>
+                  )}
+
+                  <div className="flex items-center gap-2 mt-3">
+                    <button
+                      onClick={() => respondToInvitation(inv.id, 'accepted')}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                    >
+                      <Check size={14} /> Accept Invitation
+                    </button>
+                    <button
+                      onClick={() => respondToInvitation(inv.id, 'declined')}
+                      className="px-3 py-2 rounded-xl bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                    >
+                      <X size={14} /> Decline
+                    </button>
+                  </div>
                 </div>
-                <span className="text-xs font-semibold text-gray-600 text-center leading-tight">{action.label}</span>
-              </button>
-            );
-          })}
+              </div>
+            </Card>
+          ))}
         </div>
-      </div>
+      )}
 
-      {/* Current Job */}
-      <Card className="p-4 animate-slide-up" >
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-gray-700">Current Job</h2>
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-accent-600">
-            <span className="w-2 h-2 rounded-full bg-accent-500 animate-pulse" /> Active
-          </span>
-        </div>
-        <div className="flex items-start gap-3">
-          <div className="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600 flex-shrink-0">
-            <Briefcase size={24} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-gray-900">{workerStats.currentJob}</p>
-            <p className="text-sm text-gray-500">{workerStats.currentEmployer}</p>
-            <div className="flex items-center gap-1 text-xs text-gray-400 mt-1">
-              <MapPin size={12} />
-              <span>Site B, Mysuru</span>
+      {/* ACTIVE SITE ASSIGNMENT CARD */}
+      <Card className="p-4 border border-blue-200 bg-blue-50/40 shadow-xs">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-blue-700 mb-1">
+              <Building2 size={15} /> Active Site Assignment
             </div>
+            <h3 className="font-extrabold text-gray-900 text-base">
+              {activeAssignment?.projectTitle || 'Belagavi Highway & Flyover Expansion'}
+            </h3>
+            <p className="text-xs text-gray-600 mt-0.5">
+              Contractor: <span className="font-bold text-gray-900">{activeAssignment?.contractorName || 'Kumar Construction Services'}</span>
+            </p>
+            <p className="text-xs font-bold text-blue-800 mt-1">
+              Wage: ₹{activeAssignment?.dailyWage || 600}/day · Expected Earnings: ₹{(activeAssignment?.expectedEarnings || 18000).toLocaleString('en-IN')}
+            </p>
           </div>
+          <button
+            onClick={() => setScreen('messages')}
+            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1 shrink-0 transition-colors shadow-2xs"
+          >
+            <MessageSquare size={13} /> Message Contractor
+          </button>
         </div>
       </Card>
 
-      {/* Insurance & PF Mini */}
-      <Card className="p-4 animate-slide-up" onClick={() => setScreen('insurance')}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600">
-              <ShieldCheck size={20} />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-gray-900">Insurance</p>
-              <p className="text-xs text-gray-500">Skill-based cover · yearly protection plans</p>
-            </div>
-          </div>
-          <ArrowRight size={18} className="text-gray-300" />
-        </div>
-      </Card>
-
-      {/* Language Translator */}
-      <Card className="p-4 animate-slide-up border border-purple-100 bg-purple-50/40" onClick={() => window.dispatchEvent(new CustomEvent('open-shramasetu-ai', { detail: 'translator' }))}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-purple-600"><Languages size={20} /></div>
-            <div>
-              <p className="text-sm font-bold text-gray-900">Language Translator</p>
-              <p className="text-xs text-gray-500">Translate work messages, instructions and everyday phrases.</p>
-            </div>
-          </div>
-          <ArrowRight size={18} className="text-gray-300" />
-        </div>
-      </Card>
-
-      {/* Smart Savings Mini */}
-      <Card className="p-4 animate-slide-up border border-brand-100 bg-brand-50/50" onClick={() => setScreen('savings')}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-brand-600">
-              <PiggyBank size={20} />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-gray-900">Smart Savings</p>
-              <p className="text-xs text-gray-500">0.5–6% based on day conditions, market, weather and work quality</p>
-            </div>
-          </div>
-          <ArrowRight size={18} className="text-gray-300" />
-        </div>
-      </Card>
-
-      {/* Emergency Fund Mini */}
-      <Card className="p-4 animate-slide-up" onClick={() => setScreen('savings')}>
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-accent-50 flex items-center justify-center text-accent-600">
-              <PiggyBank size={18} />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-gray-900">Emergency Fund</p>
-              <p className="text-xs text-gray-500">{formatINR(workerStats.emergencySavings)} of ₹5,000</p>
-            </div>
-          </div>
-          <ArrowRight size={18} className="text-gray-300" />
-        </div>
-        <ProgressBar value={workerStats.emergencySavings} max={5000} colorClass="bg-accent-500" />
-      </Card>
-
-      {/* Recent Payment */}
-      {recentEarning && (
-        <Card className="p-4 animate-slide-up" onClick={() => setScreen('earnings')}>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold text-gray-700">Recent Payment</h2>
-          </div>
+      {/* LIVE EARNINGS HERO CARD */}
+      <Card className="overflow-hidden shadow-sm">
+        <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 p-5 text-white">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${recentEarning.status === 'paid' ? 'bg-accent-100 text-accent-600' : 'bg-warning-100 text-warning-600'}`}>
-                {recentEarning.status === 'paid' ? <CheckCircle2 size={20} /> : <Clock size={20} />}
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900 text-sm">{recentEarning.work}</p>
-                <p className="text-xs text-gray-500">{recentEarning.date} · {recentEarning.hoursOrDays}</p>
-              </div>
+            <div className="flex items-center gap-2 text-emerald-100 text-sm mb-1">
+              <TrendingUp size={16} />
+              <span>Today's Logged Earnings</span>
             </div>
-            <div className="text-right">
-              <p className="font-bold text-accent-600">+{formatINR(recentEarning.amount)}</p>
-              <p className={`text-xs font-semibold ${recentEarning.status === 'paid' ? 'text-accent-600' : 'text-warning-600'}`}>
-                {recentEarning.status === 'paid' ? 'Paid' : 'Pending'}
+            <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-bold">
+              Live Attendance Sync
+            </span>
+          </div>
+          <div className="text-4xl font-extrabold tracking-tight mt-1">
+            {formatINR(workerEarningsSummary.todayEarned)}
+          </div>
+          <p className="text-emerald-100 text-xs mt-1">
+            Calculated from contractor's verified daily attendance muster
+          </p>
+
+          <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-white/20 text-xs">
+            <div>
+              <p className="text-emerald-100">This Month's Earnings</p>
+              <p className="text-lg font-bold text-white mt-0.5">
+                {formatINR(workerEarningsSummary.thisMonthEarned || 12600)}
               </p>
             </div>
+            <div>
+              <p className="text-emerald-100">Pending Contractor Payout</p>
+              <p className="text-lg font-bold text-amber-200 mt-0.5">
+                {formatINR(workerEarningsSummary.pendingPayout || 3300)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* SAVINGS RECOMMENDATION CARD */}
+      {activeGoal && (
+        <Card className="p-4 border border-amber-200 bg-amber-50/50 shadow-xs">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 mb-1">
+                <PiggyBank size={16} /> Daily Savings Recommendation
+              </div>
+              <h3 className="font-extrabold text-gray-900 text-sm">{activeGoal.title}</h3>
+              <p className="text-xs text-gray-600 mt-0.5">
+                Target: ₹{activeGoal.targetAmount.toLocaleString('en-IN')} · Saved: ₹{activeGoal.currentAmount.toLocaleString('en-IN')} ({Math.round((activeGoal.currentAmount / activeGoal.targetAmount) * 100)}%)
+              </p>
+              <p className="text-xs font-extrabold text-amber-900 mt-1.5 bg-amber-100/80 px-2 py-1 rounded inline-block">
+                💡 Recommended: Save ₹{activeGoal.recommendedDailyAmount}/day for {activeGoal.daysRemaining} days remaining
+              </p>
+            </div>
+            <button
+              onClick={() => setScreen('savings')}
+              className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shrink-0 transition-colors shadow-2xs"
+            >
+              Save Today
+            </button>
           </div>
         </Card>
       )}
 
-      <Button variant="secondary" className="w-full" onClick={() => setScreen('messages')}>
-        View Messages {unreadCount > 0 && `(${unreadCount} new)`}
-      </Button>
+      {/* Quick Navigation Cards */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <button
+          onClick={() => setScreen('earnings')}
+          className="p-3.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 flex items-center gap-3 text-left transition-colors shadow-2xs"
+        >
+          <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+            <Wallet size={18} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-900">Earnings Log</p>
+            <p className="text-[10px] text-gray-400">View daily breakdown</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setScreen('savings')}
+          className="p-3.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 flex items-center gap-3 text-left transition-colors shadow-2xs"
+        >
+          <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+            <PiggyBank size={18} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-900">Savings Goals</p>
+            <p className="text-[10px] text-gray-400">Daily planner & targets</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setScreen('messages')}
+          className="p-3.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 flex items-center gap-3 text-left transition-colors shadow-2xs"
+        >
+          <div className="w-9 h-9 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
+            <MessageSquare size={18} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-900">Contractor Chat</p>
+            <p className="text-[10px] text-gray-400">Site instructions</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setScreen('jobs')}
+          className="p-3.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 flex items-center gap-3 text-left transition-colors shadow-2xs"
+        >
+          <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+            <Briefcase size={18} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-900">Nearby Jobs</p>
+            <p className="text-[10px] text-gray-400">Belagavi construction</p>
+          </div>
+        </button>
+      </div>
+
+      <RoleSwitcher
+        isOpen={showRoleSwitcher}
+        onClose={() => setShowRoleSwitcher(false)}
+        currentRole={role || 'labourer'}
+        onSelectRole={(nextRole) => {
+          setRole(nextRole);
+          setScreen('home');
+        }}
+      />
     </div>
   );
 }

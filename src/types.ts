@@ -76,7 +76,7 @@ export interface JobListing {
 
 export interface ChatMessage {
   id: string;
-  sender: 'contractor' | 'worker';
+  sender: 'contractor' | 'worker' | 'employer';
   text: string;
   time: string;
   attachment?: { type: 'image' | 'location'; url?: string; name?: string };
@@ -277,4 +277,133 @@ export interface WorkforcePlan {
   totalHeadcount: number;
   estimatedLaborCost: number;
   requirements: TenderWorkforceItem[];
+}
+
+export interface ContractorRFP {
+  id: string;
+  projectId: string;
+  projectTitle: string;
+  employerId: string;
+  employerName: string;
+  contractorId: string;
+  contractorName: string;
+  status: 'sent' | 'accepted' | 'declined';
+  budget: number;
+  location: string;
+  duration: string;
+  headcountNeeded: number;
+  message?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkerInvitation {
+  id: string;
+  projectId: string;
+  projectTitle: string;
+  contractorId: string;
+  contractorName: string;
+  workerId: string;
+  workerName: string;
+  skill: string;
+  dailyWage: number;
+  location: string;
+  duration: string;
+  status: 'invited' | 'accepted' | 'declined';
+  createdAt: string;
+  notes?: string;
+}
+
+export interface WorkerAssignment {
+  id: string;
+  projectId: string;
+  projectTitle: string;
+  contractorId: string;
+  workerId: string;
+  workerName: string;
+  skill: string;
+  dailyWage: number;
+  expectedDays: number;
+  expectedEarnings: number;
+  status: 'assigned' | 'completed' | 'cancelled';
+  assignedAt: string;
+}
+
+export interface AttendanceRecord {
+  id: string;
+  projectId: string;
+  workerId: string;
+  workerName: string;
+  contractorId: string;
+  date: string;
+  status: 'present' | 'absent' | 'half';
+  hours: number;
+  wageEarned: number;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface WageRecord {
+  id: string;
+  projectId: string;
+  projectTitle: string;
+  contractorId: string;
+  workerId: string;
+  workerName: string;
+  periodStart: string;
+  periodEnd: string;
+  daysWorked: number;
+  dailyWage: number;
+  totalAmount: number;
+  status: 'pending' | 'paid';
+  disbursedDate?: string;
+  paymentReference?: string;
+  notes?: string;
+}
+
+export interface WorkerEarningsSummary {
+  todayEarned: number;
+  thisWeekEarned: number;
+  thisMonthEarned: number;
+  totalEarned: number;
+  pendingPayout: number;
+  paidPayout: number;
+  daysPresentMonth: number;
+  recentEntries: EarningEntry[];
+}
+
+export interface SavingsGoalDetail {
+  id: string;
+  workerId: string;
+  title: string;
+  targetAmount: number;
+  currentAmount: number;
+  targetDate: string;
+  category: string;
+  icon: string;
+  color: string;
+  status: 'active' | 'completed';
+  createdAt: string;
+  remaining: number;
+  daysRemaining: number;
+  recommendedDailyAmount: number;
+}
+
+export interface PlatformNotification {
+  id: string;
+  recipientId: string;
+  recipientRole: Role;
+  title: string;
+  message: string;
+  type: 'rfp' | 'invitation' | 'attendance' | 'wage' | 'message' | 'system';
+  relatedId?: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface WorkerMatchScore {
+  worker: ContractorWorker;
+  score: number; // 0 - 100
+  isAvailable: boolean;
+  matchReasons: string[];
 }
