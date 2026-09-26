@@ -92,37 +92,37 @@ export function AuthScreen() {
       >
         <ArrowLeft size={19} />
       </button>
-      <div className="space-y-3">
+      <div className="space-y-3.5">
         <button
           onClick={() => setScreen('register')}
-          className="w-full bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-5 shadow-card flex items-center gap-4 text-left hover:shadow-card-hover hover:border-brand-300 dark:hover:border-brand-700 transition-all"
+          className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-5 shadow-card hover:shadow-card-hover hover:border-brand-500 dark:hover:border-brand-500 flex items-center gap-4 text-left transition-all active:scale-[0.99] group"
         >
-          <div className="w-12 h-12 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
-            <UserPlus />
+          <div className="w-12 h-12 rounded-xl bg-brand-50 dark:bg-brand-950/80 text-brand-600 dark:text-brand-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <UserPlus size={24} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-extrabold text-gray-900 dark:text-white">New Registration</p>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Create a new ShramaSetu prototype profile</p>
+            <p className="font-extrabold text-base text-gray-900 dark:text-white">New Registration</p>
+            <p className="text-xs text-gray-600 dark:text-slate-300 mt-1">Create a new ShramaSetu prototype profile</p>
           </div>
         </button>
         <button
           onClick={() => setMode('signin')}
-          className="w-full bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-5 shadow-card flex items-center gap-4 text-left hover:shadow-card-hover hover:border-amber-300 dark:hover:border-amber-700 transition-all"
+          className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-5 shadow-card hover:shadow-card-hover hover:border-amber-500 dark:hover:border-amber-500 flex items-center gap-4 text-left transition-all active:scale-[0.99] group"
         >
-          <div className="w-12 h-12 rounded-xl bg-accent-50 dark:bg-amber-950/60 text-accent-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-            <KeyRound />
+          <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <KeyRound size={24} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-extrabold text-gray-900 dark:text-white">Already Registered</p>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Sign in with your ShramaID and registered mobile</p>
+            <p className="font-extrabold text-base text-gray-900 dark:text-white">Already Registered</p>
+            <p className="text-xs text-gray-600 dark:text-slate-300 mt-1">Sign in with your ShramaID and registered mobile</p>
           </div>
         </button>
       </div>
       <button
         onClick={() => { setRole(null); setScreen('home'); }}
-        className="mt-6 text-sm font-bold text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 flex items-center gap-1 transition-colors"
+        className="mt-6 text-sm font-bold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white flex items-center gap-1.5 transition-colors"
       >
-        <ArrowLeft size={15} /> Choose another role
+        <ArrowLeft size={16} /> Choose another role
       </button>
     </div>
   );

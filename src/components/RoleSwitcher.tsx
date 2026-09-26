@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Briefcase, HardHat, Wrench, Users, Check, X, LogOut, RotateCcw } from 'lucide-react';
 import { Role } from '../types';
 import { useApp } from '@/AppContext';
@@ -10,57 +11,38 @@ interface RoleSwitcherProps {
   onSelectRole: (role: Role) => void;
 }
 
-interface RoleOption {
-  id: Role;
-  title: string;
-  subtitle: string;
-  tagline: string;
-  color: string;
-  activeColor: string;
-  badgeColor: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-const ROLES: RoleOption[] = [
+const ROLES = [
   {
-    id: 'employer',
+    id: 'employer' as const,
     title: 'Employer',
-    subtitle: 'Project Owner / Client',
-    tagline: 'Create tenders, review workforce & dispatch RFPs',
-    color: 'border-purple-200 dark:border-purple-900/60 bg-purple-50/40 dark:bg-purple-950/20 text-purple-900 dark:text-purple-200',
-    activeColor: 'border-purple-500 bg-purple-50 dark:bg-purple-950/50 ring-2 ring-purple-500/20',
-    badgeColor: 'bg-purple-100 text-purple-800 dark:bg-purple-900/70 dark:text-purple-200',
     icon: Briefcase,
+    color: 'border-purple-200 dark:border-purple-800/70 hover:border-purple-400 bg-purple-50/60 dark:bg-purple-950/40 text-purple-950 dark:text-purple-200',
+    activeColor: 'border-purple-500 dark:border-purple-500 bg-purple-100 dark:bg-purple-950/80 ring-2 ring-purple-500/30',
+    iconBg: 'bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300',
   },
   {
-    id: 'contractor',
+    id: 'contractor' as const,
     title: 'Contractor',
-    subtitle: 'Workforce Operator',
-    tagline: 'Match workers, mark daily muster & disburse wages',
-    color: 'border-amber-200 dark:border-amber-900/60 bg-amber-50/40 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200',
-    activeColor: 'border-amber-500 bg-amber-50 dark:bg-amber-950/50 ring-2 ring-amber-500/20',
-    badgeColor: 'bg-amber-100 text-amber-800 dark:bg-amber-900/70 dark:text-amber-200',
     icon: HardHat,
+    color: 'border-amber-200 dark:border-amber-800/70 hover:border-amber-400 bg-amber-50/60 dark:bg-amber-950/40 text-amber-950 dark:text-amber-200',
+    activeColor: 'border-amber-500 dark:border-amber-500 bg-amber-100 dark:bg-amber-950/80 ring-2 ring-amber-500/30',
+    iconBg: 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300',
   },
   {
-    id: 'skilledWorker',
+    id: 'skilledWorker' as const,
     title: 'Skilled Worker',
-    subtitle: 'Craftsman / Specialist',
-    tagline: 'Accept priority invitations, verified wages & savings',
-    color: 'border-blue-200 dark:border-blue-900/60 bg-blue-50/40 dark:bg-blue-950/20 text-blue-900 dark:text-blue-200',
-    activeColor: 'border-blue-500 bg-blue-50 dark:bg-blue-950/50 ring-2 ring-blue-500/20',
-    badgeColor: 'bg-blue-100 text-blue-800 dark:bg-blue-900/70 dark:text-blue-200',
     icon: Wrench,
+    color: 'border-blue-200 dark:border-blue-800/70 hover:border-blue-400 bg-blue-50/60 dark:bg-blue-950/40 text-blue-950 dark:text-blue-200',
+    activeColor: 'border-blue-500 dark:border-blue-500 bg-blue-100 dark:bg-blue-950/80 ring-2 ring-blue-500/30',
+    iconBg: 'bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300',
   },
   {
-    id: 'labourer',
+    id: 'labourer' as const,
     title: 'Labourer',
-    subtitle: 'General Workforce',
-    tagline: 'Site assignments, attendance roll & daily earnings',
-    color: 'border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/40 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-200',
-    activeColor: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/50 ring-2 ring-emerald-500/20',
-    badgeColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/70 dark:text-emerald-200',
     icon: Users,
+    color: 'border-emerald-200 dark:border-emerald-800/70 hover:border-emerald-400 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200',
+    activeColor: 'border-emerald-500 dark:border-emerald-500 bg-emerald-100 dark:bg-emerald-950/80 ring-2 ring-emerald-500/30',
+    iconBg: 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300',
   },
 ];
 
@@ -71,6 +53,16 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = ({
   onSelectRole,
 }) => {
   const { setRole, setScreen, resetPlatformData } = useApp();
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -91,38 +83,40 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+  const modalContent = (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div
-        className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden animate-scale-up"
+        className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-slate-700/80 w-full max-w-sm overflow-hidden animate-scale-in"
         role="dialog"
         aria-modal="true"
         aria-labelledby="role-switcher-title"
       >
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-950/60">
+        <div className="px-5 py-3.5 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between bg-gray-50/80 dark:bg-slate-950/60">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <h2 id="role-switcher-title" className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100">
-                Switch Role Persona
-              </h2>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Select persona to test interconnected workflows
+            <h2 id="role-switcher-title" className="text-base font-extrabold text-gray-900 dark:text-white">
+              Switch Persona
+            </h2>
+            <p className="text-[11px] text-gray-500 dark:text-slate-300">
+              Select persona to test workflows
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors"
+            className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-200/60 dark:hover:bg-slate-800 transition-colors"
             aria-label="Close"
           >
-            <X className="w-5 h-5" />
+            <X size={16} />
           </button>
         </div>
 
-        {/* Scalable Roles Grid */}
-        <div className="p-4 sm:p-5 overflow-y-auto space-y-2.5 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-3">
+        {/* Clean 2x2 Grid without role descriptions */}
+        <div className="p-3.5 grid grid-cols-2 gap-2.5">
           {ROLES.map((r) => {
             const Icon = r.icon;
             const isCurrent = currentRole === r.id;
@@ -132,56 +126,44 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = ({
                 key={r.id}
                 type="button"
                 onClick={() => handleSelect(r.id)}
-                className={`relative group rounded-2xl p-3.5 border text-left transition-all duration-150 flex flex-col justify-between active:scale-[0.98] ${
+                className={`flex items-center justify-between p-3 rounded-2xl border text-left transition-all active:scale-[0.97] ${
                   isCurrent
-                    ? `${r.activeColor} shadow-sm`
-                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                    ? `${r.activeColor} shadow-xs`
+                    : `${r.color} hover:shadow-xs`
                 }`}
               >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${r.badgeColor}`}>
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    {isCurrent ? (
-                      <span className="flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/70 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800">
-                        <Check className="w-3 h-3" /> Active
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-semibold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300">
-                        Select →
-                      </span>
-                    )}
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${r.iconBg}`}>
+                    <Icon size={16} />
                   </div>
-                  <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">
+                  <span className="font-extrabold text-xs text-gray-900 dark:text-white truncate">
                     {r.title}
-                  </h3>
-                  <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
-                    {r.subtitle}
-                  </p>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-snug line-clamp-2">
-                    {r.tagline}
-                  </p>
+                  </span>
                 </div>
+                {isCurrent && (
+                  <span className="flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500 text-white shrink-0 ml-1">
+                    <Check size={10} strokeWidth={3} />
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
 
         {/* Footer Actions */}
-        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/50 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+        <div className="px-4 py-2.5 border-t border-gray-100 dark:border-slate-800 bg-gray-50/60 dark:bg-slate-950/60 flex items-center justify-between gap-2 text-xs">
           <button
             type="button"
             onClick={handleSignOut}
-            className="w-full sm:w-auto font-bold text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+            className="font-bold text-gray-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
           >
-            <LogOut size={14} /> Log Out / Switch Account
+            <LogOut size={13} /> Log Out
           </button>
 
           <button
             type="button"
             onClick={handleResetData}
-            className="w-full sm:w-auto font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-xl hover:bg-amber-100/60 dark:hover:bg-amber-950/40 transition-colors"
+            className="font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-amber-100/60 dark:hover:bg-amber-950/40 transition-colors"
             title="Reset additional tenders and custom entries to default prototype models"
           >
             <RotateCcw size={13} /> Reset Fresh Data
@@ -190,4 +172,6 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };
