@@ -45,9 +45,25 @@ export function RoleSelect() {
             </div>
             <div className="flex-1">
               <h2 className="text-lg font-bold text-gray-900">I am a Contractor</h2>
-              <p className="text-sm text-gray-500 mt-0.5">Hire workers, manage attendance & wages</p>
+              <p className="text-sm text-gray-500 mt-0.5">Manage worker teams, attendance & wages</p>
             </div>
             <ArrowRight size={22} className="text-gray-300 group-hover:text-accent-500 group-hover:translate-x-1 transition-all" />
+          </div>
+        </button>
+
+        <button
+          onClick={() => { setRole('employer'); setScreen('register'); }}
+          className="w-full group bg-white rounded-3xl p-6 shadow-card hover:shadow-card-hover transition-all active:scale-[0.98] text-left"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:bg-amber-100 transition-colors">
+              <Building2 size={32} strokeWidth={2} />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-bold text-gray-900">I am an Employer</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Post jobs, review work progress & approve payments</p>
+            </div>
+            <ArrowRight size={22} className="text-gray-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
           </div>
         </button>
 

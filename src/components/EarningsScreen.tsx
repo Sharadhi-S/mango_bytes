@@ -31,7 +31,7 @@ export function EarningsScreen() {
           <div className="w-10 h-10 rounded-xl bg-white text-accent-600 flex items-center justify-center"><PiggyBank size={20} /></div>
           <div className="flex-1 min-w-0">
             <p className="font-bold text-gray-900 text-sm">Smart Savings from Daily Earnings</p>
-            <p className="text-xs text-gray-500 mt-0.5">₹0 on a low-income day · 2% on a stronger day · 3% on a very good day.</p>
+            <p className="text-xs text-gray-500 mt-0.5">0.5% on tough days · about 2% on normal days · up to 6% on strong days.</p>
             <p className="text-xs font-bold text-accent-700 mt-2 inline-flex items-center gap-1">Open Smart Savings <ArrowRight size={13} /></p>
           </div>
           <ArrowRight size={18} className="text-accent-500 shrink-0" />

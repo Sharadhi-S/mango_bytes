@@ -36,7 +36,7 @@ const contractorNav: NavItem[] = [
 
 export function BottomNav() {
   const { role, screen, setScreen } = useApp();
-  const items = role === 'contractor' ? contractorNav : role === 'skilledWorker' ? skilledWorkerNav : labourerNav;
+  const items = role === 'contractor' || role === 'employer' ? contractorNav : role === 'skilledWorker' ? skilledWorkerNav : labourerNav;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">

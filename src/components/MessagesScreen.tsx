@@ -22,7 +22,7 @@ export function MessagesScreen() {
     const list = conversations;
     return (
       <div className="px-5 pt-6 pb-24 max-w-2xl mx-auto">
-        <ScreenHeader title="Messages" subtitle={role === 'contractor' ? 'Chat with your workers' : 'Chat with your employers'} />
+        <ScreenHeader title="Messages" subtitle={role === 'contractor' || role === 'employer' ? 'Chat with your workers' : 'Chat with your employers'} />
         <div className="space-y-2">
           {list.map((c) => (
             <button
@@ -73,7 +73,7 @@ export function MessagesScreen() {
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50">
         {active.messages.map((msg) => {
           const isWorker = msg.sender === 'worker';
-          const isMine = role === 'contractor' ? msg.sender === 'contractor' : msg.sender === 'worker';
+          const isMine = role === 'contractor' || role === 'employer' ? msg.sender === 'contractor' : msg.sender === 'worker';
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} animate-slide-up`}>
               <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl ${isMine ? 'bg-brand-600 text-white rounded-br-md' : 'bg-white text-gray-900 rounded-bl-md shadow-card'}`}>

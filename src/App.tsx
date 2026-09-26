@@ -29,6 +29,20 @@ function AppContent() {
     if (screen === 'register') return <RegistrationScreen />;
     if (screen === 'shramId') return <ShramaIDScreen />;
 
+    if (role === 'labourer') {
+      switch (screen) {
+        case 'home': return <LabourerDashboard />;
+        case 'earnings': return <EarningsScreen />;
+        case 'savings': return <SavingsScreen />;
+        case 'jobs': return <JobsScreen />;
+        case 'messages': return <MessagesScreen />;
+        case 'profile': return <ProfileScreen />;
+        case 'insurance': return <InsuranceScreen />;
+        case 'homeWork': return <HomeWorkScreen />;
+        default: return <LabourerDashboard />;
+      }
+    }
+
     if (role === 'skilledWorker') {
       switch (screen) {
         case 'home': return <SkilledWorkerDashboard />;
@@ -42,19 +56,7 @@ function AppContent() {
       }
     }
 
-    if (role === 'labourer') {
-      switch (screen) {
-        case 'home': return <LabourerDashboard />;
-        case 'earnings': return <EarningsScreen />;
-        case 'savings': return <SavingsScreen />;
-        case 'jobs': return <JobsScreen />;
-        case 'messages': return <MessagesScreen />;
-        case 'profile': return <ProfileScreen />;
-        case 'insurance': return <InsuranceScreen />;
-        case 'homeWork': return <HomeWorkScreen />;
-        default: return <LabourerDashboard />;
-      }
-    } else {
+    if (role === 'contractor' || role === 'employer') {
       switch (screen) {
         case 'home': return <ContractorDashboard />;
         case 'profile': return <ContractorDashboard showProfileInitially />;
@@ -67,6 +69,8 @@ function AppContent() {
         default: return <ContractorDashboard />;
       }
     }
+
+    return <RoleSelect />;
   };
 
   return (

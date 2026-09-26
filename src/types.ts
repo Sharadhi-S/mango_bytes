@@ -1,4 +1,4 @@
-export type Role = 'labourer' | 'contractor' | 'skilledWorker';
+export type Role = 'labourer' | 'contractor' | 'employer' | 'skilledWorker';
 
 export type ScreenId =
   | 'home'

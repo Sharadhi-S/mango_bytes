@@ -168,7 +168,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const sendMessage = useCallback((conversationId: string, text: string) => {
     const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    const newMsg: ChatMessage = { id: `m-${Date.now()}`, sender: role === 'contractor' ? 'contractor' : 'worker', text, time: now };
+    const newMsg: ChatMessage = { id: `m-${Date.now()}`, sender: role === 'contractor' || role === 'employer' ? 'contractor' : 'worker', text, time: now };
     setConversations((prev) =>
       prev.map((c) =>
         c.id === conversationId

@@ -23,9 +23,10 @@ import { Card, ScreenHeader, formatINR } from './ui';
 import { contractorStats } from '@/mockData';
 
 export function ContractorDashboard({ showProfileInitially = false }: { showProfileInitially?: boolean }) {
-  const { setScreen, setRole, wages, postedJobs, attendance, registrationProfile } = useApp();
+  const { setScreen, setRole, wages, postedJobs, attendance, registrationProfile, role } = useApp();
   const [showProfile, setShowProfile] = useState(showProfileInitially);
   const [showSwitchUser, setShowSwitchUser] = useState(false);
+  const roleLabel = role === 'employer' ? 'Employer' : 'Contractor';
 
   const pendingWages = wages.filter((w) => w.status === 'pending').reduce((s, w) => s + w.totalEarned, 0);
   const presentCount = attendance.filter((a) => a.status === 'present').length;
@@ -39,7 +40,7 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
 
   const quickActions = [
     { label: 'Find Workers', icon: Users, screen: 'workers' as const, color: 'bg-brand-50 text-brand-600' },
-    { label: 'Post Job', icon: Briefcase, screen: 'postJob' as const, color: 'bg-accent-50 text-accent-600' },
+    { label: 'Post Job', icon: Briefcase, screen: 'postJob' as const, color: 'bg-warning-50 text-warning-600' },
     { label: 'Attendance', icon: Calendar, screen: 'attendance' as const, color: 'bg-warning-50 text-warning-600' },
     { label: 'Wages', icon: CreditCard, screen: 'wages' as const, color: 'bg-error-50 text-error-600' },
     { label: 'Messages', icon: MessageSquare, screen: 'messages' as const, color: 'bg-brand-50 text-brand-600' },
@@ -65,7 +66,7 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
             <ArrowRight size={19} className="rotate-180" />
           </button>
           <div>
-            <h1 className="text-xl font-extrabold text-gray-900">Contractor Profile</h1>
+            <h1 className="text-xl font-extrabold text-gray-900">{roleLabel} Profile</h1>
             <p className="text-xs text-gray-500">Professional information</p>
           </div>
         </div>
@@ -77,7 +78,7 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
             </div>
             <div className="min-w-0">
               <h2 className="text-lg font-extrabold text-gray-900">{registrationProfile?.name || 'Your name'}</h2>
-              <p className="text-sm text-gray-500">{registrationProfile?.company || 'Contractor'} · Contractor</p>
+              <p className="text-sm text-gray-500">{registrationProfile?.company || roleLabel} · {roleLabel}</p>
               <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1">
                 <MapPin size={14} />
                 <span>{registrationProfile?.location || 'Location not provided'}</span>
@@ -139,7 +140,7 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
             <ArrowLeftRight size={20} />
             <div className="text-left">
               <p className="font-bold text-sm">Switch User</p>
-              <p className="text-xs text-gray-300">Switch between Contractor and Labourer</p>
+              <p className="text-xs text-gray-300">Switch between Employer, Contractor and Labourer</p>
             </div>
           </div>
           <ChevronRight size={18} />
@@ -199,7 +200,7 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
   return (
     <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8">
       <div className="flex items-start justify-between gap-3 mb-6">
-        <ScreenHeader title="Dashboard" subtitle={registrationProfile?.company || registrationProfile?.name || 'Contractor workspace'} />
+        <ScreenHeader title="Dashboard" subtitle={registrationProfile?.company || registrationProfile?.name || `${roleLabel} workspace`} />
         <button
           onClick={() => setShowProfile(true)}
           className="flex-shrink-0 w-11 h-11 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center active:scale-95 transition-transform"
