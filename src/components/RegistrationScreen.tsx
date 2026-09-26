@@ -89,7 +89,6 @@ export function RegistrationScreen() {
     if (!/^\d{10}$/.test(phoneValue)) next.phone = 'Mobile number must be exactly 10 digits.';
     if (!selectedSkill) next.skill = skill === 'Other' ? 'Please enter your skill.' : 'Please select a skill.';
     if (!location.trim()) next.location = 'Location is required.';
-    if (monthlyIncome.trim() && (!/^\d+(\.\d+)?$/.test(monthlyIncome.trim()) || Number(monthlyIncome) < 0)) next.monthlyIncome = 'Enter a valid monthly income.';
     if (formRole === 'employer' && !company.trim()) next.company = 'Business name is required.';
     if (formRole === 'employer' && !businessType.trim()) next.businessType = 'Business type is required.';
     if (formRole === 'employer' && !hiringNeed.trim()) next.hiringNeed = 'Hiring need is required.';
@@ -154,24 +153,24 @@ export function RegistrationScreen() {
       </Card>
 
       <Card className="p-4 mb-4">
-        <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">{c.chooseRole}</p>
+        <p className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">{c.chooseRole}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2">
-          <button onClick={() => setFormRole('labourer')} className={`p-4 rounded-2xl border text-left ${formRole === 'labourer' ? 'border-brand-500 bg-brand-50' : 'border-gray-200 bg-white'}`}>
-            <UserRound size={20} className={formRole === 'labourer' ? 'text-brand-600' : 'text-gray-400'} />
-            <p className="font-bold text-gray-900 mt-2">{c.labourer}</p>
+          <button onClick={() => setFormRole('labourer')} className={`p-4 rounded-2xl border text-left transition-all ${formRole === 'labourer' ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/40 dark:border-brand-500' : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
+            <UserRound size={20} className={formRole === 'labourer' ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400'} />
+            <p className="font-bold text-gray-900 dark:text-white mt-2">{c.labourer}</p>
           </button>
-          <button onClick={() => setFormRole('contractor')} className={`p-4 rounded-2xl border text-left ${formRole === 'contractor' ? 'border-accent-500 bg-accent-50' : 'border-gray-200 bg-white'}`}>
-            <BriefcaseBusiness size={20} className={formRole === 'contractor' ? 'text-accent-600' : 'text-gray-400'} />
-            <p className="font-bold text-gray-900 mt-2">{c.contractor}</p>
+          <button onClick={() => setFormRole('contractor')} className={`p-4 rounded-2xl border text-left transition-all ${formRole === 'contractor' ? 'border-accent-500 bg-accent-50 dark:bg-accent-950/40 dark:border-accent-500' : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
+            <BriefcaseBusiness size={20} className={formRole === 'contractor' ? 'text-accent-600 dark:text-accent-400' : 'text-gray-400'} />
+            <p className="font-bold text-gray-900 dark:text-white mt-2">{c.contractor}</p>
           </button>
-          <button onClick={() => setFormRole('employer')} className={`p-4 rounded-2xl border text-left ${formRole === 'employer' ? 'border-amber-500 bg-amber-50' : 'border-gray-200 bg-white'}`}>
-            <BriefcaseBusiness size={20} className={formRole === 'employer' ? 'text-amber-600' : 'text-gray-400'} />
-            <p className="font-bold text-gray-900 mt-2">{c.employer}</p>
+          <button onClick={() => setFormRole('employer')} className={`p-4 rounded-2xl border text-left transition-all ${formRole === 'employer' ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-500' : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
+            <BriefcaseBusiness size={20} className={formRole === 'employer' ? 'text-amber-600 dark:text-amber-400' : 'text-gray-400'} />
+            <p className="font-bold text-gray-900 dark:text-white mt-2">{c.employer}</p>
           </button>
-          <button onClick={() => setFormRole('skilledWorker')} className={`p-4 rounded-2xl border text-left ${formRole === 'skilledWorker' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white'}`}>
-            <BriefcaseBusiness size={20} className={formRole === 'skilledWorker' ? 'text-purple-600' : 'text-gray-400'} />
-            <p className="font-bold text-gray-900 mt-2">{skilledWorkerLabel[lang]}</p>
-            <p className="text-xs text-gray-500 mt-1">{skilledWorkerDesc[lang]}</p>
+          <button onClick={() => setFormRole('skilledWorker')} className={`p-4 rounded-2xl border text-left transition-all ${formRole === 'skilledWorker' ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/40 dark:border-purple-500' : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
+            <BriefcaseBusiness size={20} className={formRole === 'skilledWorker' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'} />
+            <p className="font-bold text-gray-900 dark:text-white mt-2">{skilledWorkerLabel[lang]}</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{skilledWorkerDesc[lang]}</p>
           </button>
         </div>
       </Card>
@@ -199,18 +198,18 @@ export function RegistrationScreen() {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-600 mb-1.5"><span className="inline-flex items-center gap-1.5"><BriefcaseBusiness size={16} />{c.skill}</span></label>
-          <select value={skill} onChange={(e) => { setSkill(e.target.value); setErrors((prev) => ({ ...prev, skill: '' })); }} className={`w-full px-3.5 py-3 rounded-xl border ${errors.skill ? 'border-error-400 bg-error-50' : 'border-gray-200 bg-gray-50'} text-sm text-gray-900 outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-400`}>
+          <label className="block text-xs font-bold text-gray-600 dark:text-slate-300 mb-1.5"><span className="inline-flex items-center gap-1.5"><BriefcaseBusiness size={16} />{c.skill}</span></label>
+          <select value={skill} onChange={(e) => { setSkill(e.target.value); setErrors((prev) => ({ ...prev, skill: '' })); }} className={`w-full px-3.5 py-3 rounded-xl border ${errors.skill ? 'border-error-400 bg-error-50 dark:bg-red-950/30' : 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800'} text-sm text-gray-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-800 focus:border-brand-400 dark:focus:border-brand-400`}>
             <option value="">Select your skill</option>
             {Object.entries(skillGroups).map(([group, groupSkills]) => <optgroup key={group} label={group}>{groupSkills.map((item) => <option key={item} value={item}>{item}</option>)}</optgroup>)}
             <option value="Other">Other — enter my skill</option>
           </select>
           {skill === 'Other' && <div className="mt-2"><Field label="Your skill" value={customSkill} onChange={(value) => { setCustomSkill(value); setErrors((prev) => ({ ...prev, skill: '' })); }} placeholder="Example: Solar Panel Technician" error={errors.skill} /></div>}
-          {skill !== 'Other' && errors.skill && <p className="text-xs text-error-600 font-semibold mt-1.5">{errors.skill}</p>}
+          {skill !== 'Other' && errors.skill && <p className="text-xs text-error-600 dark:text-red-400 font-semibold mt-1.5">{errors.skill}</p>}
         </div>
 
         <Field label="Other / additional skills" value={additionalSkills} onChange={setAdditionalSkills} placeholder="Example: Tile Worker, Bar Bender, Shuttering" />
-        <p className="text-[11px] text-gray-400 -mt-2">Add multiple skills separated by commas. Insurance recommendations use all skills entered.</p>
+        <p className="text-[11px] text-gray-400 dark:text-slate-500 -mt-2">Add multiple skills separated by commas. Insurance recommendations use all skills entered.</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label={c.experience} value={experience} onChange={setExperience} placeholder="Example: 4 years" />
@@ -221,8 +220,8 @@ export function RegistrationScreen() {
         <Field label={c.location} icon={<MapPin size={16} />} value={location} onChange={(value) => { setLocation(value); setErrors((prev) => ({ ...prev, location: '' })); }} placeholder={c.locationExample} error={errors.location} />
 
         {(formRole === 'contractor' || formRole === 'employer') && (
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3 space-y-3">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Business profile</p>
+          <div className="rounded-2xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60 p-3 space-y-3">
+            <p className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Business profile</p>
             <Field label={c.company} value={company} onChange={setCompany} placeholder={c.companyExample} error={errors.company} />
             {formRole === 'employer' && (
               <>
@@ -235,17 +234,9 @@ export function RegistrationScreen() {
           </div>
         )}
 
-        {(formRole === 'labourer' || formRole === 'skilledWorker') && (
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3 space-y-3">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Work profile</p>
-            <Field label={c.wage} value={monthlyIncome} onChange={(value) => { setMonthlyIncome(value.replace(/[^0-9.]/g, '')); setErrors((prev) => ({ ...prev, monthlyIncome: '' })); }} placeholder={c.wageExample} inputMode="numeric" error={errors.monthlyIncome} />
-          </div>
-        )}
-
         {formRole === 'employer' && (
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3 space-y-3">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Hiring and budget</p>
-            <Field label={c.wage} value={monthlyIncome} onChange={(value) => { setMonthlyIncome(value.replace(/[^0-9.]/g, '')); setErrors((prev) => ({ ...prev, monthlyIncome: '' })); }} placeholder={c.wageExample} inputMode="numeric" error={errors.monthlyIncome} />
+          <div className="rounded-2xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60 p-3 space-y-3">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Project budget</p>
             <Field label="Expected project budget" value={budget} onChange={(value) => { setBudget(value.replace(/[^0-9.]/g, '')); setErrors((prev) => ({ ...prev, budget: '' })); }} placeholder="Example: 120000" inputMode="numeric" error={errors.budget} />
           </div>
         )}
@@ -270,7 +261,7 @@ export function RegistrationScreen() {
 
 
       <div className="flex gap-3 mt-5">
-        <Button variant="ghost" className="flex-1" onClick={() => { setRole(null); setScreen('home'); }}><ArrowLeft size={16} className="mr-2" />{c.back}</Button>
+        <Button variant="ghost" className="flex-1" onClick={() => setScreen('auth')}><ArrowLeft size={16} className="mr-2" />{c.back}</Button>
         <Button className="flex-[2]" onClick={submit}>{c.continue}<ArrowRight size={16} className="ml-2" /></Button>
       </div>
 
@@ -309,9 +300,17 @@ function MiniBenefit({ icon, text }: { icon: string; text: string }) {
 function Field({ label, value, onChange, placeholder, icon, inputMode, list, error, maxLength }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; icon?: ReactNode; inputMode?: 'text' | 'tel' | 'numeric'; list?: string; error?: string; maxLength?: number }) {
   return (
     <label className="block">
-      <span className="text-xs font-bold text-gray-600 flex items-center gap-1.5 mb-1.5">{icon}{label}</span>
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} inputMode={inputMode} list={list} maxLength={maxLength} className={`w-full px-3.5 py-3 rounded-xl border ${error ? 'border-error-400 bg-error-50' : 'border-gray-200 bg-gray-50'} text-sm text-gray-900 outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-400`} />
-      {error && <span className="block text-xs font-semibold text-error-600 mt-1.5">{error}</span>}
+      <span className="text-xs font-bold text-gray-600 dark:text-slate-300 flex items-center gap-1.5 mb-1.5">{icon}{label}</span>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        inputMode={inputMode}
+        list={list}
+        maxLength={maxLength}
+        className={`w-full px-3.5 py-3 rounded-xl border ${error ? 'border-error-400 bg-error-50 dark:bg-red-950/30' : 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800'} text-sm text-gray-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-800 focus:border-brand-400 dark:focus:border-brand-400 placeholder:text-gray-400 dark:placeholder:text-slate-500`}
+      />
+      {error && <span className="block text-xs font-semibold text-error-600 dark:text-red-400 mt-1.5">{error}</span>}
     </label>
   );
 }

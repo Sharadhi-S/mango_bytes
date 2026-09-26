@@ -430,6 +430,11 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
       <AddTenderModal
         isOpen={showAddTenderModal}
         onClose={() => setShowAddTenderModal(false)}
+        onSave={(newTender) => {
+          setSelectedProjectId(newTender.id);
+          setShowAddTenderModal(false);
+          setScreen('projectDetail');
+        }}
       />
 
       <RoleSwitcher

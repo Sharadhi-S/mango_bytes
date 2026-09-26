@@ -14,7 +14,7 @@ export function Card({
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-2xl shadow-card ${onClick ? 'cursor-pointer hover:shadow-card-hover transition-shadow' : ''} ${className}`}
+      className={`bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 text-gray-900 dark:text-slate-100 rounded-2xl shadow-card ${onClick ? 'cursor-pointer hover:shadow-card-hover transition-shadow' : ''} ${className}`}
     >
       {children}
     </div>
@@ -38,11 +38,11 @@ export function Button({
 }) {
   const variants = {
     primary: 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800',
-    secondary: 'bg-brand-50 text-brand-700 hover:bg-brand-100 active:bg-brand-200',
-    ghost: 'text-gray-600 hover:bg-gray-100 active:bg-gray-200',
+    secondary: 'bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300 hover:bg-brand-100 dark:hover:bg-brand-900 active:bg-brand-200',
+    ghost: 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 active:bg-gray-200 dark:active:bg-slate-700',
     success: 'bg-accent-500 text-white hover:bg-accent-600 active:bg-accent-700',
     danger: 'bg-error-500 text-white hover:bg-error-600 active:bg-error-700',
-    outline: 'border-2 border-brand-200 text-brand-700 hover:bg-brand-50 active:bg-brand-100',
+    outline: 'border-2 border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950/40 active:bg-brand-100',
   };
   const sizes = {
     sm: 'px-3 py-2 text-sm rounded-lg',
@@ -68,11 +68,11 @@ export function Badge({
   color?: 'green' | 'yellow' | 'red' | 'blue' | 'gray';
 }) {
   const colors = {
-    green: 'bg-accent-100 text-accent-700',
-    yellow: 'bg-warning-100 text-warning-700',
-    red: 'bg-error-100 text-error-700',
-    blue: 'bg-brand-100 text-brand-700',
-    gray: 'bg-gray-100 text-gray-600',
+    green: 'bg-accent-100 dark:bg-accent-950/60 text-accent-700 dark:text-accent-300',
+    yellow: 'bg-warning-100 dark:bg-warning-950/60 text-warning-700 dark:text-warning-300',
+    red: 'bg-error-100 dark:bg-error-950/60 text-error-700 dark:text-error-300',
+    blue: 'bg-brand-100 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300',
+    gray: 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300',
   };
   return (
     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${colors[color]}`}>
@@ -121,7 +121,7 @@ export function ProgressRing({ progress, size = 80, color = '#1b76f0', bgColor =
 export function ProgressBar({ value, max, colorClass = 'bg-brand-500' }: { value: number; max: number; colorClass?: string }) {
   const pct = Math.min(100, (value / max) * 100);
   return (
-    <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+    <div className="h-2.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
       <div
         className={`h-full rounded-full transition-all duration-700 ${colorClass}`}
         style={{ width: `${pct}%` }}
@@ -140,14 +140,14 @@ export function ScreenHeader({ title, subtitle, showBack = true }: { title: stri
             type="button"
             onClick={goBack}
             aria-label="Go back"
-            className="mt-0.5 w-10 h-10 shrink-0 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center hover:bg-gray-200 active:scale-95 transition-all"
+            className="mt-0.5 w-10 h-10 shrink-0 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-slate-700 active:scale-95 transition-all"
           >
             <ArrowLeft size={19} />
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="text-2xl font-extrabold text-gray-900">{title}</h1>
-          {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+          <h1 className="text-2xl font-extrabold text-gray-900 dark:text-slate-100">{title}</h1>
+          {subtitle && <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{subtitle}</p>}
         </div>
       </div>
     </div>

@@ -138,6 +138,9 @@ export interface AppContextValue {
   voiceText: string;
   playVoice: (text?: string) => void;
   stopVoice: () => void;
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+  resetPlatformData: () => void;
 
   // worker state
   earnings: EarningEntry[];
@@ -288,7 +291,8 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [role, setRoleState] = useState<Role | null>(() => {
-    return (localStorage.getItem('shrama-role') as Role) || 'contractor';
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('shrama-role') : null;
+    return (saved as Role) || null;
   });
   const [screen, setScreenState] = useState<ScreenId>('home');
   const [screenHistory, setScreenHistory] = useState<ScreenId[]>([]);
@@ -297,8 +301,62 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setRoleState(nextRole);
     if (nextRole) {
       localStorage.setItem('shrama-role', nextRole);
+    } else {
+      localStorage.removeItem('shrama-role');
     }
     setScreenHistory([]);
+  }, []);
+
+  const [theme, setThemeState] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('shrama-theme') as 'light' | 'dark';
+      if (stored) return stored;
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
+  });
+
+  const toggleTheme = useCallback(() => {
+    setThemeState((prev) => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      try {
+        localStorage.setItem('shrama-theme', next);
+        if (typeof document !== 'undefined') {
+          if (next === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        }
+      } catch (e) {}
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }, [theme]);
+
+  const resetPlatformData = useCallback(() => {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('shramasetu') || key.startsWith('shrama-') || key.startsWith('shrama_'))) {
+          if (key !== 'shrama-theme') {
+            keysToRemove.push(key);
+          }
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+    } catch (e) {}
+    window.location.reload();
   }, []);
 
   const [workerSkill, setWorkerSkill] = useState('Mason');
@@ -699,12 +757,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addTender = useCallback((newTender: Tender) => {
-    setTenders((prev) => [newTender, ...prev.filter((t) => t.id !== newTender.id)]);
+    setTenders((prev) => {
+      const updated = [newTender, ...prev.filter((t) => t.id !== newTender.id)];
+      try {
+        const state = getInitialEmployerState();
+        saveEmployerState({
+          ...state,
+          tenders: updated,
+        });
+      } catch (e) {}
+      return updated;
+    });
     broadcastRealtimeEvent('PROJECT_UPDATED', newTender);
   }, []);
 
   const updateTender = useCallback((updatedTender: Tender) => {
-    setTenders((prev) => prev.map((t) => (t.id === updatedTender.id ? updatedTender : t)));
+    setTenders((prev) => {
+      const updated = prev.map((t) => (t.id === updatedTender.id ? updatedTender : t));
+      try {
+        const state = getInitialEmployerState();
+        saveEmployerState({
+          ...state,
+          tenders: updated,
+        });
+      } catch (e) {}
+      return updated;
+    });
     broadcastRealtimeEvent('PROJECT_UPDATED', updatedTender);
   }, []);
 
@@ -925,6 +1003,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         voiceText,
         playVoice,
         stopVoice,
+        theme,
+        toggleTheme,
+        resetPlatformData,
         earnings,
         savingsGoals,
         jobs,

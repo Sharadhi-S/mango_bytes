@@ -21,17 +21,21 @@ import {
 import { Card, Button, formatINR } from './ui';
 import type { Tender, TenderWorkforceItem } from '@/types';
 import { SAMPLE_TENDER_DOC, simulateAITenderExtraction, type ExtractedTenderData } from '@/backend/aiExtractionService';
+import { useApp } from '@/AppContext';
+import { calculateDynamicTenderFee } from '@/backend/employerBackend';
 
 interface AddTenderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onProjectCreated: (project: Tender) => void;
-  t: (key: string) => string;
+  onProjectCreated?: (project: Tender) => void;
+  onSave?: (project: Tender) => void;
+  t?: (key: string) => string;
 }
 
 type Step = 'choose' | 'uploading' | 'analyzing' | 'review' | 'manual';
 
-export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTenderModalProps) {
+export function AddTenderModal({ isOpen, onClose, onProjectCreated, onSave }: AddTenderModalProps) {
+  const { addTender, setSelectedProjectId } = useApp();
   const [step, setStep] = useState<Step>('choose');
   const [selectedFile, setSelectedFile] = useState<{ name: string; size: string } | null>(null);
   const [analysisStepIndex, setAnalysisStepIndex] = useState(0);
@@ -163,6 +167,8 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
     const totalWorkers = requirements.reduce((s, r) => s + r.headcount, 0);
     const assignedCount = requirements.reduce((s, r) => s + (r.assignedCount || 0), 0);
     const fulfillmentPercent = totalWorkers > 0 ? Math.round((assignedCount / totalWorkers) * 100) : 0;
+    const projectValue = value || 82000000;
+    const dynamicFee = calculateDynamicTenderFee(projectValue);
 
     const newProject: Tender = {
       id: `T-${Date.now()}`,
@@ -174,7 +180,7 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
       startDate: startDate || '10 Oct 2026',
       duration: duration || '6 months',
       durationMonths: 6,
-      value: value || 82000000,
+      value: projectValue,
       closing: startDate || '10 Oct 2026',
       category: 'Infrastructure',
       match: 95,
@@ -193,20 +199,15 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
         compliance: extractedData?.compliance || ['BOCW Act compliant', 'EPFO verified'],
       },
       fulfillmentPercent,
-      dynamicFee: {
-        budget: value,
-        baseFee: 8000,
-        cgst: 720,
-        sgst: 720,
-        totalFee: 9440,
-        ratePercent: 0.01,
-        tierLabel: 'Awarded Project',
-      },
+      dynamicFee,
       status: 'active_fulfillment',
       createdAt: new Date().toISOString().slice(0, 10),
     };
 
-    onProjectCreated(newProject);
+    addTender(newProject);
+    setSelectedProjectId(newProject.id);
+    if (onProjectCreated) onProjectCreated(newProject);
+    if (onSave) onSave(newProject);
     onClose();
   };
 
@@ -214,30 +215,30 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
   const totalAssigned = requirements.reduce((s, r) => s + (r.assignedCount || 0), 0);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-scale-up">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-scale-up text-gray-900 dark:text-slate-100">
         {/* Header */}
-        <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-brand-50/50 to-white">
+        <div className="p-5 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-brand-50/50 to-white dark:from-brand-950/20 dark:to-slate-900">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-sm">
               <FileCheck size={20} />
             </div>
             <div>
-              <h2 className="text-base font-black text-gray-900">
+              <h2 className="text-base font-black text-gray-900 dark:text-white">
                 {step === 'analyzing'
                   ? 'AI Tender Document Analysis'
                   : step === 'review'
                   ? 'Review & Confirm Extracted Requirements'
                   : 'Add Tender / Work Order'}
               </h2>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-slate-400">
                 Turn your awarded project into a ready-to-deploy workforce
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 flex items-center justify-center transition-colors"
           >
             <X size={16} />
           </button>
@@ -249,10 +250,10 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
           {step === 'choose' && (
             <div className="space-y-5">
               <div className="text-center max-w-md mx-auto">
-                <p className="text-sm font-extrabold text-gray-900">
+                <p className="text-sm font-extrabold text-gray-900 dark:text-white">
                   Have you received a tender award or work order?
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                   Upload your tender document. Our AI will extract the scope, required trades, headcounts, and statutory requirements in seconds.
                 </p>
               </div>
@@ -261,7 +262,7 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleFileDrop}
-                className="border-2 border-dashed border-brand-300 hover:border-brand-500 bg-brand-50/40 rounded-2xl p-8 text-center transition-colors cursor-pointer group"
+                className="border-2 border-dashed border-brand-300 dark:border-brand-700/60 hover:border-brand-500 bg-brand-50/40 dark:bg-brand-950/20 rounded-2xl p-8 text-center transition-colors cursor-pointer group"
                 onClick={() => {
                   const input = document.getElementById('tender-pdf-input');
                   if (input) input.click();
@@ -277,27 +278,27 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
                     if (f) handleStartAnalysis({ name: f.name, size: `${(f.size / (1024 * 1024)).toFixed(1)} MB` });
                   }}
                 />
-                <div className="w-14 h-14 rounded-2xl bg-white text-brand-600 mx-auto flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform mb-3">
+                <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 mx-auto flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform mb-3">
                   <UploadCloud size={28} />
                 </div>
-                <p className="text-sm font-black text-gray-900">
+                <p className="text-sm font-black text-gray-900 dark:text-white">
                   Drag & drop your Tender / Work Order PDF here
                 </p>
-                <p className="text-xs text-gray-500 mt-1">or browse files from your computer</p>
-                <span className="inline-block mt-3 px-3 py-1 bg-white border border-brand-200 rounded-full text-[10px] font-bold text-brand-700">
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">or browse files from your computer</p>
+                <span className="inline-block mt-3 px-3 py-1 bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-800 rounded-full text-[10px] font-bold text-brand-700 dark:text-brand-300">
                   Supported formats: PDF, DOCX
                 </span>
               </div>
 
               {/* 1-Click Demo Sample Button */}
-              <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/20 rounded-2xl border border-amber-200 dark:border-amber-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
                     <FileText size={18} />
                   </div>
                   <div>
-                    <p className="text-xs font-black text-amber-950">Quick Hackathon Demo:</p>
-                    <p className="text-[11px] text-amber-800">
+                    <p className="text-xs font-black text-amber-950 dark:text-amber-200">Quick Hackathon Demo:</p>
+                    <p className="text-[11px] text-amber-800 dark:text-amber-300">
                       Load official sample: <strong>Belagavi Highway Package 4 Work Order (PDF)</strong>
                     </p>
                   </div>
@@ -329,7 +330,7 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
                     setRequirements(data.workforceRequirements);
                     setStep('review');
                   }}
-                  className="text-xs font-extrabold text-gray-500 hover:text-gray-800 underline underline-offset-4"
+                  className="text-xs font-extrabold text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 underline underline-offset-4"
                 >
                   Or enter project details manually without uploading a document
                 </button>
@@ -344,15 +345,15 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
                 <div className="w-14 h-14 rounded-2xl bg-brand-600 text-white mx-auto flex items-center justify-center shadow-float animate-pulse">
                   <Sparkles size={28} />
                 </div>
-                <h3 className="text-base font-black text-gray-900">
+                <h3 className="text-base font-black text-gray-900 dark:text-white">
                   AI Analyzing Tender Document...
                 </h3>
-                <p className="text-xs text-brand-600 font-semibold">
+                <p className="text-xs text-brand-600 dark:text-brand-400 font-semibold">
                   Document: {selectedFile?.name || SAMPLE_TENDER_DOC.fileName} ({selectedFile?.size || '2.4 MB'})
                 </p>
               </div>
 
-              <div className="space-y-3 bg-gray-50 rounded-2xl p-4 border border-gray-200/80">
+              <div className="space-y-3 bg-gray-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-gray-200/80 dark:border-slate-700/60">
                 {analysisSteps.map((s, idx) => {
                   const isDone = idx < analysisStepIndex;
                   const isCurrent = idx === analysisStepIndex;
@@ -361,19 +362,19 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
                       key={s}
                       className={`flex items-center gap-3 text-xs transition-all ${
                         isDone
-                          ? 'text-emerald-700 font-bold'
+                          ? 'text-emerald-700 dark:text-emerald-400 font-bold'
                           : isCurrent
-                          ? 'text-brand-700 font-extrabold scale-[1.01]'
-                          : 'text-gray-400'
+                          ? 'text-brand-700 dark:text-brand-300 font-extrabold scale-[1.01]'
+                          : 'text-gray-400 dark:text-slate-500'
                       }`}
                     >
                       <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0">
                         {isDone ? (
-                          <CheckCircle2 size={16} className="text-emerald-600" />
+                          <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
                         ) : isCurrent ? (
                           <div className="w-4 h-4 rounded-full border-2 border-brand-600 border-t-transparent animate-spin" />
                         ) : (
-                          <div className="w-2 h-2 rounded-full bg-gray-300" />
+                          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-slate-600" />
                         )}
                       </div>
                       <span>{s}</span>
@@ -382,7 +383,7 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
                 })}
               </div>
 
-              <p className="text-[11px] text-gray-400 text-center italic">
+              <p className="text-[11px] text-gray-400 dark:text-slate-500 text-center italic">
                 Simulating neural NLP document parsing & BOCW workforce schedule synthesis.
               </p>
             </div>
@@ -392,12 +393,12 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
           {step === 'review' && (
             <div className="space-y-5 animate-fade-in">
               {/* AI Extraction Banner */}
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs text-emerald-900">
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl flex items-center justify-between text-xs text-emerald-900 dark:text-emerald-200">
                 <div className="flex items-center gap-2 font-bold">
-                  <CheckCircle2 size={16} className="text-emerald-600" />
+                  <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
                   <span>AI Extraction Complete. Please review and adjust fields as needed.</span>
                 </div>
-                <span className="text-[10px] font-extrabold bg-emerald-200/60 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-extrabold bg-emerald-200/60 dark:bg-emerald-800/40 px-2 py-0.5 rounded-full">
                   100% Editable
                 </span>
               </div>
@@ -405,55 +406,55 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
               {/* Project Details Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-extrabold text-gray-700 mb-1">
+                  <label className="block text-[11px] font-extrabold text-gray-700 dark:text-slate-300 mb-1">
                     Project / Work Order Name
                   </label>
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-gray-300 text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-extrabold text-gray-700 mb-1">
+                  <label className="block text-[11px] font-extrabold text-gray-700 dark:text-slate-300 mb-1">
                     Tender / Work Order ID
                   </label>
                   <input
                     type="text"
                     value={tenderId}
                     onChange={(e) => setTenderId(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-gray-300 text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500 font-mono"
+                    className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500 font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-extrabold text-gray-700 mb-1">
+                  <label className="block text-[11px] font-extrabold text-gray-700 dark:text-slate-300 mb-1">
                     Client / Issuing Department
                   </label>
                   <input
                     type="text"
                     value={client}
                     onChange={(e) => setClient(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-gray-300 text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-extrabold text-gray-700 mb-1">
+                  <label className="block text-[11px] font-extrabold text-gray-700 dark:text-slate-300 mb-1">
                     Project Location
                   </label>
                   <input
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-gray-300 text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-extrabold text-gray-700 mb-1">
+                  <label className="block text-[11px] font-extrabold text-gray-700 dark:text-slate-300 mb-1">
                     Start Date & Duration
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -462,27 +463,27 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                       placeholder="Start date"
-                      className="w-full p-2.5 rounded-xl border border-gray-300 text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500"
+                      className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500"
                     />
                     <input
                       type="text"
                       value={duration}
                       onChange={(e) => setDuration(e.target.value)}
                       placeholder="Duration"
-                      className="w-full p-2.5 rounded-xl border border-gray-300 text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500"
+                      className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-extrabold text-gray-700 mb-1">
+                  <label className="block text-[11px] font-extrabold text-gray-700 dark:text-slate-300 mb-1">
                     Awarded Contract Value (₹)
                   </label>
                   <input
                     type="number"
                     value={value}
                     onChange={(e) => setValue(Number(e.target.value))}
-                    className="w-full p-2.5 rounded-xl border border-gray-300 text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
               </div>
@@ -491,11 +492,11 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-xs font-black uppercase tracking-wider text-gray-800">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-gray-800 dark:text-slate-200">
                       Workforce Requirements (Extracted by AI)
                     </h4>
-                    <p className="text-[11px] text-gray-500">
-                      Adjust headcounts or statutory wages. Total required: <strong>{totalHeadcount} workers</strong>.
+                    <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                      Adjust headcounts or statutory wages. Total required: <strong className="text-gray-900 dark:text-white">{totalHeadcount} workers</strong>.
                     </p>
                   </div>
                 </div>
@@ -504,11 +505,11 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
                   {requirements.map((r) => (
                     <div
                       key={r.id}
-                      className="p-3 bg-gray-50 rounded-2xl border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                      className="p-3 bg-gray-50 dark:bg-slate-800/60 rounded-2xl border border-gray-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="font-extrabold text-gray-900">{r.skill}</p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">{r.notes}</p>
+                        <p className="font-extrabold text-gray-900 dark:text-white">{r.skill}</p>
+                        <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-0.5">{r.notes}</p>
                       </div>
 
                       <div className="flex items-center gap-4 shrink-0">
@@ -519,27 +520,27 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
                             type="number"
                             value={r.dailyWageRate}
                             onChange={(e) => handleWageChange(r.id, Number(e.target.value))}
-                            className="w-16 p-1.5 rounded-lg border border-gray-300 text-center font-bold text-xs"
+                            className="w-16 p-1.5 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-center font-bold text-xs"
                           />
                           <span className="text-gray-400 text-[10px]">/day</span>
                         </div>
 
                         {/* Headcount stepper */}
-                        <div className="flex items-center gap-1.5 bg-white px-2 py-1 rounded-xl border border-gray-200">
+                        <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 px-2 py-1 rounded-xl border border-gray-200 dark:border-slate-700">
                           <button
                             type="button"
                             onClick={() => handleHeadcountChange(r.id, -1)}
-                            className="w-6 h-6 rounded bg-gray-100 flex items-center justify-center font-bold hover:bg-gray-200 text-gray-700"
+                            className="w-6 h-6 rounded bg-gray-100 dark:bg-slate-700 flex items-center justify-center font-bold hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200"
                           >
                             -
                           </button>
-                          <span className="w-8 text-center font-black text-xs text-gray-900">
+                          <span className="w-8 text-center font-black text-xs text-gray-900 dark:text-white">
                             {r.headcount}
                           </span>
                           <button
                             type="button"
                             onClick={() => handleHeadcountChange(r.id, 1)}
-                            className="w-6 h-6 rounded bg-gray-100 flex items-center justify-center font-bold hover:bg-gray-200 text-gray-700"
+                            className="w-6 h-6 rounded bg-gray-100 dark:bg-slate-700 flex items-center justify-center font-bold hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200"
                           >
                             +
                           </button>
@@ -565,12 +566,12 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
                     placeholder="Add missing trade (e.g. Tile Layers, Bar Benders)..."
                     value={newSkillName}
                     onChange={(e) => setNewSkillName(e.target.value)}
-                    className="flex-1 p-2 rounded-xl border border-gray-300 text-xs outline-none focus:ring-2 focus:ring-brand-500"
+                    className="flex-1 p-2 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-xs outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-gray-400 dark:placeholder:text-slate-500"
                   />
                   <button
                     type="button"
                     onClick={handleAddCustomTrade}
-                    className="px-3 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-xl text-xs font-bold flex items-center gap-1"
+                    className="px-3 py-2 bg-gray-800 hover:bg-gray-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl text-xs font-bold flex items-center gap-1"
                   >
                     <Plus size={14} />
                     Add Trade
@@ -579,7 +580,7 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
               </div>
 
               {/* Other Extracted Requirements Card */}
-              <div className="p-3.5 bg-slate-900 text-white rounded-2xl space-y-2 text-xs">
+              <div className="p-3.5 bg-slate-900 dark:bg-slate-800 text-white rounded-2xl space-y-2 text-xs border border-slate-800 dark:border-slate-700">
                 <p className="font-extrabold text-amber-400 flex items-center gap-1.5">
                   <ShieldCheck size={14} />
                   Statutory & Site Facilities Extracted:
@@ -596,11 +597,11 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, t }: AddTend
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+        <div className="p-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/90 flex items-center justify-between">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-100"
+            className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-bold text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800"
           >
             Cancel
           </button>
