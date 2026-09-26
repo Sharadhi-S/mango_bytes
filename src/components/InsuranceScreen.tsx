@@ -12,7 +12,8 @@ const annualPlans = {
 
 type PlanKey = keyof typeof annualPlans;
 
-function mandatoryForSkills(skills: string[]): PlanKey[] {
+function mandatoryForSkills(skills: string[], role?: string): PlanKey[] {
+  if (role === 'labourer') return [];
   const text = skills.join(' ').toLowerCase();
   const mandatory = new Set<PlanKey>(['accident']);
   const constructionHighRisk = ['mason', 'construction labour', 'welder', 'electrician', 'plumber', 'bar bender', 'scaffolder', 'roofer', 'carpenter', 'tile worker', 'construction supervisor'];
@@ -27,10 +28,10 @@ function mandatoryForSkills(skills: string[]): PlanKey[] {
 }
 
 export function InsuranceScreen() {
-  const { workerSkill, showToast, setScreen, registrationProfile } = useApp();
+  const { workerSkill, showToast, setScreen, registrationProfile, role } = useApp();
   const analyzedSkills = registrationProfile?.skills?.length ? registrationProfile.skills : [workerSkill];
-  const mandatory = useMemo(() => mandatoryForSkills(analyzedSkills), [analyzedSkills]);
-  const [selected, setSelected] = useState<PlanKey[]>(Array.from(new Set([...mandatory, 'health'])));
+  const mandatory = useMemo(() => mandatoryForSkills(analyzedSkills, role), [analyzedSkills, role]);
+  const [selected, setSelected] = useState<PlanKey[]>(Array.from(new Set(role === 'labourer' ? [] : [...mandatory, 'health'])));
   const annualPremium = selected.reduce((sum, key) => sum + annualPlans[key].premium, 0);
   const togglePlan = (key: PlanKey) => {
     if (mandatory.includes(key)) return;
@@ -38,7 +39,6 @@ export function InsuranceScreen() {
   };
 
   const saveDemo = () => {
-    setMonthlySalary(Number(salary) || monthlySalary);
     showToast('Benefits setup saved as prototype data — no real policy or deduction created.');
   };
 
@@ -54,7 +54,7 @@ export function InsuranceScreen() {
           <div className="w-11 h-11 rounded-xl bg-white text-brand-600 flex items-center justify-center"><ShieldCheck size={22} /></div>
           <div>
             <p className="font-extrabold text-gray-900">Skill-based protection</p>
-            <p className="text-xs text-gray-600 mt-1">Analysed skills: <strong>{analyzedSkills.join(', ') || 'Not provided'}</strong>. Coverage is prototype logic based on the risk category.</p>
+            <p className="text-xs text-gray-600 mt-1">Analysed skills: <strong>{analyzedSkills.join(', ') || 'Not provided'}</strong>. {role === 'labourer' ? 'All plans are optional for labourers — choose protection only if you want it.' : 'Coverage is prototype logic based on the risk category; applicable skilled-worker protection is shown as mandatory.'}</p>
           </div>
         </div>
       </Card>

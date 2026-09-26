@@ -1,4 +1,4 @@
-export type Role = 'labourer' | 'contractor' | 'skilledWorker';
+export type Role = 'labourer' | 'contractor' | 'employer' | 'skilledWorker';
 
 export type ScreenId =
   | 'home'
@@ -14,10 +14,15 @@ export type ScreenId =
   | 'register'
   | 'insurance'
   | 'homeWork'
-  | 'shramId';
+  | 'shramId'
+  | 'auth'
+  | 'alerts';
 
 
 export type Gender = 'Male' | 'Female' | 'Non-binary' | 'Prefer not to say';
+
+export type WorkerAvailability = 'available' | 'unavailable';
+export type DailyWorkStatus = 'todayTimeUp' | 'workDone' | 'sickLeave' | 'festivalLeave';
 
 export interface RegistrationProfile {
   name: string;
@@ -73,6 +78,7 @@ export interface ChatMessage {
   sender: 'contractor' | 'worker';
   text: string;
   time: string;
+  attachment?: { type: 'image' | 'location'; url?: string; name?: string };
 }
 
 export interface Conversation {
@@ -140,4 +146,91 @@ export interface PostedJob {
   startDate: string;
   duration: string;
   description: string;
+}
+
+export interface TenderWorkforceItem {
+  id: string;
+  skill: string;
+  headcount: number;
+  dailyWageRate: number;
+  category: 'skilled' | 'semi-skilled' | 'unskilled';
+  notes?: string;
+}
+
+export interface TenderMilestone {
+  phase: string;
+  durationWeeks: number;
+  tradesInvolved: string[];
+}
+
+export interface DynamicFeeCalculation {
+  budget: number;
+  tenderValue?: number;
+  ratePercent: number;
+  tierPercentage?: number;
+  baseFee: number;
+  cgst: number;
+  sgst: number;
+  gst?: number;
+  totalFee: number;
+  tierLabel: string;
+}
+
+export interface ContractorMatch {
+  id: string;
+  name: string;
+  companyName: string;
+  company?: string;
+  avatar: string;
+  rating: number;
+  trustScore: number;
+  workforceCapacity: number;
+  fleetCapacity?: string;
+  specialties: string[];
+  trades?: string[];
+  location: string;
+  matchScore: number;
+  pastProjectsCount: number;
+  completedTenders?: number;
+  licenseVerified: boolean;
+  verified?: boolean;
+  licenses?: string[];
+  contactNumber?: string;
+  rfpSent?: boolean;
+}
+
+export type TenderStatus = 'draft' | 'analyzed' | 'requirements_configured' | 'fee_paid' | 'contractor_matched';
+
+export interface Tender {
+  id: string;
+  title: string;
+  dept: string;
+  location: string;
+  value: number;
+  closing: string;
+  category: string;
+  match: number;
+  duration: string;
+  durationMonths?: number;
+  skills: string[];
+  eligibility: string[];
+  docs: string[];
+  workforceRequirements: TenderWorkforceItem[];
+  milestones?: TenderMilestone[];
+  scopeDescription?: string;
+  boqDetails?: string;
+  dynamicFee: DynamicFeeCalculation;
+  status: TenderStatus;
+  unlockedContractors?: ContractorMatch[];
+  customTender?: boolean;
+  createdAt?: string;
+}
+
+export interface WorkforcePlan {
+  id: string;
+  tenderId: string;
+  createdAt: string;
+  totalHeadcount: number;
+  estimatedLaborCost: number;
+  requirements: TenderWorkforceItem[];
 }

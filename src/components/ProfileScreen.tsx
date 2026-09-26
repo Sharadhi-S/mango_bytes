@@ -9,6 +9,11 @@ import {
   Calendar,
   IndianRupee,
   LogOut,
+  CheckCircle,
+  XCircle,
+  HeartPulse,
+  CircleCheck,
+  CircleX,
 } from 'lucide-react';
 import { useApp } from '@/AppContext';
 import { getShramaId } from './ShramaIDScreen';
@@ -16,7 +21,7 @@ import { Card, ScreenHeader, Badge, Button, ProgressBar, formatINR } from './ui'
 import { workerProfile } from '@/mockData';
 
 export function ProfileScreen() {
-  const { earnings, setRole, setScreen, registrationProfile } = useApp();
+  const { earnings, setRole, setScreen, registrationProfile, role, availability, dailyWorkStatus, setAvailability, setDailyWorkStatus } = useApp();
 
   const profile = registrationProfile;
   const displayName = profile?.name || '';
@@ -109,17 +114,35 @@ export function ProfileScreen() {
         </div>
       </Card>
 
-      {/* Availability */}
-      <SectionTitle>Availability</SectionTitle>
-      <Card className="p-4 mb-5 animate-slide-up flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-accent-50 flex items-center justify-center text-accent-600">
-            <Clock size={20} />
-          </div>
-          <p className="font-semibold text-gray-900 text-sm">Currently Available</p>
-        </div>
-        <Badge color="green">Available</Badge>
-      </Card>
+      {/* Availability & daily status */}
+      {(role === 'labourer' || role === 'skilledWorker') && (
+        <>
+          <SectionTitle>Availability & Today's Status</SectionTitle>
+          <Card className="p-4 mb-5 animate-slide-up space-y-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${availability === 'available' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                {availability === 'available' ? <CircleCheck size={22} /> : <CircleX size={22} />}
+              </div>
+              <div className="flex-1"><p className="font-semibold text-gray-900 text-sm">Work availability</p><p className="text-xs text-gray-500">Let contractors know if you can accept work.</p></div>
+              <select value={availability} onChange={(e) => { const next = e.target.value as any; setAvailability(next); if (next === 'available') setDailyWorkStatus('workDone'); }} className={`px-3 py-2 rounded-xl border text-sm font-extrabold ${availability === 'available' ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'}`}><option value="available">🟢 Available</option><option value="unavailable">🔴 Unavailable</option></select>
+            </div>
+            {availability === 'unavailable' && (
+              <div className="grid grid-cols-2 gap-2">
+                {[['todayTimeUp', "Today's time up"], ['sickLeave', 'Sick leave'], ['festivalLeave', 'Festival leave']].map(([value, label]) => (
+                  <button key={value} onClick={() => setDailyWorkStatus(value as any)} className={`p-3 rounded-xl border text-left ${dailyWorkStatus === value ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'}`}>
+                    <p className="text-xs font-bold text-gray-800">{label}</p><p className="text-[10px] text-gray-500 mt-1">{dailyWorkStatus === value ? 'Selected' : 'Set status'}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+            {availability === 'available' && (
+              <button onClick={() => setDailyWorkStatus('workDone')} className="w-full p-3 rounded-xl border border-green-200 bg-green-50 text-left">
+                <p className="text-xs font-bold text-green-800">Work done</p><p className="text-[10px] text-green-700 mt-1">Available for work today</p>
+              </button>
+            )}
+          </Card>
+        </>
+      )}
 
       {/* Languages */}
       <SectionTitle>Languages</SectionTitle>

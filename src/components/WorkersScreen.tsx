@@ -86,9 +86,9 @@ export function WorkersScreen() {
       {filtered.length === 0 && <Card className="p-8 text-center"><p className="font-bold text-gray-900">No matching profiles</p><p className="text-sm text-gray-500 mt-1">Try another skill, name, or location.</p></Card>}
 
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setSelected(null)}>
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-5" onClick={() => setSelected(null)}>
           <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-          <div className="relative bg-white w-full max-w-2xl rounded-t-3xl p-6 pb-8 animate-slide-up max-h-[88vh] overflow-y-auto no-scrollbar" onClick={(e) => e.stopPropagation()}>
+          <div className="relative bg-white w-full max-w-2xl rounded-3xl p-5 sm:p-6 pb-8 animate-slide-up max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-2.5rem)] overflow-y-auto overscroll-contain no-scrollbar shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-extrabold text-gray-900">Worker Profile</h2>
               <button onClick={() => setSelected(null)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><X size={20} /></button>
@@ -114,6 +114,30 @@ export function WorkersScreen() {
               <div className="p-3 rounded-xl bg-gray-50"><p className="text-xs text-gray-400 font-semibold">Rating</p><p className="font-bold text-gray-900 text-sm mt-0.5 flex items-center gap-1">4.8 <Star size={14} className="text-warning-500 fill-warning-500" /> · {selected.workCount} jobs</p></div>
               <div className="p-3 rounded-xl bg-gray-50"><p className="text-xs text-gray-400 font-semibold">Location</p><p className="font-bold text-gray-900 text-sm mt-0.5">{selected.location}</p></div>
               <div className="p-3 rounded-xl bg-gray-50"><p className="text-xs text-gray-400 font-semibold">Availability</p><p className="font-bold text-gray-900 text-sm mt-0.5">{selected.availability}</p></div>
+            </div>
+            <div className="mb-4">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Complete profile</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-gray-50"><p className="text-[10px] text-gray-400 font-semibold">Phone</p><p className="font-bold text-gray-800 text-sm mt-1">+91 98765 43210</p></div>
+                <div className="p-3 rounded-xl bg-gray-50"><p className="text-[10px] text-gray-400 font-semibold">Qualification</p><p className="font-bold text-gray-800 text-sm mt-1">ITI / Diploma</p></div>
+                <div className="p-3 rounded-xl bg-gray-50"><p className="text-[10px] text-gray-400 font-semibold">Languages</p><p className="font-bold text-gray-800 text-sm mt-1">Kannada, Hindi, English</p></div>
+                <div className="p-3 rounded-xl bg-gray-50"><p className="text-[10px] text-gray-400 font-semibold">Work preference</p><p className="font-bold text-gray-800 text-sm mt-1">Local / nearby sites</p></div>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Skills & work history</p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <Badge color="blue">{selected.primarySkill}</Badge><Badge color="blue">Safety trained</Badge><Badge color="blue">Site experience</Badge>
+              </div>
+              <div className="space-y-2">
+                {[['Residential construction', 'Kumar Constructions', '3 months'], ['Finishing / repair work', 'Local site projects', '2 months'], ['Previous site assignment', 'Verified employer', '1 month']].map(([job, employer, duration]) => <div key={job} className="p-3 rounded-xl border border-gray-100 bg-white"><div className="flex items-center justify-between gap-2"><p className="text-sm font-bold text-gray-800">{job}</p><span className="text-[10px] text-gray-400">{duration}</span></div><p className="text-xs text-gray-500 mt-1">{employer}</p></div>)}
+              </div>
+            </div>
+
+            <div className="mb-4 p-4 rounded-2xl bg-gray-50">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Work reliability</p>
+              <div className="grid grid-cols-3 gap-2 text-center"><div><p className="font-extrabold text-gray-900">{selected.workCount}</p><p className="text-[10px] text-gray-400">Jobs</p></div><div><p className="font-extrabold text-gray-900">95%</p><p className="text-[10px] text-gray-400">Attendance</p></div><div><p className="font-extrabold text-gray-900">On time</p><p className="text-[10px] text-gray-400">Recent status</p></div></div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-4">
