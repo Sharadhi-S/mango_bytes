@@ -13,48 +13,242 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  /* ------------------------------------------------------------- */
+  /* COMPREHENSIVE DARK MODE DESIGN SYSTEM                         */
+  /* ------------------------------------------------------------- */
   html.dark {
     color-scheme: dark;
   }
   html.dark body {
-    background-color: #080d1e;
-    color: #f8fafc;
+    background-color: #070c18;
+    color: #f1f5f9;
   }
+
+  /* Surface Overrides in Dark Mode */
+  html.dark .bg-white {
+    background-color: #0f172a !important;
+  }
+  html.dark .bg-gray-50,
+  html.dark .bg-slate-50 {
+    background-color: #080d1a !important;
+  }
+  html.dark .bg-gray-100,
+  html.dark .bg-slate-100 {
+    background-color: #1e293b !important;
+  }
+  html.dark .bg-gray-200,
+  html.dark .bg-slate-200 {
+    background-color: #334155 !important;
+  }
+
+  /* Translucent Colored Accent Surfaces */
+  html.dark [class*="bg-brand-50"],
+  html.dark [class*="bg-blue-50"] {
+    background-color: rgba(30, 58, 138, 0.28) !important;
+  }
+  html.dark [class*="bg-brand-100"],
+  html.dark [class*="bg-blue-100"] {
+    background-color: rgba(30, 58, 138, 0.45) !important;
+  }
+  html.dark [class*="bg-emerald-50"],
+  html.dark [class*="bg-green-50"],
+  html.dark [class*="bg-accent-50"] {
+    background-color: rgba(6, 78, 59, 0.28) !important;
+  }
+  html.dark [class*="bg-emerald-100"],
+  html.dark [class*="bg-green-100"],
+  html.dark [class*="bg-accent-100"] {
+    background-color: rgba(6, 78, 59, 0.45) !important;
+  }
+  html.dark [class*="bg-amber-50"],
+  html.dark [class*="bg-yellow-50"],
+  html.dark [class*="bg-warning-50"],
+  html.dark [class*="bg-orange-50"] {
+    background-color: rgba(120, 53, 15, 0.28) !important;
+  }
+  html.dark [class*="bg-amber-100"],
+  html.dark [class*="bg-yellow-100"],
+  html.dark [class*="bg-warning-100"] {
+    background-color: rgba(120, 53, 15, 0.45) !important;
+  }
+  html.dark [class*="bg-purple-50"],
+  html.dark [class*="bg-indigo-50"] {
+    background-color: rgba(88, 28, 135, 0.28) !important;
+  }
+  html.dark [class*="bg-purple-100"] {
+    background-color: rgba(88, 28, 135, 0.45) !important;
+  }
+  html.dark [class*="bg-red-50"],
+  html.dark [class*="bg-error-50"] {
+    background-color: rgba(127, 29, 29, 0.28) !important;
+  }
+  html.dark [class*="bg-red-100"],
+  html.dark [class*="bg-error-100"] {
+    background-color: rgba(127, 29, 29, 0.45) !important;
+  }
+
+  /* Borders & Dividers */
+  html.dark [class*="border-gray-100"],
+  html.dark [class*="border-slate-100"] {
+    border-color: #1e293b !important;
+  }
+  html.dark [class*="border-gray-200"],
+  html.dark [class*="border-slate-200"] {
+    border-color: #263346 !important;
+  }
+  html.dark [class*="border-gray-300"],
+  html.dark [class*="border-slate-300"] {
+    border-color: #334155 !important;
+  }
+  html.dark [class*="border-brand-100"],
+  html.dark [class*="border-brand-200"],
+  html.dark [class*="border-blue-100"],
+  html.dark [class*="border-blue-200"] {
+    border-color: rgba(59, 130, 246, 0.3) !important;
+  }
+  html.dark [class*="border-emerald-100"],
+  html.dark [class*="border-emerald-200"],
+  html.dark [class*="border-accent-100"] {
+    border-color: rgba(16, 185, 129, 0.3) !important;
+  }
+  html.dark [class*="border-amber-100"],
+  html.dark [class*="border-amber-200"],
+  html.dark [class*="border-warning-100"] {
+    border-color: rgba(245, 158, 11, 0.3) !important;
+  }
+  html.dark [class*="border-purple-100"],
+  html.dark [class*="border-purple-200"] {
+    border-color: rgba(168, 85, 247, 0.3) !important;
+  }
+  html.dark [class*="divide-gray-"] > :not([hidden]) ~ :not([hidden]),
+  html.dark [class*="divide-slate-"] > :not([hidden]) ~ :not([hidden]) {
+    border-color: #1e293b !important;
+  }
+
+  /* Inputs, selects, textareas */
   html.dark input,
   html.dark select,
   html.dark textarea {
-    background-color: #1e293b;
-    color: #f8fafc;
-    border-color: #334155;
+    background-color: #131c2e !important;
+    color: #f8fafc !important;
+    border-color: #273549 !important;
+  }
+  html.dark input:focus,
+  html.dark select:focus,
+  html.dark textarea:focus {
+    border-color: #3b82f6 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
   }
   html.dark input::placeholder,
   html.dark textarea::placeholder {
-    color: #94a3b8;
+    color: #64748b !important;
+  }
+  html.dark select option,
+  html.dark select optgroup {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
   }
 
-  /* High contrast font colors in dark mode */
+  /* High Contrast Typography */
   html.dark h1, html.dark h2, html.dark h3, html.dark h4, html.dark h5, html.dark h6 {
-    color: #ffffff;
+    color: #ffffff !important;
   }
   html.dark .text-gray-900,
-  html.dark .text-slate-900 {
+  html.dark .text-slate-900,
+  html.dark .text-neutral-900 {
     color: #ffffff !important;
   }
   html.dark .text-gray-800,
-  html.dark .text-slate-800 {
+  html.dark .text-slate-800,
+  html.dark .text-neutral-800 {
     color: #f1f5f9 !important;
   }
   html.dark .text-gray-700,
-  html.dark .text-slate-700 {
+  html.dark .text-slate-700,
+  html.dark .text-neutral-700 {
     color: #e2e8f0 !important;
   }
   html.dark .text-gray-600,
-  html.dark .text-slate-600 {
+  html.dark .text-slate-600,
+  html.dark .text-neutral-600 {
     color: #cbd5e1 !important;
   }
   html.dark .text-gray-500,
-  html.dark .text-slate-500 {
+  html.dark .text-slate-500,
+  html.dark .text-neutral-500 {
     color: #94a3b8 !important;
+  }
+  html.dark .text-gray-400,
+  html.dark .text-slate-400,
+  html.dark .text-neutral-400 {
+    color: #94a3b8 !important;
+  }
+
+  /* High Contrast Accent Text */
+  html.dark .text-brand-600,
+  html.dark .text-brand-700,
+  html.dark .text-brand-800,
+  html.dark .text-brand-900,
+  html.dark .text-brand-950,
+  html.dark .text-blue-600,
+  html.dark .text-blue-700,
+  html.dark .text-blue-800,
+  html.dark .text-blue-900 {
+    color: #60a5fa !important;
+  }
+  html.dark .text-emerald-600,
+  html.dark .text-emerald-700,
+  html.dark .text-emerald-800,
+  html.dark .text-emerald-900,
+  html.dark .text-emerald-950,
+  html.dark .text-accent-600,
+  html.dark .text-accent-700,
+  html.dark .text-accent-800 {
+    color: #34d399 !important;
+  }
+  html.dark .text-amber-600,
+  html.dark .text-amber-700,
+  html.dark .text-amber-800,
+  html.dark .text-amber-900,
+  html.dark .text-amber-950,
+  html.dark .text-warning-600,
+  html.dark .text-warning-700 {
+    color: #fbbf24 !important;
+  }
+  html.dark .text-purple-600,
+  html.dark .text-purple-700,
+  html.dark .text-purple-800,
+  html.dark .text-purple-900,
+  html.dark .text-purple-950 {
+    color: #c084fc !important;
+  }
+  html.dark .text-red-600,
+  html.dark .text-red-700,
+  html.dark .text-error-600,
+  html.dark .text-error-700 {
+    color: #f87171 !important;
+  }
+
+  /* Ensure text-white stays bright white */
+  html.dark .text-white {
+    color: #ffffff !important;
+  }
+
+  /* Hover states in dark mode */
+  html.dark .hover\:bg-gray-50:hover,
+  html.dark .hover\:bg-gray-100:hover {
+    background-color: #1e293b !important;
+  }
+
+  /* Shadows in Dark Mode */
+  html.dark .shadow-card,
+  html.dark .shadow-sm,
+  html.dark .shadow-md,
+  html.dark .shadow-lg,
+  html.dark .shadow-xl,
+  html.dark .shadow-float {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.65), 0 0 1px 1px rgba(255, 255, 255, 0.05) !important;
   }
 }
 

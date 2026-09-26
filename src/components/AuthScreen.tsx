@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowLeft, CheckCircle2, KeyRound, LogIn, UserPlus } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, KeyRound, LogIn, UserPlus, Sun, Moon } from 'lucide-react';
 import { useApp } from '@/AppContext';
 import { Card, Button, ScreenHeader } from './ui';
 import { getShramaId } from './ShramaIDScreen';
@@ -7,7 +7,7 @@ import { LANGUAGES } from '@/i18n';
 import type { Role } from '@/types';
 
 export function AuthScreen() {
-  const { role, setRole, setScreen, setRegistrationProfile, setLang, showToast } = useApp();
+  const { role, setRole, setScreen, setRegistrationProfile, setLang, showToast, theme, toggleTheme } = useApp();
   const [mode, setMode] = useState<'choice' | 'signin'>('choice');
   const [shramaId, setShramaId] = useState('');
   const [phone, setPhone] = useState('');
@@ -45,7 +45,22 @@ export function AuthScreen() {
   if (mode === 'signin') {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-950 px-5 pt-8 pb-12 max-w-xl mx-auto text-gray-900 dark:text-slate-100">
-        <ScreenHeader title="Sign in with ShramaID" subtitle={`Access your ${roleLabel} account securely`} showBack={false} />
+        <div className="flex items-center justify-between mb-2">
+          <ScreenHeader title="Sign in with ShramaID" subtitle={`Access your ${roleLabel} account securely`} showBack={false} />
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-700 dark:text-slate-200 shadow-sm transition-transform active:scale-95 shrink-0 ml-3"
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label="Toggle theme mode"
+          >
+            {theme === 'dark' ? (
+              <Sun size={18} className="text-amber-400 hover:rotate-45 transition-transform" />
+            ) : (
+              <Moon size={18} className="text-slate-700 hover:-rotate-12 transition-transform" />
+            )}
+          </button>
+        </div>
         <Card className="p-5 space-y-4 dark:bg-slate-900 dark:border-slate-800">
           <div className="rounded-2xl bg-brand-50 dark:bg-brand-950/40 border border-brand-100 dark:border-brand-900/50 p-4 text-sm text-brand-800 dark:text-brand-300">
             <b>Prototype account protection:</b> both the ShramaID and the registered mobile number must match. This prevents one demo user from opening another saved profile.
@@ -83,15 +98,30 @@ export function AuthScreen() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950 px-5 pt-8 pb-12 max-w-xl mx-auto text-gray-900 dark:text-slate-100">
+      <div className="flex items-center justify-between mb-4">
+        <button
+          type="button"
+          onClick={() => { setRole(null); setScreen('home'); }}
+          aria-label="Back to account types"
+          className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-slate-700 active:scale-95 transition-all"
+        >
+          <ArrowLeft size={19} />
+        </button>
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-700 dark:text-slate-200 shadow-sm transition-transform active:scale-95"
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          aria-label="Toggle theme mode"
+        >
+          {theme === 'dark' ? (
+            <Sun size={18} className="text-amber-400 hover:rotate-45 transition-transform" />
+          ) : (
+            <Moon size={18} className="text-slate-700 hover:-rotate-12 transition-transform" />
+          )}
+        </button>
+      </div>
       <ScreenHeader title="Account access" subtitle={`Continue as ${roleLabel}`} showBack={false} />
-      <button
-        type="button"
-        onClick={() => { setRole(null); setScreen('home'); }}
-        aria-label="Back to account types"
-        className="mb-4 w-10 h-10 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-slate-700 active:scale-95 transition-all"
-      >
-        <ArrowLeft size={19} />
-      </button>
       <div className="space-y-3.5">
         <button
           onClick={() => setScreen('register')}
