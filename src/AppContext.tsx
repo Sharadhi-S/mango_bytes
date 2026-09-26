@@ -93,7 +93,8 @@ interface AppContextValue {
   monthlySalary: number;
   setMonthlySalary: (salary: number) => void;
   registrationProfile: RegistrationProfile | null;
-  setRegistrationProfile: (profile: RegistrationProfile) => void;
+  setRegistrationProfile: (profile: RegistrationProfile, options?: { showWellbeing?: boolean }) => void;
+  showWellbeingAlertNow: () => void;
   availability: WorkerAvailability;
   dailyWorkStatus: DailyWorkStatus;
   setAvailability: (value: WorkerAvailability) => void;
@@ -141,6 +142,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [availability, setAvailability] = useState<WorkerAvailability>('available');
   const [dailyWorkStatus, setDailyWorkStatus] = useState<DailyWorkStatus>('workDone');
   const [wellbeingAlertOpen, setWellbeingAlertOpen] = useState(false);
+
+  const wellbeingIntervalMs = 20 * 60 * 1000;
+  const wellbeingStorageKey = 'shrama-wellbeing-last-shown';
+
+  const showWellbeingAlertNow = useCallback(() => {
+    const now = Date.now();
+    setWellbeingAlertOpen(true);
+    localStorage.setItem(wellbeingStorageKey, String(now));
+  }, []);
+
+  const setRegistrationProfile = useCallback((profile: RegistrationProfile, options?: { showWellbeing?: boolean }) => {
+    setRegistrationProfileState(profile);
+    if (options?.showWellbeing !== false) showWellbeingAlertNow();
+  }, [showWellbeingAlertNow]);
+
+  useEffect(() => {
+    if (!registrationProfile) return;
+
+    const checkReminder = () => {
+      const lastShown = Number(localStorage.getItem(wellbeingStorageKey) || 0);
+      if (lastShown && Date.now() - lastShown >= wellbeingIntervalMs) {
+        showWellbeingAlertNow();
+      }
+    };
+
+    const intervalId = window.setInterval(checkReminder, 30 * 1000);
+    return () => window.clearInterval(intervalId);
+  }, [registrationProfile, showWellbeingAlertNow]);
+
+  const dismissWellbeingAlert = useCallback(() => setWellbeingAlertOpen(false), []);
   // Employer real-time persistent state
   const initialEmployer = getInitialEmployerState();
   const [tenders, setTenders] = useState<Tender[]>(initialEmployer.tenders);
@@ -295,37 +326,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 
 
-  const wellbeingIntervalMs = 20 * 60 * 1000;
-  const wellbeingStorageKey = 'shrama-wellbeing-last-shown';
-
-  const showWellbeingAlertNow = useCallback(() => {
-    const now = Date.now();
-    setWellbeingAlertOpen(true);
-    localStorage.setItem(wellbeingStorageKey, String(now));
-  }, []);
-
-  // Registration and sign-in both use this setter, so the wellbeing reminder is
-  // guaranteed to appear immediately after either successful account entry.
-  const setRegistrationProfile = useCallback((profile: RegistrationProfile) => {
-    setRegistrationProfileState(profile);
-    showWellbeingAlertNow();
-  }, [showWellbeingAlertNow]);
-
-  useEffect(() => {
-    if (!registrationProfile) return;
-
-    const checkReminder = () => {
-      const lastShown = Number(localStorage.getItem(wellbeingStorageKey) || 0);
-      if (lastShown && Date.now() - lastShown >= wellbeingIntervalMs) {
-        showWellbeingAlertNow();
-      }
-    };
-
-    const intervalId = window.setInterval(checkReminder, 30 * 1000);
-    return () => window.clearInterval(intervalId);
-  }, [registrationProfile, showWellbeingAlertNow]);
-
-  const dismissWellbeingAlert = useCallback(() => setWellbeingAlertOpen(false), []);
   const [lang, setLang] = useState<LangCode>(() => (localStorage.getItem('shrama-lang') as LangCode) || 'en');
   const changeLang = useCallback((value: LangCode) => { setLang(value); localStorage.setItem('shrama-lang', value); }, []);
 
@@ -484,6 +484,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setDailyWorkStatus,
         wellbeingAlertOpen,
         dismissWellbeingAlert,
+        showWellbeingAlertNow,
         tenders,
         savedTenderIds,
         workforcePlans,

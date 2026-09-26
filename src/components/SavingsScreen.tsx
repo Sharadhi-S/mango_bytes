@@ -15,6 +15,9 @@ import {
   Wallet,
   PiggyBank,
   Sparkles,
+  Target,
+  Landmark,
+  Lightbulb,
   X,
 } from 'lucide-react';
 import { useApp } from '@/AppContext';
@@ -38,6 +41,8 @@ export function SavingsScreen() {
   const [scanOpen, setScanOpen] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
   const [showMyQR, setShowMyQR] = useState(false);
+  const [moneyGoal, setMoneyGoal] = useState('10000');
+  const [dailySavePlan, setDailySavePlan] = useState('10');
 
   const handleSave = (amount: number) => {
     if (!activeGoal || amount <= 0) return;
@@ -186,6 +191,55 @@ export function SavingsScreen() {
             </div>
           ))}
           {!recent.length && <p className="text-sm text-gray-400 text-center py-3">No activity yet.</p>}
+        </div>
+      </Card>
+
+      <h2 className="text-sm font-bold text-gray-700 mb-3">Your Money Plan</h2>
+      <Card className="p-5 mb-5 border border-accent-100 bg-accent-50/50 animate-slide-up">
+        <div className="flex items-start gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-white text-accent-600 flex items-center justify-center shrink-0"><Target size={22} /></div>
+          <div className="flex-1">
+            <p className="font-extrabold text-gray-900">Set a goal. Save at your own pace.</p>
+            <p className="text-xs text-gray-500 mt-1">Your wages stay yours. ShramaSetu helps you decide how much you want to save instead of forcing a fixed deduction.</p>
+
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <label className="block">
+                <span className="text-[11px] font-bold text-gray-600">My savings goal (₹)</span>
+                <input value={moneyGoal} onChange={(e) => setMoneyGoal(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-accent-200" />
+              </label>
+              <label className="block">
+                <span className="text-[11px] font-bold text-gray-600">Daily saving guide (₹)</span>
+                <input value={dailySavePlan} onChange={(e) => setDailySavePlan(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-accent-200" />
+              </label>
+            </div>
+
+            <div className="mt-4 rounded-2xl bg-white p-3 flex items-start gap-2.5">
+              <Lightbulb size={17} className="text-warning-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-extrabold text-gray-900">Simple daily plan</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">Saving ₹{Number(dailySavePlan || 0).toLocaleString('en-IN')} a day can build a habit without taking away the money you need for today's essentials.</p>
+              </div>
+            </div>
+
+            <div className="mt-3 rounded-2xl bg-white p-3 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center"><Landmark size={17} /></div>
+              <div className="flex-1">
+                <p className="text-xs font-extrabold text-gray-900">Want to grow your savings?</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">Explore investment options only if you want them. Returns are not guaranteed and this prototype does not execute investments.</p>
+              </div>
+              <button onClick={() => showToast('Investment guidance is a prototype-only flow.')} className="px-3 py-2 rounded-xl bg-brand-50 text-brand-700 text-[11px] font-extrabold">Explore</button>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="p-4 mb-5 border border-dashed border-gray-200 bg-white animate-slide-up">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center shrink-0"><Landmark size={18} /></div>
+          <div>
+            <p className="text-sm font-extrabold text-gray-900">Financial partners — prototype concept</p>
+            <p className="text-[11px] text-gray-500 mt-1">ShramaSetu can offer financial institutions an opted-in, low-cost channel to reach active workers who are interested in savings or investment products. No user data is shared automatically in this prototype.</p>
+          </div>
         </div>
       </Card>
 

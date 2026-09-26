@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { ArrowLeft, ArrowRight, CheckCircle2, Globe2, Languages, UserRound, BriefcaseBusiness, MapPin, Phone, GraduationCap } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Globe2, Languages, UserRound, BriefcaseBusiness, MapPin, Phone, GraduationCap, QrCode, ShieldCheck, PiggyBank, Building2, LockKeyhole } from 'lucide-react';
 import { useApp } from '@/AppContext';
 import { Card, Button, ScreenHeader } from './ui';
 import { LANGUAGES, type LangCode } from '@/i18n';
@@ -26,7 +26,7 @@ const skillGroups = {
 const skills = Object.values(skillGroups).flat();
 
 export function RegistrationScreen() {
-  const { role, setRole, setScreen, lang, setLang, setWorkerSkill, setMonthlySalary, setRegistrationProfile, showToast } = useApp();
+  const { role, setRole, setScreen, lang, setLang, setWorkerSkill, setMonthlySalary, setRegistrationProfile, showToast, showWellbeingAlertNow } = useApp();
   const [formRole, setFormRole] = useState<Role>(role ?? 'labourer');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -46,6 +46,11 @@ export function RegistrationScreen() {
   const [hiringNeed, setHiringNeed] = useState('');
   const [budget, setBudget] = useState('');
   const [emergency, setEmergency] = useState('');
+  const [skilledPaymentOpen, setSkilledPaymentOpen] = useState(false);
+  const [savingsSetupOpen, setSavingsSetupOpen] = useState(false);
+  const [upiId, setUpiId] = useState('');
+  const [savingsRate, setSavingsRate] = useState(1);
+  const [savingsBank, setSavingsBank] = useState('AU Small Finance Bank');
 
   const c = registrationCopy[lang];
   const skilledWorkerLabel: Record<string, string> = { en: 'Skilled Worker', hi: 'कुशल कामगार', kn: 'ಕುಶಲ ಕಾರ್ಮಿಕ', ta: 'திறமையான தொழிலாளர்', te: 'నైపుణ్య కార్మికుడు', mr: 'कुशल कामगार', bn: 'দক্ষ কর্মী' };
@@ -113,14 +118,18 @@ export function RegistrationScreen() {
       monthlyIncome: salary || 0, company: company.trim() || undefined, workersManaged: Number(workers) || undefined,
       emergencyContact: emergency.trim(),
     };
-    setRegistrationProfile(profile);
+    setRegistrationProfile(profile, { showWellbeing: false });
     const account = { shramaId: getShramaId(profile.name, profile.phone), phone: profile.phone, role: formRole, profile, lang };
     const accounts = JSON.parse(localStorage.getItem('shrama-accounts') || '[]');
     const nextAccounts = [...accounts.filter((a: any) => a.shramaId !== account.shramaId), account];
     localStorage.setItem('shrama-accounts', JSON.stringify(nextAccounts));
     localStorage.setItem('shrama-demo-account', JSON.stringify(account));
     showToast('Demo profile created — your ShramaID is ready.');
-    setScreen(formRole === 'labourer' || formRole === 'skilledWorker' ? 'shramId' : 'home');
+    if (formRole === 'skilledWorker') {
+      setSkilledPaymentOpen(true);
+      return;
+    }
+    setScreen(formRole === 'labourer' ? 'shramId' : 'home');
   };
 
   return (
@@ -241,6 +250,21 @@ export function RegistrationScreen() {
           </div>
         )}
 
+        {formRole === 'skilledWorker' && (
+          <Card className="p-4 border-purple-100 bg-purple-50/70">
+            <div className="flex items-start gap-3">
+              <div className="w-11 h-11 rounded-xl bg-white text-purple-700 flex items-center justify-center shrink-0"><QrCode size={22} /></div>
+              <div className="flex-1">
+                <p className="font-extrabold text-gray-900">Skilled Worker Portal Access</p>
+                <p className="text-sm text-gray-700 mt-1">There is a <strong>₹49 charge per quarter</strong> for accessing the ShramaSetu skilled-worker portal.</p>
+                <p className="text-xs text-gray-500 mt-1">Scan the prototype QR below to simulate payment.</p>
+                <img src="/upi-sample-qr.png" alt="Prototype QR for ₹49 portal access" className="w-28 h-28 mt-3 rounded-xl border border-gray-200 bg-white p-2" />
+                <p className="text-[10px] text-gray-400 mt-2"><LockKeyhole size={11} className="inline mr-1" />Prototype only — no real payment is collected.</p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         <Field label={c.emergency} icon={<Phone size={16} />} value={emergency} onChange={(value) => { setEmergency(value); setErrors((prev) => ({ ...prev, emergency: '' })); }} placeholder={c.emergencyExample} error={errors.emergency} />
       </Card>
 
@@ -249,9 +273,38 @@ export function RegistrationScreen() {
         <Button variant="ghost" className="flex-1" onClick={() => { setRole(null); setScreen('home'); }}><ArrowLeft size={16} className="mr-2" />{c.back}</Button>
         <Button className="flex-[2]" onClick={submit}>{c.continue}<ArrowRight size={16} className="ml-2" /></Button>
       </div>
+
+      {skilledPaymentOpen && (
+        <div className="fixed inset-0 z-[70] bg-black/45 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+          <Card className="w-full max-w-md p-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center gap-3"><div className="w-11 h-11 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center"><QrCode size={22} /></div><div><p className="font-extrabold text-gray-900">Pay ₹49 for portal access</p><p className="text-xs text-gray-500">Quarterly skilled-worker access fee</p></div></div>
+            <div className="mt-4 rounded-2xl bg-gray-50 p-4 text-center"><img src="/upi-sample-qr.png" alt="Prototype QR" className="w-44 h-44 mx-auto rounded-2xl bg-white p-2 border border-gray-200" /><p className="text-xs text-gray-500 mt-2">Scan with any UPI app</p><p className="text-[11px] text-gray-400 mt-1">Demo QR — no money is transferred.</p></div>
+            <button onClick={() => { setSkilledPaymentOpen(false); setSavingsSetupOpen(true); }} className="w-full mt-4 py-3 rounded-xl bg-brand-600 text-white font-extrabold">I have paid ₹49 (Prototype)</button>
+          </Card>
+        </div>
+      )}
+
+      {savingsSetupOpen && (
+        <div className="fixed inset-0 z-[70] bg-black/45 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+          <Card className="w-full max-w-md p-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start gap-3"><div className="w-11 h-11 rounded-2xl bg-accent-50 text-accent-600 flex items-center justify-center"><PiggyBank size={22} /></div><div><p className="font-extrabold text-gray-900">Your Smart Save Benefits</p><p className="text-xs text-gray-500 mt-1">Set up automatic micro-savings from your earnings.</p></div></div>
+            <div className="mt-4 grid grid-cols-3 gap-2"><MiniBenefit icon="💰" text="Build an emergency buffer" /><MiniBenefit icon="🎯" text="Save for goals" /><MiniBenefit icon="🔒" text="Keep savings separate" /></div>
+            <div className="mt-5 rounded-2xl border border-brand-100 bg-brand-50/60 p-4"><div className="flex justify-between items-center"><div><p className="font-bold text-gray-900 text-sm">Automatic savings rate</p><p className="text-xs text-gray-500 mt-1">Minimum 1% · increase it according to your income</p></div><span className="text-xl font-extrabold text-brand-700">{savingsRate}%</span></div><input type="range" min="1" max="10" value={savingsRate} onChange={(e) => setSavingsRate(Number(e.target.value))} className="w-full mt-4" /><div className="flex justify-between text-[10px] text-gray-400"><span>1% minimum</span><span>10%</span></div></div>
+            <div className="mt-4"><p className="text-xs font-bold text-gray-600 mb-2">Savings destination</p><div className="grid grid-cols-1 gap-2">{['AU Small Finance Bank','Airtel Payments Bank','Ujjivan Small Finance Bank'].map((bank) => <button key={bank} onClick={() => setSavingsBank(bank)} className={`p-3 rounded-xl border text-left text-sm font-bold ${savingsBank === bank ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-gray-200 bg-white text-gray-700'}`}><Building2 size={15} className="inline mr-2" />{bank}{savingsBank === bank && <CheckCircle2 size={15} className="float-right" />}</button>)}</div></div>
+            <div className="mt-4"><label className="text-xs font-bold text-gray-600">UPI / payment ID for automatic savings setup</label><input value={upiId} onChange={(e) => setUpiId(e.target.value)} placeholder="example@upi" className="w-full mt-2 px-3.5 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:ring-2 focus:ring-brand-200" /></div>
+            <p className="text-[11px] text-gray-400 mt-3"><LockKeyhole size={12} className="inline mr-1" />Prototype only: this demonstrates the consent/setup screen. It does not create a real UPI AutoPay mandate or transfer money.</p>
+            <button onClick={() => { setSavingsSetupOpen(false); showWellbeingAlertNow(); setScreen('shramId'); }} className="w-full mt-4 py-3 rounded-xl bg-brand-600 text-white font-extrabold">Save & Continue to ShramaID</button>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
+
+function MiniBenefit({ icon, text }: { icon: string; text: string }) {
+  return <div className="rounded-xl bg-gray-50 p-3 text-center"><div className="text-xl">{icon}</div><p className="text-[10px] font-bold text-gray-600 mt-1">{text}</p></div>;
+}
+
 
 function Field({ label, value, onChange, placeholder, icon, inputMode, list, error, maxLength }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; icon?: ReactNode; inputMode?: 'text' | 'tel' | 'numeric'; list?: string; error?: string; maxLength?: number }) {
   return (
