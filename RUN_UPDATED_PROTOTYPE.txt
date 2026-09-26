@@ -1,0 +1,14 @@
+ShramaSetu updated prototype
+
+1. Extract this folder.
+2. Open a terminal in this folder.
+3. Run: npm install
+4. Run: npm run dev
+5. Open the local Vite URL shown in the terminal.
+
+Latest updates:
+- Fixed Already Registered back navigation so it no longer opens/registers the dashboard accidentally.
+- Added Switch Account in the top bar for Labourer, Skilled Worker, Contractor and Employer; switching requires ShramaID sign-in.
+- Worker availability is now green for Available and red for Unavailable. Sick/Festival/Time-up statuses appear only when Unavailable.
+- Wellbeing alert appears immediately after registration and then once every 20 minutes.
+- Replaced the ShramaSetu prototype QR with a sample UPI QR under Money > My QR.

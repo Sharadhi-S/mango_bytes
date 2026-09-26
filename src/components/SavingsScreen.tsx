@@ -20,6 +20,7 @@ import {
 import { useApp } from '@/AppContext';
 import { Card, ScreenHeader, Button, ProgressBar, formatINR } from './ui';
 import type { SavingsGoal } from '@/types';
+import { calculateDynamicSavingsRate } from '@/utils/dynamicSavings';
 
 const goalIconMap: Record<string, typeof ShieldCheck> = {
   shield: ShieldCheck,
@@ -36,6 +37,7 @@ export function SavingsScreen() {
   const [savedAmount, setSavedAmount] = useState(0);
   const [scanOpen, setScanOpen] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
+  const [showMyQR, setShowMyQR] = useState(false);
 
   const handleSave = (amount: number) => {
     if (!activeGoal || amount <= 0) return;
@@ -57,8 +59,24 @@ export function SavingsScreen() {
   const primaryBankBalance = Math.max(0, workerStats.availableBalance + workerStats.emergencySavings);
   const recent = earnings.slice(0, 3);
   const todayEarnings = earnings.find((item) => item.date === 'Today')?.amount ?? 0;
-  // Demo rule: low-income day = 0%; stronger day = 2%; very good day = 3%.
-  const smartSavingsRate = todayEarnings < 700 ? 0 : todayEarnings < 1500 ? 0.02 : 0.03;
+  const defaultConditions = {
+    market: todayEarnings >= 1500 ? 0.85 : todayEarnings >= 900 ? 0.7 : todayEarnings >= 500 ? 0.55 : 0.3,
+    weather: 0.72,
+    safety: 0.88,
+    productivity: todayEarnings >= 1500 ? 0.84 : todayEarnings >= 900 ? 0.7 : todayEarnings >= 500 ? 0.58 : 0.4,
+  };
+  const [marketScenario, setMarketScenario] = useState(defaultConditions.market);
+  const [weatherScenario, setWeatherScenario] = useState(defaultConditions.weather);
+  const [safetyScenario, setSafetyScenario] = useState(defaultConditions.safety);
+  const [productivityScenario, setProductivityScenario] = useState(defaultConditions.productivity);
+  const dailyConditions = {
+    market: marketScenario,
+    weather: weatherScenario,
+    safety: safetyScenario,
+    productivity: productivityScenario,
+  };
+  const dynamicSavings = calculateDynamicSavingsRate(dailyConditions);
+  const smartSavingsRate = dynamicSavings.rate;
   const smartSavingsAmount = Math.round(todayEarnings * smartSavingsRate);
 
   return (
@@ -105,7 +123,7 @@ export function SavingsScreen() {
             <p className="font-bold text-gray-900 text-sm">Scan & Pay</p>
             <p className="text-[11px] text-gray-500 mt-1">Prototype QR scanner</p>
           </button>
-          <button onClick={() => showToast('My QR is shown as a prototype.')} className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-left hover:bg-gray-100 transition-colors">
+          <button onClick={() => setShowMyQR(true)} className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-left hover:bg-gray-100 transition-colors">
             <QrCode size={21} className="text-accent-600 mb-2" />
             <p className="font-bold text-gray-900 text-sm">My QR</p>
             <p className="text-[11px] text-gray-500 mt-1">Show payment QR</p>
@@ -178,20 +196,64 @@ export function SavingsScreen() {
           <div className="flex-1">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="font-extrabold text-gray-900">Automatic savings from today's earnings</p>
-                <p className="text-xs text-gray-500 mt-1">No fixed deduction. The amount changes with how much you earned today.</p>
+                <p className="font-extrabold text-gray-900">Dynamic savings from today's conditions</p>
+                <p className="text-xs text-gray-500 mt-1">The deduction adjusts based on market demand, weather, safety, and work conditions.</p>
               </div>
-              <span className="shrink-0 px-2.5 py-1 rounded-full bg-brand-100 text-brand-700 text-xs font-extrabold">{smartSavingsRate * 100}%</span>
+              <span className="shrink-0 px-2.5 py-1 rounded-full bg-brand-100 text-brand-700 text-xs font-extrabold">{(smartSavingsRate * 100).toFixed(1)}%</span>
             </div>
             <div className="grid grid-cols-2 gap-3 mt-4">
               <div className="rounded-2xl bg-white p-3"><p className="text-[11px] text-gray-400 font-semibold">Today's earnings</p><p className="text-lg font-extrabold text-gray-900 mt-1">{formatINR(todayEarnings)}</p></div>
               <div className="rounded-2xl bg-white p-3"><p className="text-[11px] text-gray-400 font-semibold">Auto-saved today</p><p className="text-lg font-extrabold text-accent-600 mt-1">{formatINR(smartSavingsAmount)}</p></div>
             </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-gray-600">
+              <div className="rounded-xl bg-white/80 px-2.5 py-2">
+                <div className="text-gray-500 font-semibold">Market</div>
+                <div className="font-bold text-gray-900 mt-1">{dailyConditions.market >= 0.75 ? 'High' : dailyConditions.market >= 0.55 ? 'Steady' : 'Weak'}</div>
+              </div>
+              <div className="rounded-xl bg-white/80 px-2.5 py-2">
+                <div className="text-gray-500 font-semibold">Weather</div>
+                <div className="font-bold text-gray-900 mt-1">{dailyConditions.weather >= 0.75 ? 'Clear' : dailyConditions.weather >= 0.5 ? 'Fair' : 'Poor'}</div>
+              </div>
+            </div>
             <div className="mt-3 flex items-start gap-2 text-xs text-gray-600">
               <Sparkles size={15} className="text-brand-600 shrink-0 mt-0.5" />
-              <p>{smartSavingsRate === 0 ? 'Today is treated as a low-income day, so nothing is deducted for savings.' : smartSavingsRate === 0.02 ? 'Today is a stronger earning day, so 2% is automatically moved to savings.' : 'Today is a very good earning day, so 3% is automatically moved to savings.'}</p>
+              <p>{dynamicSavings.label}: {dynamicSavings.note}</p>
             </div>
           </div>
+        </div>
+      </Card>
+
+      <Card className="p-4 mb-5 border border-dashed border-gray-200 bg-white animate-slide-up">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <p className="font-extrabold text-gray-900 text-sm">Prototype scenario demo</p>
+            <p className="text-[11px] text-gray-500 mt-0.5">Simulator only — not live market data</p>
+          </div>
+          <span className="px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">Demo</span>
+        </div>
+        <div className="space-y-3">
+          {[
+            { label: 'Market strength', value: marketScenario, onChange: setMarketScenario },
+            { label: 'Weather', value: weatherScenario, onChange: setWeatherScenario },
+            { label: 'Safety / travel', value: safetyScenario, onChange: setSafetyScenario },
+            { label: 'Productivity', value: productivityScenario, onChange: setProductivityScenario },
+          ].map((item) => (
+            <label key={item.label} className="block">
+              <div className="flex items-center justify-between mb-1 text-[11px] font-bold text-gray-600">
+                <span>{item.label}</span>
+                <span>{item.value.toFixed(2)}</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={item.value}
+                onChange={(e) => item.onChange(Number(e.target.value))}
+                className="w-full accent-brand-600"
+              />
+            </label>
+          ))}
         </div>
       </Card>
 
@@ -257,6 +319,18 @@ export function SavingsScreen() {
 
       {showSuccess && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-6"><div className="absolute inset-0 bg-black/40" /><div className="relative bg-white rounded-3xl p-8 text-center max-w-xs w-full"><div className="w-16 h-16 rounded-full bg-accent-100 flex items-center justify-center mx-auto mb-4"><Check size={32} className="text-accent-600" /></div><h2 className="text-lg font-extrabold text-gray-900">Saved!</h2><p className="text-sm text-gray-500 mt-1">₹{savedAmount} added to your goal.</p></div></div>
+      )}
+
+      {showMyQR && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-5">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowMyQR(false)} />
+          <div className="relative w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl text-center">
+            <div className="flex items-center justify-between mb-4 text-left"><div><h2 className="text-lg font-extrabold text-gray-900">My UPI QR</h2><p className="text-xs text-gray-500 mt-1">Sample payment QR for the prototype</p></div><button onClick={() => setShowMyQR(false)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><X size={19} /></button></div>
+            <div className="bg-white border border-gray-100 rounded-2xl p-4 inline-flex"><img src="/upi-sample-qr.png" alt="Sample UPI QR" className="w-56 h-56" /></div>
+            <p className="font-bold text-gray-900 text-sm mt-4">{(registrationProfile?.name || 'ShramaSetu Demo')} · UPI</p>
+            <p className="text-xs text-gray-500 mt-1">Demo only — no real payment is processed.</p>
+          </div>
+        </div>
       )}
 
       {scanOpen && (

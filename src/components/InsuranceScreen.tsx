@@ -38,7 +38,6 @@ export function InsuranceScreen() {
   };
 
   const saveDemo = () => {
-    setMonthlySalary(Number(salary) || monthlySalary);
     showToast('Benefits setup saved as prototype data — no real policy or deduction created.');
   };
 

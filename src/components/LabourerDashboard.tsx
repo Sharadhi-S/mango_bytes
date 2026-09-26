@@ -33,7 +33,7 @@ export function LabourerDashboard() {
 
   return (
     <div className="px-5 pt-6 pb-24 space-y-5 max-w-2xl mx-auto">
-      <ScreenHeader title="Dashboard" subtitle={registrationProfile?.name ? `Welcome back, ${registrationProfile.name}` : 'Your work and money at a glance'} />
+      <ScreenHeader title="Dashboard" subtitle={registrationProfile?.name ? `Welcome back, ${registrationProfile.name}` : 'Your work and money at a glance'} showBack={false} />
       {/* Greeting */}
       <div className="animate-slide-up">
         <p className="text-sm text-gray-500">Good morning,</p>
@@ -195,7 +195,7 @@ export function LabourerDashboard() {
             </div>
             <div>
               <p className="text-sm font-bold text-gray-900">Smart Savings</p>
-              <p className="text-xs text-gray-500">0% on low-income days · 2–3% when earnings are stronger</p>
+              <p className="text-xs text-gray-500">0.5–6% based on day conditions, market, weather and work quality</p>
             </div>
           </div>
           <ArrowRight size={18} className="text-gray-300" />

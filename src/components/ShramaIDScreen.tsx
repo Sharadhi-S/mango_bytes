@@ -46,6 +46,8 @@ export function ShramaIDScreen() {
         </div>
       </Card>
 
+
+
       <Card className="p-4 mb-5 border-brand-100 bg-brand-50/60">
         <div className="flex items-center gap-3">
           <BadgeCheck className="text-brand-600" size={25} />

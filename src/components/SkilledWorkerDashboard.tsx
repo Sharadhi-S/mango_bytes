@@ -17,7 +17,7 @@ export function SkilledWorkerDashboard() {
 
   return (
     <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8">
-      <ScreenHeader title={`Welcome, ${registrationProfile?.name?.split(' ')[0] || 'Skilled Worker'}`} subtitle={`${skill} · build skills, prove skills, find work`} />
+      <ScreenHeader title={`Welcome, ${registrationProfile?.name?.split(' ')[0] || 'Skilled Worker'}`} subtitle={`${skill} · build skills, prove skills, find work`} showBack={false} />
 
       <Card className="p-5 mb-5 bg-gradient-to-br from-purple-50 via-white to-brand-50 border-purple-100">
         <div className="flex items-start gap-3"><div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center"><Sparkles size={24} /></div><div className="flex-1"><p className="text-xs font-bold text-purple-700 uppercase tracking-wide">ShramaSetu Skill Studio</p><h2 className="text-xl font-extrabold text-gray-900 mt-1">AI-powered career practice</h2><p className="text-sm text-gray-600 mt-1">Prepare resumes, practise languages, learn computer skills and watch profession-specific demos — all from one place.</p><button onClick={() => window.dispatchEvent(new CustomEvent('open-shramasetu-ai'))} className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold"><MessageCircle size={16} /> Open AI Coach</button></div></div>
