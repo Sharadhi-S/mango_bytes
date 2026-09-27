@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type {
   Role,
+  ThemeMode,
   ScreenId,
   EarningEntry,
   SavingsGoal,
@@ -11,6 +12,16 @@ import type {
   PostedJob,
   ChatMessage,
   RegistrationProfile,
+  WorkerAvailability,
+  DailyWorkStatus,
+  Tender,
+  TenderWorkforceItem,
+  AssignedProjectWorker,
+  WorkforcePlan,
+  ContractorMatch,
+  DynamicFeeCalculation,
+  ContractorRfp,
+  ContractorInvitation,
 } from './types';
 import {
   initialEarnings,
@@ -23,6 +34,14 @@ import {
   workerStats as initialWorkerStats,
 } from './mockData';
 import { t as translate, type LangCode } from './i18n';
+import {
+  getInitialEmployerState,
+  saveEmployerState,
+  calculateDynamicTenderFee,
+  analyzeTenderEngine,
+  generateSuitableContractors,
+  BROADCAST_CHANNEL as EMPLOYER_CHANNEL,
+} from './backend/employerBackend';
 
 interface WorkerStats {
   todayEarnings: number;
@@ -38,6 +57,60 @@ interface Toast {
   message: string;
 }
 
+const initialIncomingRfps: ContractorRfp[] = [
+  {
+    id: 'rfp-101',
+    tenderId: 'T-1001',
+    clientName: 'Karnataka PWD / ABC Infrastructure',
+    projectTitle: 'Road Development & Widening Project',
+    location: 'Mysuru, Karnataka',
+    budget: 82000000,
+    duration: '18 months',
+    workforceDemand: 54,
+    tradesSummary: 'Civil Engineers (4), Masons (15), Construction Labourers (35)',
+    clientNote: 'Awarded project scope. Verified contractor fleet requested for immediate deployment readiness.',
+    status: 'pending',
+    receivedAt: 'Today, 10:30 AM',
+  },
+  {
+    id: 'rfp-102',
+    tenderId: 'T-1002',
+    clientName: 'Smart City Mission Belagavi',
+    projectTitle: 'Commercial Administrative Complex',
+    location: 'Belagavi, Karnataka',
+    budget: 48000000,
+    duration: '12 months',
+    workforceDemand: 42,
+    tradesSummary: 'Site Supervisors (2), Masons (12), Steel Fixers (8), Labourers (20)',
+    clientNote: 'Phase 2 execution RFP. Contractor verified via PWD Class-2 license.',
+    status: 'accepted',
+    receivedAt: 'Yesterday',
+  },
+];
+
+const initialContractorInvitations: ContractorInvitation[] = [
+  {
+    id: 'inv-1',
+    contractorName: 'Kumar Constructions (Rajesh Kumar)',
+    projectTitle: 'Commercial Administrative Complex - Phase 2',
+    location: 'Site B, Mysuru',
+    dailyWageRate: 700,
+    duration: '20 days',
+    skill: 'Construction Labourer / Helper',
+    status: 'pending',
+  },
+  {
+    id: 'inv-2',
+    contractorName: 'Shree Balaji Infra Projects',
+    projectTitle: 'Belagavi Highway Package 4 Flyover',
+    location: 'Belagavi Outer Ring Road',
+    dailyWageRate: 850,
+    duration: '45 days',
+    skill: 'Mason & Concreting Crew',
+    status: 'pending',
+  },
+];
+
 interface AppContextValue {
   role: Role | null;
   setRole: (r: Role | null) => void;
@@ -46,6 +119,10 @@ interface AppContextValue {
   goBack: () => void;
   lang: LangCode;
   setLang: (l: LangCode) => void;
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
+  toggleTheme: () => void;
+  resetPlatformData: () => void;
   t: (key: string) => string;
   toasts: Toast[];
   showToast: (message: string) => void;
@@ -61,8 +138,9 @@ interface AppContextValue {
   conversations: Conversation[];
   workerStats: WorkerStats;
   saveMoney: (goalId: string, amount: number) => void;
+  withdrawSavings: (amount: number, reason: string) => boolean;
   applyJob: (jobId: string) => void;
-  sendMessage: (conversationId: string, text: string) => void;
+  sendMessage: (conversationId: string, text: string, attachment?: ChatMessage['attachment']) => void;
   markConversationRead: (conversationId: string) => void;
   transferToBank: () => void;
 
@@ -78,7 +156,49 @@ interface AppContextValue {
   monthlySalary: number;
   setMonthlySalary: (salary: number) => void;
   registrationProfile: RegistrationProfile | null;
-  setRegistrationProfile: (profile: RegistrationProfile) => void;
+  setRegistrationProfile: (profile: RegistrationProfile, options?: { showWellbeing?: boolean }) => void;
+  showWellbeingAlertNow: () => void;
+  availability: WorkerAvailability;
+  dailyWorkStatus: DailyWorkStatus;
+  setAvailability: (value: WorkerAvailability) => void;
+  setDailyWorkStatus: (value: DailyWorkStatus) => void;
+  wellbeingAlertOpen: boolean;
+  dismissWellbeingAlert: () => void;
+  // employer real-time state
+  tenders: Tender[];
+  savedTenderIds: string[];
+  workforcePlans: Record<string, WorkforcePlan>;
+  partnerRequests: Record<string, boolean>;
+  createAndAnalyzeTender: (data: {
+    title: string;
+    dept: string;
+    location: string;
+    value: number;
+    durationMonths: number;
+    category: string;
+    scopeDescription: string;
+    boqDetails?: string;
+  }) => Tender;
+  updateTenderWorkforceRequirements: (tenderId: string, requirements: TenderWorkforceItem[]) => void;
+  payTenderFeeAndUnlockContractors: (tenderId: string, paymentMethod: string) => void;
+  sendRfpToContractor: (tenderId: string, contractorId: string) => void;
+  toggleSaveTender: (tenderId: string) => void;
+  createWorkforcePlan: (tenderId: string, requirements?: TenderWorkforceItem[]) => WorkforcePlan;
+  requestPartnerConnection: (categoryName: string) => void;
+  selectedProjectId: string | null;
+  setSelectedProjectId: (id: string | null) => void;
+  addTender: (newTender: Tender) => void;
+  updateTender: (updatedTender: Tender) => void;
+  assignWorkerToProject: (tenderId: string, worker: AssignedProjectWorker) => void;
+  updateProjectWorkerAttendance: (tenderId: string, workerId: string, status: 'present' | 'absent' | 'half') => void;
+  markProjectWorkerWagePaid: (tenderId: string, workerId: string) => void;
+  markAllProjectWorkersPresent: (tenderId: string) => void;
+  payAllProjectWages: (tenderId: string) => void;
+  // contractor & worker relationship state
+  incomingRfps: ContractorRfp[];
+  respondToRfp: (rfpId: string, status: 'accepted' | 'declined') => void;
+  contractorInvitations: ContractorInvitation[];
+  respondToContractorInvitation: (inviteId: string, status: 'accepted' | 'declined') => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -94,8 +214,450 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
   const [workerSkill, setWorkerSkill] = useState('Mason');
   const [monthlySalary, setMonthlySalary] = useState(18000);
-  const [registrationProfile, setRegistrationProfile] = useState<RegistrationProfile | null>(null);
-  const [lang, setLang] = useState<LangCode>('en');
+  const applyThemeToDOM = useCallback((nextTheme: ThemeMode) => {
+    if (typeof document === 'undefined') return;
+
+    const isDarkTheme = nextTheme === 'dark' || nextTheme === 'high-contrast';
+    document.documentElement.dataset.theme = nextTheme;
+    document.documentElement.style.colorScheme = isDarkTheme ? 'dark' : 'light';
+    document.documentElement.classList.toggle('dark', isDarkTheme);
+    document.body.classList.toggle('dark', isDarkTheme);
+  }, []);
+
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
+    const storedTheme = typeof localStorage !== 'undefined' ? localStorage.getItem('shrama-theme') : null;
+    const initialTheme: ThemeMode = storedTheme === 'dark' || storedTheme === 'high-contrast' ? storedTheme : 'light';
+    return initialTheme;
+  });
+
+  useEffect(() => {
+    applyThemeToDOM(theme);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('shrama-theme', theme);
+    }
+  }, [theme, applyThemeToDOM]);
+
+  const setTheme = useCallback((nextTheme: ThemeMode) => {
+    setThemeState(nextTheme);
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setThemeState((curr) => {
+      if (curr === 'dark' || curr === 'high-contrast') return 'light';
+      return 'dark';
+    });
+  }, []);
+
+  const resetPlatformData = useCallback(() => {
+    try {
+      fetch('/api/reset', { method: 'POST' }).catch(() => {});
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('shramasetu') || key.startsWith('shrama-') || key.startsWith('shrama_'))) {
+          if (key !== 'shrama-theme') {
+            keysToRemove.push(key);
+          }
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+    } catch (e) {}
+    window.location.reload();
+  }, []);
+
+  const [registrationProfile, setRegistrationProfileState] = useState<RegistrationProfile | null>(null);
+  const [availability, setAvailability] = useState<WorkerAvailability>('available');
+  const [dailyWorkStatus, setDailyWorkStatus] = useState<DailyWorkStatus>('workDone');
+  const [wellbeingAlertOpen, setWellbeingAlertOpen] = useState(false);
+
+  const wellbeingIntervalMs = 20 * 60 * 1000;
+  const wellbeingStorageKey = 'shrama-wellbeing-last-shown';
+
+  const showWellbeingAlertNow = useCallback(() => {
+    const now = Date.now();
+    setWellbeingAlertOpen(true);
+    localStorage.setItem(wellbeingStorageKey, String(now));
+  }, []);
+
+  const setRegistrationProfile = useCallback((profile: RegistrationProfile, options?: { showWellbeing?: boolean }) => {
+    setRegistrationProfileState(profile);
+    if (options?.showWellbeing !== false) showWellbeingAlertNow();
+  }, [showWellbeingAlertNow]);
+
+  useEffect(() => {
+    if (!registrationProfile) return;
+
+    const checkReminder = () => {
+      const lastShown = Number(localStorage.getItem(wellbeingStorageKey) || 0);
+      if (lastShown && Date.now() - lastShown >= wellbeingIntervalMs) {
+        showWellbeingAlertNow();
+      }
+    };
+
+    const intervalId = window.setInterval(checkReminder, 30 * 1000);
+    return () => window.clearInterval(intervalId);
+  }, [registrationProfile, showWellbeingAlertNow]);
+
+  const dismissWellbeingAlert = useCallback(() => setWellbeingAlertOpen(false), []);
+  const initialEmployer = getInitialEmployerState();
+  const [tenders, setTenders] = useState<Tender[]>(initialEmployer.tenders);
+  const [savedTenderIds, setSavedTenderIds] = useState<string[]>(initialEmployer.savedTenderIds);
+  const [workforcePlans, setWorkforcePlans] = useState<Record<string, WorkforcePlan>>(initialEmployer.workforcePlans);
+  const [partnerRequests, setPartnerRequests] = useState<Record<string, boolean>>(initialEmployer.partnerRequests);
+
+  // Sync state to persistent localStorage & BroadcastChannel
+  useEffect(() => {
+    saveEmployerState({
+      tenders,
+      savedTenderIds,
+      workforcePlans,
+      partnerRequests,
+    });
+  }, [tenders, savedTenderIds, workforcePlans, partnerRequests]);
+
+  // Listen for cross-tab updates
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('BroadcastChannel' in window)) return;
+    const channel = new BroadcastChannel(EMPLOYER_CHANNEL);
+    channel.onmessage = (event) => {
+      if (event.data?.type === 'EMPLOYER_STATE_UPDATE' && event.data.state) {
+        const s = event.data.state;
+        if (s.tenders) setTenders(s.tenders);
+        if (s.savedTenderIds) setSavedTenderIds(s.savedTenderIds);
+        if (s.workforcePlans) setWorkforcePlans(s.workforcePlans);
+        if (s.partnerRequests) setPartnerRequests(s.partnerRequests);
+      }
+    };
+    return () => channel.close();
+  }, []);
+
+  
+  const createAndAnalyzeTender = useCallback((data: {
+    title: string;
+    dept: string;
+    location: string;
+    value: number;
+    durationMonths: number;
+    category: string;
+    scopeDescription: string;
+    boqDetails?: string;
+  }) => {
+    const dynamicFee = calculateDynamicTenderFee(data.value);
+    const analysis = analyzeTenderEngine(
+      data.title,
+      data.category,
+      data.value,
+      data.durationMonths,
+      data.location,
+      data.scopeDescription
+    );
+
+    const newTender: Tender = {
+      id: 'T-' + Math.floor(1000 + Math.random() * 9000),
+      title: data.title,
+      dept: data.dept || 'Private Commercial',
+      location: data.location,
+      value: data.value,
+      closing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      category: data.category,
+      match: 92,
+      duration: data.durationMonths + ' months',
+      durationMonths: data.durationMonths,
+      skills: analysis.workforceRequirements.map((r) => r.skill),
+      eligibility: analysis.eligibility,
+      docs: analysis.docs,
+      workforceRequirements: analysis.workforceRequirements,
+      milestones: analysis.milestones,
+      scopeDescription: data.scopeDescription,
+      boqDetails: data.boqDetails,
+      dynamicFee,
+      status: 'analyzed',
+      customTender: true,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+
+    setTenders((prev) => [newTender, ...prev]);
+    return newTender;
+  }, []);
+
+  const updateTenderWorkforceRequirements = useCallback((tenderId: string, requirements: TenderWorkforceItem[]) => {
+    const updatedSkills = requirements.map((r) => r.skill);
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== tenderId) return t;
+        return {
+          ...t,
+          skills: updatedSkills,
+          workforceRequirements: requirements,
+          status: t.status === 'analyzed' ? 'requirements_configured' : t.status,
+        };
+      })
+    );
+  }, []);
+
+  const payTenderFeeAndUnlockContractors = useCallback((tenderId: string, _paymentMethod: string) => {
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== tenderId) return t;
+        const matches = generateSuitableContractors(t, t.workforceRequirements);
+        return {
+          ...t,
+          status: 'contractor_matched',
+          unlockedContractors: matches,
+        };
+      })
+    );
+  }, []);
+
+  const [incomingRfps, setIncomingRfps] = useState<ContractorRfp[]>(() => {
+    try {
+      const stored = localStorage.getItem('shrama-contractor-rfps');
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return initialIncomingRfps;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('shrama-contractor-rfps', JSON.stringify(incomingRfps));
+    } catch {}
+  }, [incomingRfps]);
+
+  const [contractorInvitations, setContractorInvitations] = useState<ContractorInvitation[]>(() => {
+    try {
+      const stored = localStorage.getItem('shrama-worker-invites');
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return initialContractorInvitations;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('shrama-worker-invites', JSON.stringify(contractorInvitations));
+    } catch {}
+  }, [contractorInvitations]);
+
+  const sendRfpToContractor = useCallback((tenderId: string, contractorId: string) => {
+    const targetTender = tenders.find((t) => t.id === tenderId);
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== tenderId) return t;
+        const updatedContractors = (t.unlockedContractors || []).map((c) =>
+          c.id === contractorId ? { ...c, rfpSent: true } : c
+        );
+        return { ...t, unlockedContractors: updatedContractors };
+      })
+    );
+
+    if (targetTender) {
+      setIncomingRfps((prev) => {
+        if (prev.some((r) => r.tenderId === tenderId)) return prev;
+        const newRfp: ContractorRfp = {
+          id: 'rfp-' + Date.now(),
+          tenderId,
+          clientName: targetTender.dept || 'ABC Infrastructure',
+          projectTitle: targetTender.title,
+          location: targetTender.location,
+          budget: targetTender.value,
+          duration: targetTender.duration,
+          workforceDemand: targetTender.workforceRequirements?.reduce((s, r) => s + r.headcount, 0) || 50,
+          tradesSummary: targetTender.workforceRequirements?.map((r) => `${r.skill} (${r.headcount})`).join(', ') || 'General Workforce',
+          clientNote: 'Direct RFP sent via ShramaSetu Employer Matching Portal.',
+          status: 'pending',
+          receivedAt: 'Just now',
+        };
+        return [newRfp, ...prev];
+      });
+    }
+  }, [tenders]);
+
+  const respondToRfp = useCallback((rfpId: string, status: 'accepted' | 'declined') => {
+    setIncomingRfps((prev) =>
+      prev.map((r) => {
+        if (r.id !== rfpId) return r;
+        if (status === 'accepted') {
+          setTenders((currTenders) =>
+            currTenders.map((t) => (t.id === r.tenderId ? { ...t, status: 'active_fulfillment' as const } : t))
+          );
+        }
+        return { ...r, status };
+      })
+    );
+  }, []);
+
+  const respondToContractorInvitation = useCallback((inviteId: string, status: 'accepted' | 'declined') => {
+    setContractorInvitations((prev) =>
+      prev.map((inv) => {
+        if (inv.id !== inviteId) return inv;
+        if (status === 'accepted') {
+          setWorkerStats((curr) => ({
+            ...curr,
+            currentJob: inv.projectTitle,
+            currentEmployer: inv.contractorName,
+          }));
+        }
+        return { ...inv, status };
+      })
+    );
+  }, []);
+
+  const toggleSaveTender = useCallback((tenderId: string) => {
+    setSavedTenderIds((prev) =>
+      prev.includes(tenderId) ? prev.filter((id) => id !== tenderId) : [...prev, tenderId]
+    );
+  }, []);
+
+  const createWorkforcePlan = useCallback((tenderId: string, requirements?: TenderWorkforceItem[]) => {
+    const targetTender = tenders.find((t) => t.id === tenderId);
+    const reqs = requirements || targetTender?.workforceRequirements || [];
+    const totalCount = reqs.reduce((sum, r) => sum + r.headcount, 0);
+    const totalCost = reqs.reduce((sum, r) => sum + r.headcount * r.dailyWageRate, 0);
+
+    const plan: WorkforcePlan = {
+      id: 'wp-' + Date.now(),
+      tenderId,
+      createdAt: new Date().toISOString(),
+      totalHeadcount: totalCount,
+      estimatedLaborCost: totalCost,
+      requirements: reqs,
+    };
+
+    setWorkforcePlans((prev) => ({ ...prev, [tenderId]: plan }));
+    return plan;
+  }, [tenders]);
+
+  const requestPartnerConnection = useCallback((categoryName: string) => {
+    setPartnerRequests((prev) => ({ ...prev, [categoryName]: true }));
+  }, []);
+
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>('T-BELAGAVI-1042');
+
+  const addTender = useCallback((newTender: Tender) => {
+    setTenders((prev) => [newTender, ...prev.filter((t) => t.id !== newTender.id)]);
+  }, []);
+
+  const updateTender = useCallback((updatedTender: Tender) => {
+    setTenders((prev) => prev.map((t) => (t.id === updatedTender.id ? updatedTender : t)));
+  }, []);
+
+  const assignWorkerToProject = useCallback((tenderId: string, worker: AssignedProjectWorker) => {
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== tenderId) return t;
+        const currentWorkers = t.assignedWorkers || [];
+        if (currentWorkers.some((w) => w.workerId === worker.workerId || w.id === worker.id)) {
+          return t;
+        }
+        const updatedWorkers = [worker, ...currentWorkers];
+
+        const updatedReqs = (t.workforceRequirements || []).map((r) => {
+          const normSkill = r.skill.toLowerCase();
+          const normWorkerRole = worker.role.toLowerCase();
+          const matches =
+            normSkill.includes(normWorkerRole) ||
+            normWorkerRole.includes(normSkill) ||
+            (normSkill.includes('operator') && normWorkerRole.includes('operator')) ||
+            (normSkill.includes('mason') && normWorkerRole.includes('mason')) ||
+            (normSkill.includes('helper') && (normWorkerRole.includes('helper') || normWorkerRole.includes('labour')));
+          if (matches) {
+            return { ...r, assignedCount: (r.assignedCount ?? 0) + 1 };
+          }
+          return r;
+        });
+
+        const totalReq = updatedReqs.reduce((sum, r) => sum + r.headcount, 0) || 100;
+        const totalAssigned = updatedReqs.reduce((sum, r) => sum + (r.assignedCount ?? 0), 0);
+        const fulfillmentPercent = Math.min(100, Math.round((totalAssigned / totalReq) * 100));
+        const status = fulfillmentPercent >= 100 ? ('ready_to_deploy' as const) : t.status;
+
+        return {
+          ...t,
+          assignedWorkers: updatedWorkers,
+          workforceRequirements: updatedReqs,
+          fulfillmentPercent,
+          status,
+        };
+      })
+    );
+  }, []);
+
+  const updateProjectWorkerAttendance = useCallback((tenderId: string, workerId: string, status: 'present' | 'absent' | 'half') => {
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== tenderId) return t;
+        const updatedWorkers = (t.assignedWorkers || []).map((w) => {
+          if (w.id === workerId || w.workerId === workerId) {
+            return { ...w, attendanceToday: status };
+          }
+          return w;
+        });
+        return { ...t, assignedWorkers: updatedWorkers };
+      })
+    );
+  }, []);
+
+  const markProjectWorkerWagePaid = useCallback((tenderId: string, workerId: string) => {
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== tenderId) return t;
+        const updatedWorkers = (t.assignedWorkers || []).map((w) => {
+          if (w.id === workerId || w.workerId === workerId) {
+            return { ...w, wageStatus: 'paid' as const };
+          }
+          return w;
+        });
+        return { ...t, assignedWorkers: updatedWorkers };
+      })
+    );
+  }, []);
+
+  const markAllProjectWorkersPresent = useCallback((tenderId: string) => {
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== tenderId) return t;
+        const updatedWorkers = (t.assignedWorkers || []).map((w) => ({
+          ...w,
+          attendanceToday: 'present' as const,
+        }));
+        return { ...t, assignedWorkers: updatedWorkers };
+      })
+    );
+  }, []);
+
+  const payAllProjectWages = useCallback((tenderId: string) => {
+    setTenders((prev) =>
+      prev.map((t) => {
+        if (t.id !== tenderId) return t;
+        const updatedWorkers = (t.assignedWorkers || []).map((w) => ({
+          ...w,
+          wageStatus: 'paid' as const,
+        }));
+        return { ...t, assignedWorkers: updatedWorkers };
+      })
+    );
+  }, []);
+
+
+
+  const [lang, setLang] = useState<LangCode>(() => {
+    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('shrama-lang') : null;
+    const validCodes: LangCode[] = ['en', 'hi', 'kn', 'ta', 'te', 'mr', 'bn'];
+    const initialLang = (stored && validCodes.includes(stored as LangCode)) ? (stored as LangCode) : 'en';
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = initialLang;
+    }
+    return initialLang;
+  });
+
+  const changeLang = useCallback((value: LangCode) => {
+    setLang(value);
+    try {
+      localStorage.setItem('shrama-lang', value);
+      if (typeof document !== 'undefined') {
+        document.documentElement.lang = value;
+      }
+    } catch {}
+  }, []);
 
   const setScreen = useCallback((next: ScreenId) => {
     setScreenState((current) => {
@@ -162,13 +724,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const withdrawSavings = useCallback((amount: number, reason: string) => {
+    if (amount <= 0 || amount > workerStats.emergencySavings || !reason.trim()) return false;
+    setSavingsGoals((prev) =>
+      prev.map((g) => g.id === 'emergency' ? { ...g, current: Math.max(0, g.current - amount) } : g)
+    );
+    setWorkerStats((prev) => ({
+      ...prev,
+      availableBalance: prev.availableBalance + amount,
+      emergencySavings: Math.max(0, prev.emergencySavings - amount),
+    }));
+    return true;
+  }, [workerStats.emergencySavings]);
+
   const applyJob = useCallback((jobId: string) => {
     setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, applied: true } : j)));
   }, []);
 
-  const sendMessage = useCallback((conversationId: string, text: string) => {
+  const sendMessage = useCallback((conversationId: string, text: string, attachment?: ChatMessage['attachment']) => {
     const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    const newMsg: ChatMessage = { id: `m-${Date.now()}`, sender: role === 'contractor' ? 'contractor' : 'worker', text, time: now };
+    const newMsg: ChatMessage = { id: `m-${Date.now()}`, sender: role === 'contractor' || role === 'employer' ? 'contractor' : 'worker', text, time: now, attachment };
     setConversations((prev) =>
       prev.map((c) =>
         c.id === conversationId
@@ -216,7 +791,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setScreen,
         goBack,
         lang,
-        setLang,
+        setLang: changeLang,
         t,
         toasts,
         showToast,
@@ -230,6 +805,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         conversations,
         workerStats,
         saveMoney,
+        withdrawSavings,
+        theme,
+        setTheme,
+        toggleTheme,
+        resetPlatformData,
         applyJob,
         sendMessage,
         markConversationRead,
@@ -246,6 +826,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setMonthlySalary,
         registrationProfile,
         setRegistrationProfile,
+        availability,
+        dailyWorkStatus,
+        setAvailability,
+        setDailyWorkStatus,
+        wellbeingAlertOpen,
+        dismissWellbeingAlert,
+        showWellbeingAlertNow,
+        tenders,
+        savedTenderIds,
+        workforcePlans,
+        partnerRequests,
+        createAndAnalyzeTender,
+        payTenderFeeAndUnlockContractors,
+        sendRfpToContractor,
+        updateTenderWorkforceRequirements,
+        toggleSaveTender,
+        createWorkforcePlan,
+        requestPartnerConnection,
+        selectedProjectId,
+        setSelectedProjectId,
+        addTender,
+        updateTender,
+        assignWorkerToProject,
+        updateProjectWorkerAttendance,
+        markProjectWorkerWagePaid,
+        markAllProjectWorkersPresent,
+        payAllProjectWages,
+        incomingRfps,
+        respondToRfp,
+        contractorInvitations,
+        respondToContractorInvitation,
       }}
     >
       {children}

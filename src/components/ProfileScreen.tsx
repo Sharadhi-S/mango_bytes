@@ -9,6 +9,11 @@ import {
   Calendar,
   IndianRupee,
   LogOut,
+  CheckCircle,
+  XCircle,
+  HeartPulse,
+  CircleCheck,
+  CircleX,
 } from 'lucide-react';
 import { useApp } from '@/AppContext';
 import { getShramaId } from './ShramaIDScreen';
@@ -16,7 +21,7 @@ import { Card, ScreenHeader, Badge, Button, ProgressBar, formatINR } from './ui'
 import { workerProfile } from '@/mockData';
 
 export function ProfileScreen() {
-  const { earnings, setRole, setScreen, registrationProfile } = useApp();
+  const { earnings, setRole, setScreen, registrationProfile, role, availability, dailyWorkStatus, setAvailability, setDailyWorkStatus } = useApp();
 
   const profile = registrationProfile;
   const displayName = profile?.name || '';
@@ -40,10 +45,9 @@ export function ProfileScreen() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-extrabold text-gray-900">{displayName || 'Your name'}</h1>
-
+            <h1 className="text-xl font-extrabold text-gray-900 dark:text-slate-100">{displayName || 'Your name'}</h1>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 mt-1">
             <MapPin size={14} /> {profile?.location || 'Location not provided'}
             <span>·</span>
             <Briefcase size={14} /> {displaySkill || 'Skill not provided'}
@@ -56,7 +60,7 @@ export function ProfileScreen() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Detail label="Mobile" value={profile?.phone || 'Not provided'} />
           <Detail label="Qualification" value={profile?.qualification || 'Not provided'} />
-          <Detail label="Monthly income" value={profile?.monthlyIncome ? formatINR(profile.monthlyIncome) : 'Not provided'} />
+          <Detail label="Experience" value={profile?.experience || '4 years'} />
           <Detail label="Emergency contact" value={profile?.emergencyContact || 'Not provided'} />
         </div>
       </Card>
@@ -64,38 +68,38 @@ export function ProfileScreen() {
       {/* Profile basics */}
       <Card className="p-4 mb-5 animate-slide-up">
         <div className="grid grid-cols-2 gap-3">
-          <div><p className="text-xs font-semibold text-gray-400">Gender</p><p className="font-bold text-gray-900 mt-1">{profile?.gender || 'Not provided'}</p></div>
-          <button onClick={() => setScreen('shramId')} className="text-left rounded-xl p-2 -m-2 hover:bg-brand-50 transition-colors"><p className="text-xs font-semibold text-gray-400">ShramaID</p><p className="font-bold text-brand-700 mt-1">{getShramaId(profile?.name, profile?.phone)}</p><p className="text-[10px] text-brand-600 font-bold mt-1">Open ShramaID →</p></button>
+          <div><p className="text-xs font-semibold text-gray-400 dark:text-slate-500">Gender</p><p className="font-bold text-gray-900 dark:text-slate-100 mt-1">{profile?.gender || 'Not provided'}</p></div>
+          <button onClick={() => setScreen('shramId')} className="text-left rounded-xl p-2 -m-2 hover:bg-brand-50 dark:hover:bg-slate-800 transition-colors"><p className="text-xs font-semibold text-gray-400 dark:text-slate-500">ShramaID</p><p className="font-bold text-brand-700 dark:text-brand-400 mt-1">{getShramaId(profile?.name, profile?.phone)}</p><p className="text-[10px] text-brand-600 dark:text-brand-400 font-bold mt-1">Open ShramaID →</p></button>
         </div>
       </Card>
 
       {/* Verification Banner */}
       <Card className="p-4 mb-5 flex items-center gap-3 animate-slide-up">
-        <div className="w-12 h-12 rounded-2xl bg-accent-50 flex items-center justify-center text-accent-600">
+        <div className="w-12 h-12 rounded-2xl bg-accent-50 dark:bg-emerald-950/60 flex items-center justify-center text-accent-600 dark:text-emerald-400">
           <Shield size={24} />
         </div>
         <div className="flex-1">
-          <p className="font-bold text-gray-900 text-sm">Profile information</p>
-          <p className="text-xs text-gray-500">Shown from the details you entered during prototype registration.</p>
+          <p className="font-bold text-gray-900 dark:text-slate-100 text-sm">Profile information</p>
+          <p className="text-xs text-gray-500 dark:text-slate-400">Shown from the details you entered during prototype registration.</p>
         </div>
-        <CheckCircle2 size={20} className="text-accent-500" />
+        <CheckCircle2 size={20} className="text-accent-500 dark:text-emerald-400" />
       </Card>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-2 mb-5">
         <Card className="p-3 text-center">
-          <p className="text-xl font-extrabold text-gray-900">{profile ? '—' : workerProfile.workCount}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Jobs Done</p>
+          <p className="text-xl font-extrabold text-gray-900 dark:text-slate-100">{profile ? '—' : workerProfile.workCount}</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Jobs Done</p>
         </Card>
         <Card className="p-3 text-center">
-          <p className="text-xl font-extrabold text-gray-900">{profile?.experience || '—'}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Experience</p>
+          <p className="text-xl font-extrabold text-gray-900 dark:text-slate-100">{profile?.experience || '—'}</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Experience</p>
         </Card>
         <Card className="p-3 text-center">
-          <p className="text-xl font-extrabold text-gray-900 flex items-center justify-center gap-0.5">
+          <p className="text-xl font-extrabold text-gray-900 dark:text-slate-100 flex items-center justify-center gap-0.5">
             4.8 <Star size={14} className="text-warning-500 fill-warning-500" />
           </p>
-          <p className="text-xs text-gray-400 mt-0.5">Rating</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Rating</p>
         </Card>
       </div>
 
@@ -109,26 +113,44 @@ export function ProfileScreen() {
         </div>
       </Card>
 
-      {/* Availability */}
-      <SectionTitle>Availability</SectionTitle>
-      <Card className="p-4 mb-5 animate-slide-up flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-accent-50 flex items-center justify-center text-accent-600">
-            <Clock size={20} />
-          </div>
-          <p className="font-semibold text-gray-900 text-sm">Currently Available</p>
-        </div>
-        <Badge color="green">Available</Badge>
-      </Card>
+      {/* Availability & daily status */}
+      {(role === 'labourer' || role === 'skilledWorker') && (
+        <>
+          <SectionTitle>Availability & Today's Status</SectionTitle>
+          <Card className="p-4 mb-5 animate-slide-up space-y-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${availability === 'available' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                {availability === 'available' ? <CircleCheck size={22} /> : <CircleX size={22} />}
+              </div>
+              <div className="flex-1"><p className="font-semibold text-gray-900 text-sm">Work availability</p><p className="text-xs text-gray-500">Let contractors know if you can accept work.</p></div>
+              <select value={availability} onChange={(e) => { const next = e.target.value as any; setAvailability(next); if (next === 'available') setDailyWorkStatus('workDone'); }} className={`px-3 py-2 rounded-xl border text-sm font-extrabold ${availability === 'available' ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'}`}><option value="available">🟢 Available</option><option value="unavailable">🔴 Unavailable</option></select>
+            </div>
+            {availability === 'unavailable' && (
+              <div className="grid grid-cols-2 gap-2">
+                {[['todayTimeUp', "Today's time up"], ['sickLeave', 'Sick leave'], ['festivalLeave', 'Festival leave']].map(([value, label]) => (
+                  <button key={value} onClick={() => setDailyWorkStatus(value as any)} className={`p-3 rounded-xl border text-left ${dailyWorkStatus === value ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'}`}>
+                    <p className="text-xs font-bold text-gray-800">{label}</p><p className="text-[10px] text-gray-500 mt-1">{dailyWorkStatus === value ? 'Selected' : 'Set status'}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+            {availability === 'available' && (
+              <button onClick={() => setDailyWorkStatus('workDone')} className="w-full p-3 rounded-xl border border-green-200 bg-green-50 text-left">
+                <p className="text-xs font-bold text-green-800">Work done</p><p className="text-[10px] text-green-700 mt-1">Available for work today</p>
+              </button>
+            )}
+          </Card>
+        </>
+      )}
 
       {/* Languages */}
       <SectionTitle>Languages</SectionTitle>
       <Card className="p-4 mb-5 animate-slide-up">
         <div className="flex flex-wrap gap-2">
           {displayLanguages.map((lang) => (
-            <div key={lang} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-50">
-              <Languages size={14} className="text-gray-400" />
-              <span className="text-sm font-semibold text-gray-700">{lang}</span>
+            <div key={lang} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-800/80 border border-gray-100 dark:border-slate-800">
+              <Languages size={14} className="text-gray-400 dark:text-slate-400" />
+              <span className="text-sm font-semibold text-gray-700 dark:text-slate-200">{lang}</span>
             </div>
           ))}
         </div>
@@ -140,14 +162,14 @@ export function ProfileScreen() {
         {profile ? [] : workerProfile.workHistory.map((wh, i) => (
           <Card key={i} className="p-4 animate-slide-up">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600">
+              <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/60 flex items-center justify-center text-brand-600 dark:text-brand-400">
                 <Briefcase size={18} />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-gray-900 text-sm">{wh.job}</p>
-                <p className="text-xs text-gray-500">{wh.employer}</p>
+                <p className="font-semibold text-gray-900 dark:text-slate-100 text-sm">{wh.job}</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">{wh.employer}</p>
               </div>
-              <div className="flex items-center gap-1 text-xs text-gray-400">
+              <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-slate-500">
                 <Calendar size={12} />
                 {wh.duration}
               </div>
@@ -161,24 +183,24 @@ export function ProfileScreen() {
       <Card className="p-4 mb-5 animate-slide-up">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <div className="flex items-center gap-1.5 text-gray-400 mb-1">
+            <div className="flex items-center gap-1.5 text-gray-400 dark:text-slate-500 mb-1">
               <IndianRupee size={14} />
               <span className="text-xs font-semibold">Total Received</span>
             </div>
-            <p className="text-xl font-extrabold text-accent-600">{formatINR(totalPaid)}</p>
+            <p className="text-xl font-extrabold text-accent-600 dark:text-emerald-400">{formatINR(totalPaid)}</p>
           </div>
           <div>
-            <div className="flex items-center gap-1.5 text-gray-400 mb-1">
+            <div className="flex items-center gap-1.5 text-gray-400 dark:text-slate-500 mb-1">
               <Clock size={14} />
               <span className="text-xs font-semibold">Pending</span>
             </div>
-            <p className="text-xl font-extrabold text-warning-600">{formatINR(totalPending)}</p>
+            <p className="text-xl font-extrabold text-warning-600 dark:text-amber-400">{formatINR(totalPending)}</p>
           </div>
         </div>
-        <div className="mt-3 pt-3 border-t border-gray-50">
+        <div className="mt-3 pt-3 border-t border-gray-50 dark:border-slate-800">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-400">Payment reliability</span>
-            <span className="font-semibold text-accent-600">95%</span>
+            <span className="text-gray-400 dark:text-slate-400">Payment reliability</span>
+            <span className="font-semibold text-accent-600 dark:text-emerald-400">95%</span>
           </div>
           <div className="mt-2">
             <ProgressBar value={95} max={100} colorClass="bg-accent-500" />
@@ -186,21 +208,21 @@ export function ProfileScreen() {
         </div>
       </Card>
 
-      <Card className="p-4 mb-5 animate-slide-up flex items-center justify-between cursor-pointer" onClick={() => setScreen('insurance')}>
+      <Card className="p-4 mb-5 animate-slide-up flex items-center justify-between cursor-pointer hover:border-brand-300 dark:hover:border-brand-700" onClick={() => setScreen('insurance')}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600">
+          <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/60 flex items-center justify-center text-brand-600 dark:text-brand-400">
             <Shield size={20} />
           </div>
           <div>
-            <p className="font-bold text-gray-900 text-sm">Insurance</p>
-            <p className="text-xs text-gray-500">View yearly protection and skill-based insurance recommendations</p>
+            <p className="font-bold text-gray-900 dark:text-slate-100 text-sm">Insurance</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400">View yearly protection and skill-based insurance recommendations</p>
           </div>
         </div>
-        <span className="text-xs font-bold text-brand-600">View</span>
+        <span className="text-xs font-bold text-brand-600 dark:text-brand-400">View</span>
       </Card>
 
       {/* Logout */}
-      <Button variant="ghost" className="w-full text-error-600 hover:bg-error-50" onClick={() => { setRole(null); setScreen('home'); }}>
+      <Button variant="ghost" className="w-full text-error-600 dark:text-red-400 hover:bg-error-50 dark:hover:bg-red-950/40" onClick={() => { setRole(null); setScreen('home'); }}>
         <LogOut size={18} className="mr-2" /> Switch Role
       </Button>
     </div>
@@ -208,9 +230,14 @@ export function ProfileScreen() {
 }
 
 function Detail({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-xl bg-gray-50 p-3"><p className="text-[10px] font-semibold text-gray-400">{label}</p><p className="text-sm font-bold text-gray-800 mt-1 break-words">{value}</p></div>;
+  return (
+    <div className="rounded-xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100/60 dark:border-slate-800/80 p-3">
+      <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-400">{label}</p>
+      <p className="text-sm font-bold text-gray-800 dark:text-slate-100 mt-1 break-words">{value}</p>
+    </div>
+  );
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-sm font-bold text-gray-700 mb-3">{children}</h2>;
+  return <h2 className="text-sm font-bold text-gray-700 dark:text-slate-300 mb-3">{children}</h2>;
 }

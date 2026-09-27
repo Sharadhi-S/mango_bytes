@@ -8,38 +8,44 @@ interface NavItem {
   icon: typeof Home;
 }
 
-const labourerNav: NavItem[] = [
-  { id: 'home', label: 'Home', icon: Home },
-  { id: 'jobs', label: 'Jobs', icon: Briefcase },
-  { id: 'earnings', label: 'Earnings', icon: Wallet },
-  { id: 'savings', label: 'Money', icon: Wallet },
-  { id: 'insurance', label: 'Insurance', icon: ShieldCheck },
-  { id: 'profile', label: 'Profile', icon: User },
-];
-
-const skilledWorkerNav: NavItem[] = [
-  { id: 'home', label: 'Home', icon: Home },
-  { id: 'jobs', label: 'Jobs', icon: Briefcase },
-  { id: 'earnings', label: 'Earnings', icon: Wallet },
-  { id: 'insurance', label: 'Insurance', icon: ShieldCheck },
-  { id: 'profile', label: 'Profile', icon: User },
-];
-
-const contractorNav: NavItem[] = [
-  { id: 'home', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'workers', label: 'Workers', icon: Users },
-  { id: 'postJob', label: 'Post Job', icon: Briefcase },
-  { id: 'wages', label: 'Wages', icon: CreditCard },
-  { id: 'messages', label: 'Messages', icon: MessageSquare },
-  { id: 'profile', label: 'Profile', icon: User },
-];
-
 export function BottomNav() {
-  const { role, screen, setScreen } = useApp();
-  const items = role === 'contractor' ? contractorNav : role === 'skilledWorker' ? skilledWorkerNav : labourerNav;
+  const { role, screen, setScreen, t } = useApp();
+
+  const labourerNav: NavItem[] = [
+    { id: 'home', label: t('navHome'), icon: Home },
+    { id: 'jobs', label: t('navJobs'), icon: Briefcase },
+    { id: 'earnings', label: t('navEarnings'), icon: Wallet },
+    { id: 'savings', label: t('navSavings'), icon: Wallet },
+    { id: 'insurance', label: t('insuranceTitle') || 'Insurance', icon: ShieldCheck },
+    { id: 'profile', label: t('navProfile'), icon: User },
+  ];
+
+  const skilledWorkerNav: NavItem[] = [
+    { id: 'home', label: t('navHome'), icon: Home },
+    { id: 'jobs', label: t('navJobs'), icon: Briefcase },
+    { id: 'earnings', label: t('navEarnings'), icon: Wallet },
+    { id: 'insurance', label: t('insuranceTitle') || 'Insurance', icon: ShieldCheck },
+    { id: 'profile', label: t('navProfile'), icon: User },
+  ];
+
+  const employerNav: NavItem[] = [
+    { id: 'home', label: t('employerHubTitle') || 'Business Hub', icon: LayoutDashboard },
+    { id: 'profile', label: t('navProfile'), icon: User },
+  ];
+
+  const contractorNav: NavItem[] = [
+    { id: 'home', label: t('navDashboard'), icon: LayoutDashboard },
+    { id: 'workers', label: t('navWorkers'), icon: Users },
+    { id: 'postJob', label: t('postJobTitle'), icon: Briefcase },
+    { id: 'wages', label: t('navWages'), icon: CreditCard },
+    { id: 'messages', label: t('navMessages'), icon: MessageSquare },
+    { id: 'profile', label: t('navProfile'), icon: User },
+  ];
+
+  const items = role === 'employer' ? employerNav : role === 'contractor' ? contractorNav : role === 'skilledWorker' ? skilledWorkerNav : labourerNav;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-gray-100 dark:border-slate-800 pb-[env(safe-area-inset-bottom)] transition-colors">
       <div className="max-w-2xl mx-auto flex items-stretch justify-around">
         {items.map((item) => {
           const Icon = item.icon;
@@ -48,12 +54,14 @@ export function BottomNav() {
             <button
               key={item.id}
               onClick={() => setScreen(item.id)}
-              className={`flex flex-col items-center justify-center gap-1 py-2.5 px-3 min-w-[60px] transition-colors ${active ? 'text-brand-600' : 'text-gray-400'}`}
+              className={`flex flex-col items-center justify-center gap-1 py-2.5 px-3 min-w-[60px] transition-colors ${
+                active ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200'
+              }`}
             >
-              <div className={`p-1.5 rounded-xl transition-all ${active ? 'bg-brand-50 scale-110' : ''}`}>
+              <div className={`p-1.5 rounded-xl transition-all ${active ? 'bg-brand-50 dark:bg-brand-950/60 scale-110' : ''}`}>
                 <Icon size={22} strokeWidth={active ? 2.5 : 2} />
               </div>
-              <span className={`text-[11px] font-semibold ${active ? 'text-brand-600' : 'text-gray-400'}`}>
+              <span className={`text-[11px] font-semibold ${active ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400 dark:text-slate-400'}`}>
                 {item.label}
               </span>
             </button>
