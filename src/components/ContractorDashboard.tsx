@@ -161,7 +161,7 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
           currentRole={role}
           onSelectRole={(nextRole) => {
             setRole(nextRole);
-            setScreen('home');
+            setScreen('auth');
           }}
         />
       </div>
@@ -571,7 +571,7 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
         currentRole={role}
         onSelectRole={(nextRole) => {
           setRole(nextRole);
-          setScreen('home');
+          setScreen('auth');
         }}
       />
     </div>

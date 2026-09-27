@@ -42,49 +42,106 @@
     background-color: #334155 !important;
   }
 
-  /* Translucent Colored Accent Surfaces */
-  html.dark [class*="bg-brand-50"],
-  html.dark [class*="bg-blue-50"] {
+  /* QR Code Surfaces must stay solid pure white */
+  html.dark .qr-code-surface,
+  html.dark img[alt*="QR"],
+  html.dark img[src*="qr"],
+  html.dark [data-qr-surface="true"],
+  html.dark .bg-white-pure {
+    background-color: #ffffff !important;
+  }
+
+  /* Translucent Colored Accent Surfaces (50 & 100 levels only) */
+  html.dark .bg-brand-50,
+  html.dark [class~="bg-brand-50"],
+  html.dark [class*="bg-brand-50/"],
+  html.dark .bg-blue-50,
+  html.dark [class~="bg-blue-50"],
+  html.dark [class*="bg-blue-50/"] {
     background-color: rgba(30, 58, 138, 0.28) !important;
   }
-  html.dark [class*="bg-brand-100"],
-  html.dark [class*="bg-blue-100"] {
+  html.dark .bg-brand-100,
+  html.dark [class~="bg-brand-100"],
+  html.dark [class*="bg-brand-100/"],
+  html.dark .bg-blue-100,
+  html.dark [class~="bg-blue-100"],
+  html.dark [class*="bg-blue-100/"] {
     background-color: rgba(30, 58, 138, 0.45) !important;
   }
-  html.dark [class*="bg-emerald-50"],
-  html.dark [class*="bg-green-50"],
-  html.dark [class*="bg-accent-50"] {
+  html.dark .bg-emerald-50,
+  html.dark [class~="bg-emerald-50"],
+  html.dark [class*="bg-emerald-50/"],
+  html.dark .bg-green-50,
+  html.dark [class~="bg-green-50"],
+  html.dark [class*="bg-green-50/"],
+  html.dark .bg-accent-50,
+  html.dark [class~="bg-accent-50"],
+  html.dark [class*="bg-accent-50/"] {
     background-color: rgba(6, 78, 59, 0.28) !important;
   }
-  html.dark [class*="bg-emerald-100"],
-  html.dark [class*="bg-green-100"],
-  html.dark [class*="bg-accent-100"] {
+  html.dark .bg-emerald-100,
+  html.dark [class~="bg-emerald-100"],
+  html.dark [class*="bg-emerald-100/"],
+  html.dark .bg-green-100,
+  html.dark [class~="bg-green-100"],
+  html.dark [class*="bg-green-100/"],
+  html.dark .bg-accent-100,
+  html.dark [class~="bg-accent-100"],
+  html.dark [class*="bg-accent-100/"] {
     background-color: rgba(6, 78, 59, 0.45) !important;
   }
-  html.dark [class*="bg-amber-50"],
-  html.dark [class*="bg-yellow-50"],
-  html.dark [class*="bg-warning-50"],
-  html.dark [class*="bg-orange-50"] {
+  html.dark .bg-amber-50,
+  html.dark [class~="bg-amber-50"],
+  html.dark [class*="bg-amber-50/"],
+  html.dark .bg-yellow-50,
+  html.dark [class~="bg-yellow-50"],
+  html.dark [class*="bg-yellow-50/"],
+  html.dark .bg-warning-50,
+  html.dark [class~="bg-warning-50"],
+  html.dark [class*="bg-warning-50/"],
+  html.dark .bg-orange-50,
+  html.dark [class~="bg-orange-50"],
+  html.dark [class*="bg-orange-50/"] {
     background-color: rgba(120, 53, 15, 0.28) !important;
   }
-  html.dark [class*="bg-amber-100"],
-  html.dark [class*="bg-yellow-100"],
-  html.dark [class*="bg-warning-100"] {
+  html.dark .bg-amber-100,
+  html.dark [class~="bg-amber-100"],
+  html.dark [class*="bg-amber-100/"],
+  html.dark .bg-yellow-100,
+  html.dark [class~="bg-yellow-100"],
+  html.dark [class*="bg-yellow-100/"],
+  html.dark .bg-warning-100,
+  html.dark [class~="bg-warning-100"],
+  html.dark [class*="bg-warning-100/"] {
     background-color: rgba(120, 53, 15, 0.45) !important;
   }
-  html.dark [class*="bg-purple-50"],
-  html.dark [class*="bg-indigo-50"] {
+  html.dark .bg-purple-50,
+  html.dark [class~="bg-purple-50"],
+  html.dark [class*="bg-purple-50/"],
+  html.dark .bg-indigo-50,
+  html.dark [class~="bg-indigo-50"],
+  html.dark [class*="bg-indigo-50/"] {
     background-color: rgba(88, 28, 135, 0.28) !important;
   }
-  html.dark [class*="bg-purple-100"] {
+  html.dark .bg-purple-100,
+  html.dark [class~="bg-purple-100"],
+  html.dark [class*="bg-purple-100/"] {
     background-color: rgba(88, 28, 135, 0.45) !important;
   }
-  html.dark [class*="bg-red-50"],
-  html.dark [class*="bg-error-50"] {
+  html.dark .bg-red-50,
+  html.dark [class~="bg-red-50"],
+  html.dark [class*="bg-red-50/"],
+  html.dark .bg-error-50,
+  html.dark [class~="bg-error-50"],
+  html.dark [class*="bg-error-50/"] {
     background-color: rgba(127, 29, 29, 0.28) !important;
   }
-  html.dark [class*="bg-red-100"],
-  html.dark [class*="bg-error-100"] {
+  html.dark .bg-red-100,
+  html.dark [class~="bg-red-100"],
+  html.dark [class*="bg-red-100/"],
+  html.dark .bg-error-100,
+  html.dark [class~="bg-error-100"],
+  html.dark [class*="bg-error-100/"] {
     background-color: rgba(127, 29, 29, 0.45) !important;
   }
 
@@ -449,7 +506,8 @@ body {
 
 [class~="bg-white"] { background-color: var(--surface); }
 [class~="bg-white/80"] { background-color: color-mix(in srgb, var(--surface) 90%, transparent); }
-[class~="bg-gray-50"], [class~="bg-gray-50/60"] { background-color: transparent; }
+[class~="bg-gray-50"] { background-color: var(--gray-50); }
+[class~="bg-gray-50/60"] { background-color: color-mix(in srgb, var(--gray-50) 60%, transparent); }
 [class~="bg-gray-100"], [class~="bg-gray-100/70"] { background-color: var(--surface-raised); }
 [class~="bg-gray-200"] { background-color: var(--gray-200); }
 [class~="bg-gray-300"] { background-color: var(--gray-300); }

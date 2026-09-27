@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
-import { ArrowLeft, CheckCircle2, KeyRound, LogIn, UserPlus, Sun, Moon } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, KeyRound, LogIn, UserPlus } from 'lucide-react';
 import { useApp } from '@/AppContext';
 import { Card, Button, ScreenHeader } from './ui';
+import { ThemeSelector } from './ThemeSelector';
 import { getShramaId } from './ShramaIDScreen';
 import { LANGUAGES } from '@/i18n';
 import type { Role } from '@/types';
 
 export function AuthScreen() {
-  const { role, setRole, setScreen, setRegistrationProfile, setLang, showToast, theme, toggleTheme } = useApp();
+  const { role, setRole, setScreen, setRegistrationProfile, setLang, showToast } = useApp();
   const [mode, setMode] = useState<'choice' | 'signin'>('choice');
   const [shramaId, setShramaId] = useState('');
   const [phone, setPhone] = useState('');
@@ -47,19 +48,7 @@ export function AuthScreen() {
       <div className="min-h-screen bg-gray-50 dark:bg-slate-950 px-5 pt-8 pb-12 max-w-xl mx-auto text-gray-900 dark:text-slate-100 transition-colors">
         <div className="flex items-center justify-between mb-4">
           <ScreenHeader title="Sign in with ShramaID" subtitle={`Access your ${roleLabel} account securely`} showBack={false} />
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-700 flex items-center justify-center transition-all shadow-xs"
-            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            aria-label="Toggle theme mode"
-          >
-            {theme === 'dark' ? (
-              <Sun size={17} className="text-amber-400" />
-            ) : (
-              <Moon size={17} className="text-slate-700" />
-            )}
-          </button>
+          <ThemeSelector />
         </div>
 
         <Card className="p-5 space-y-4 border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
@@ -108,19 +97,7 @@ export function AuthScreen() {
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950 px-5 pt-8 pb-12 max-w-xl mx-auto text-gray-900 dark:text-slate-100 transition-colors">
       <div className="flex items-center justify-between mb-2">
         <ScreenHeader title="Account access" subtitle={`Continue as ${roleLabel}`} showBack={false} />
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-700 flex items-center justify-center transition-all shadow-xs"
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          aria-label="Toggle theme mode"
-        >
-          {theme === 'dark' ? (
-            <Sun size={17} className="text-amber-400" />
-          ) : (
-            <Moon size={17} className="text-slate-700" />
-          )}
-        </button>
+        <ThemeSelector />
       </div>
 
       <button

@@ -1,27 +1,14 @@
-import { HardHat, Building2, ArrowRight, ChefHat, Sun, Moon } from 'lucide-react';
+import { HardHat, Building2, ArrowRight, ChefHat } from 'lucide-react';
 import { useApp } from '@/AppContext';
 import { ThemeSelector } from './ThemeSelector';
 import { LANGUAGES } from '@/i18n';
 
 export function RoleSelect() {
-  const { setRole, setScreen, theme, toggleTheme, t, lang, setLang } = useApp();
+  const { setRole, setScreen, t, lang, setLang } = useApp();
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-brand-50 via-white to-accent-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col items-center justify-center px-6 py-10 transition-colors">
       <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className="w-9 h-9 rounded-xl bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-700 flex items-center justify-center transition-all shadow-xs"
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          aria-label="Toggle theme mode"
-        >
-          {theme === 'dark' ? (
-            <Sun size={17} className="text-amber-400 hover:rotate-45 transition-transform" />
-          ) : (
-            <Moon size={17} className="text-slate-700 hover:-rotate-12 transition-transform" />
-          )}
-        </button>
         <ThemeSelector />
         <select
           aria-label="Language"

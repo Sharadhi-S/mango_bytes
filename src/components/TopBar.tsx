@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { HardHat, Building2, Bell, ChefHat, LogOut, ArrowLeftRight, Sun, Moon, Briefcase } from 'lucide-react';
+import { HardHat, Building2, Bell, ChefHat, LogOut, ArrowLeftRight, Briefcase } from 'lucide-react';
 import { LANGUAGES } from '@/i18n';
 import { useApp } from '@/AppContext';
 import { ThemeSelector } from './ThemeSelector';
 import { RoleSwitcher } from './RoleSwitcher';
 
 export function TopBar() {
-  const { role, conversations, registrationProfile, setRole, setScreen, lang, setLang, theme, toggleTheme } = useApp();
+  const { role, conversations, registrationProfile, setRole, setScreen, lang, setLang } = useApp();
   const [switchOpen, setSwitchOpen] = useState(false);
   const unread = conversations.reduce((s, c) => s + c.unread, 0);
 
@@ -39,21 +39,6 @@ export function TopBar() {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2.5">
-          {/* Quick Light / Dark Mode Toggle */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center justify-center text-gray-600 dark:text-slate-300 transition-colors"
-            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            aria-label="Toggle theme mode"
-          >
-            {theme === 'dark' ? (
-              <Sun size={17} className="text-amber-400 hover:rotate-45 transition-transform" />
-            ) : (
-              <Moon size={17} className="text-slate-700 hover:-rotate-12 transition-transform" />
-            )}
-          </button>
-
           <ThemeSelector />
 
           {/* Language Selector */}
@@ -129,7 +114,7 @@ export function TopBar() {
         currentRole={role}
         onSelectRole={(newRole) => {
           setRole(newRole);
-          setScreen('home');
+          setScreen('auth');
         }}
       />
     </header>

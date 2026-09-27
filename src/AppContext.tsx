@@ -214,35 +214,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
   const [workerSkill, setWorkerSkill] = useState('Mason');
   const [monthlySalary, setMonthlySalary] = useState(18000);
-  const applyThemeToDOM = (nextTheme: ThemeMode) => {
+  const applyThemeToDOM = useCallback((nextTheme: ThemeMode) => {
     if (typeof document === 'undefined') return;
+
+    const isDarkTheme = nextTheme === 'dark' || nextTheme === 'high-contrast';
     document.documentElement.dataset.theme = nextTheme;
-    if (nextTheme === 'dark' || nextTheme === 'high-contrast') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
+    document.documentElement.style.colorScheme = isDarkTheme ? 'dark' : 'light';
+    document.documentElement.classList.toggle('dark', isDarkTheme);
+    document.body.classList.toggle('dark', isDarkTheme);
+  }, []);
 
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     const storedTheme = typeof localStorage !== 'undefined' ? localStorage.getItem('shrama-theme') : null;
     const initialTheme: ThemeMode = storedTheme === 'dark' || storedTheme === 'high-contrast' ? storedTheme : 'light';
-    applyThemeToDOM(initialTheme);
     return initialTheme;
   });
 
+  useEffect(() => {
+    applyThemeToDOM(theme);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('shrama-theme', theme);
+    }
+  }, [theme, applyThemeToDOM]);
+
   const setTheme = useCallback((nextTheme: ThemeMode) => {
     setThemeState(nextTheme);
-    localStorage.setItem('shrama-theme', nextTheme);
-    applyThemeToDOM(nextTheme);
   }, []);
 
   const toggleTheme = useCallback(() => {
     setThemeState((curr) => {
-      const next: ThemeMode = curr === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('shrama-theme', next);
-      applyThemeToDOM(next);
-      return next;
+      if (curr === 'dark' || curr === 'high-contrast') return 'light';
+      return 'dark';
     });
   }, []);
 
