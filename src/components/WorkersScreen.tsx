@@ -1,16 +1,49 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MapPin, CheckCircle2, Briefcase, Phone, UserPlus, X, Star, ShieldCheck, Home } from 'lucide-react';
 import { Card, ScreenHeader, Avatar, Badge, Button } from './ui';
+import { useApp } from '@/AppContext';
 import { initialContractorWorkers } from '@/mockData';
 import type { ContractorWorker } from '@/types';
 
 export function WorkersScreen() {
+  const { showToast } = useApp();
   const [selected, setSelected] = useState<ContractorWorker | null>(null);
   const [assigned, setAssigned] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('All');
+  const [registeredWorkers, setRegisteredWorkers] = useState<ContractorWorker[]>([]);
 
-  const filtered = useMemo(() => initialContractorWorkers.filter((worker) => {
+  useEffect(() => {
+    let active = true;
+    fetch('/api/workers')
+      .then(async (response) => {
+        const result = await response.json() as { workers?: ContractorWorker[]; assignedWorkerIds?: string[]; error?: string };
+        if (!response.ok) throw new Error(result.error || 'Could not load registered workers.');
+        return result;
+      })
+      .then((result) => {
+        if (!active) return;
+        setRegisteredWorkers(result.workers || []);
+        setAssigned(new Set(result.assignedWorkerIds || []));
+      })
+      .catch((error: unknown) => {
+        if (active) showToast(error instanceof Error ? error.message : 'Could not load registered workers.');
+      });
+    return () => { active = false; };
+  }, [showToast]);
+
+  const availableWorkers = useMemo(() => {
+    const seen = new Set<string>();
+    return [...registeredWorkers, ...initialContractorWorkers].filter((worker) => {
+      const city = worker.location.split(',')[0].trim().toLowerCase();
+      const key = `${worker.name.trim().toLowerCase()}|${worker.primarySkill.trim().toLowerCase()}|${city}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [registeredWorkers]);
+
+  const filtered = useMemo(() => availableWorkers.filter((worker) => {
     const q = query.toLowerCase().trim();
     const matchesQuery = !q || [worker.name, worker.primarySkill, worker.location].some((v) => v.toLowerCase().includes(q));
     const matchesFilter = filter === 'All' ||
@@ -19,10 +52,32 @@ export function WorkersScreen() {
       (filter === 'Mason' && worker.primarySkill === 'Mason') ||
       (filter === 'Skilled Workers' && worker.category === 'skilledWorker');
     return matchesQuery && matchesFilter;
-  }), [query, filter]);
+  }), [availableWorkers, query, filter]);
 
-  const handleAssign = (id: string) => setAssigned((prev) => new Set(prev).add(id));
-  const shramaId = (id: string) => `SHR-${id.toUpperCase()}-${id === 'w1' ? '4821' : id === 'w2' ? '7314' : '5906'}`;
+  const handleAssign = async (id: string) => {
+    // Demo workers use local mock IDs (w1, w2, ...). Keep those assignments
+    // in the current prototype session instead of sending them to the API.
+    const isMockWorker = initialContractorWorkers.some((worker) => worker.id === id);
+    if (isMockWorker) {
+      setAssigned((previous) => new Set(previous).add(id));
+      showToast('Worker assigned successfully.');
+      return;
+    }
+    try {
+      const response = await fetch('/api/workers/assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workerId: id }),
+      });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || 'Could not assign worker.');
+      setAssigned((previous) => new Set(previous).add(id));
+      showToast('Worker assigned successfully.');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Could not assign worker.');
+    }
+  };
+  const shramaId = (worker: ContractorWorker) => worker.shramaId || `SHR-${worker.id.toUpperCase()}-${worker.id === 'w1' ? '4821' : worker.id === 'w2' ? '7314' : '5906'}`;
 
   return (
     <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8">
@@ -64,7 +119,7 @@ export function WorkersScreen() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 mb-3">
-              <Badge color={worker.availability === 'Available' ? 'green' : 'gray'}>{worker.availability}</Badge>
+              <Badge color={worker.availability === 'Available' ? 'green' : 'red'}>{worker.availability}</Badge>
               <Badge color="blue"><Briefcase size={12} /> {worker.workCount} jobs</Badge>
               {worker.category === 'skilledWorker' && <Badge color="blue">Skilled Worker</Badge>}
               {worker.verified && <Badge color="green"><CheckCircle2 size={12} /> Verified</Badge>}
@@ -86,9 +141,9 @@ export function WorkersScreen() {
       {filtered.length === 0 && <Card className="p-8 text-center"><p className="font-bold text-gray-900">No matching profiles</p><p className="text-sm text-gray-500 mt-1">Try another skill, name, or location.</p></Card>}
 
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setSelected(null)}>
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-5" onClick={() => setSelected(null)}>
           <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-          <div className="relative bg-white w-full max-w-2xl rounded-t-3xl p-6 pb-8 animate-slide-up max-h-[88vh] overflow-y-auto no-scrollbar" onClick={(e) => e.stopPropagation()}>
+          <div className="relative bg-white w-full max-w-2xl rounded-3xl p-5 sm:p-6 pb-8 animate-slide-up max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-2.5rem)] overflow-y-auto overscroll-contain no-scrollbar shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-extrabold text-gray-900">Worker Profile</h2>
               <button onClick={() => setSelected(null)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><X size={20} /></button>
@@ -105,7 +160,7 @@ export function WorkersScreen() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2"><h3 className="text-xl font-extrabold text-gray-900 truncate">{selected.name}</h3>{selected.verified && <CheckCircle2 size={18} className="text-accent-500" />}</div>
                 <p className="text-sm text-gray-500">{selected.primarySkill} · {selected.experience}</p>
-                <p className="text-xs text-brand-700 font-bold mt-1">ShramaID: {shramaId(selected.id)}</p>
+                <p className="text-xs text-brand-700 font-bold mt-1">ShramaID: {shramaId(selected)}</p>
               </div>
             </div>
 
@@ -113,7 +168,31 @@ export function WorkersScreen() {
               <div className="p-3 rounded-xl bg-gray-50"><p className="text-xs text-gray-400 font-semibold">Workforce Trust Score</p><p className="font-extrabold text-gray-900 text-lg mt-0.5">{selected.verified ? '94/100' : '76/100'}</p></div>
               <div className="p-3 rounded-xl bg-gray-50"><p className="text-xs text-gray-400 font-semibold">Rating</p><p className="font-bold text-gray-900 text-sm mt-0.5 flex items-center gap-1">4.8 <Star size={14} className="text-warning-500 fill-warning-500" /> · {selected.workCount} jobs</p></div>
               <div className="p-3 rounded-xl bg-gray-50"><p className="text-xs text-gray-400 font-semibold">Location</p><p className="font-bold text-gray-900 text-sm mt-0.5">{selected.location}</p></div>
-              <div className="p-3 rounded-xl bg-gray-50"><p className="text-xs text-gray-400 font-semibold">Availability</p><p className="font-bold text-gray-900 text-sm mt-0.5">{selected.availability}</p></div>
+              <div className="p-3 rounded-xl bg-gray-50"><p className="text-xs text-gray-400 font-semibold">Availability</p><p className={`font-bold text-sm mt-0.5 ${selected.availability === 'Available' ? 'text-accent-600' : 'text-red-500'}`}>{selected.availability}</p></div>
+            </div>
+            <div className="mb-4">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Complete profile</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-gray-50"><p className="text-[10px] text-gray-400 font-semibold">Phone</p><p className="font-bold text-gray-800 text-sm mt-1">+91 98765 43210</p></div>
+                <div className="p-3 rounded-xl bg-gray-50"><p className="text-[10px] text-gray-400 font-semibold">Qualification</p><p className="font-bold text-gray-800 text-sm mt-1">ITI / Diploma</p></div>
+                <div className="p-3 rounded-xl bg-gray-50"><p className="text-[10px] text-gray-400 font-semibold">Languages</p><p className="font-bold text-gray-800 text-sm mt-1">Kannada, Hindi, English</p></div>
+                <div className="p-3 rounded-xl bg-gray-50"><p className="text-[10px] text-gray-400 font-semibold">Work preference</p><p className="font-bold text-gray-800 text-sm mt-1">Local / nearby sites</p></div>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Skills & work history</p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <Badge color="blue">{selected.primarySkill}</Badge><Badge color="blue">Safety trained</Badge><Badge color="blue">Site experience</Badge>
+              </div>
+              <div className="space-y-2">
+                {[['Residential construction', 'Kumar Constructions', '3 months'], ['Finishing / repair work', 'Local site projects', '2 months'], ['Previous site assignment', 'Verified employer', '1 month']].map(([job, employer, duration]) => <div key={job} className="p-3 rounded-xl border border-gray-100 bg-white"><div className="flex items-center justify-between gap-2"><p className="text-sm font-bold text-gray-800">{job}</p><span className="text-[10px] text-gray-400">{duration}</span></div><p className="text-xs text-gray-500 mt-1">{employer}</p></div>)}
+              </div>
+            </div>
+
+            <div className="mb-4 p-4 rounded-2xl bg-gray-50">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Work reliability</p>
+              <div className="grid grid-cols-3 gap-2 text-center"><div><p className="font-extrabold text-gray-900">{selected.workCount}</p><p className="text-[10px] text-gray-400">Jobs</p></div><div><p className="font-extrabold text-gray-900">95%</p><p className="text-[10px] text-gray-400">Attendance</p></div><div><p className="font-extrabold text-gray-900">On time</p><p className="text-[10px] text-gray-400">Recent status</p></div></div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-4">
