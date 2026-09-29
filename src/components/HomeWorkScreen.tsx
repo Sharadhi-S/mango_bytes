@@ -55,7 +55,7 @@ export function HomeWorkScreen() {
               </div>
               <div className="flex flex-col gap-2">
                 {invited.has(worker.id) ? <Button variant="success" size="sm" disabled><CheckCircle2 size={15} className="mr-1" /> Invited</Button> : <Button size="sm" onClick={() => invite(worker.id)}><UserPlus size={15} className="mr-1" /> Invite</Button>}
-                <button className="px-3 py-2 rounded-lg bg-gray-50 text-gray-600"><Phone size={16} /></button>
+                <button onClick={() => { window.open('tel:+919845012345'); }} className="px-3 py-2 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 flex items-center justify-center transition-colors" title="Call Worker"><Phone size={16} /></button>
               </div>
             </div>
           </Card>

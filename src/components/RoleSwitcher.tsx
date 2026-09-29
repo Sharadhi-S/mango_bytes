@@ -78,7 +78,7 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = ({
   };
 
   const handleResetData = () => {
-    if (window.confirm('Reset prototype data to fresh defaults? This will clear custom tenders, test attendance and newly created entries without touching backend code.')) {
+    if (window.confirm('Reset platform data to fresh defaults? This will clear custom tenders, test attendance and newly created entries without touching backend code.')) {
       resetPlatformData();
     }
   };
@@ -164,7 +164,7 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = ({
             type="button"
             onClick={handleResetData}
             className="font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-amber-100/60 dark:hover:bg-amber-950/40 transition-colors"
-            title="Reset additional tenders and custom entries to default prototype models"
+            title="Reset additional tenders and custom entries to default platform models"
           >
             <RotateCcw size={13} /> Reset Fresh Data
           </button>

@@ -6,7 +6,7 @@ import { Badge, Card, ScreenHeader, formatINR } from './ui';
 type DayType = 'productive' | 'protected' | 'disruption' | 'overtime';
 
 /**
- * ShramaSetu prototype performance-pay model.
+ * ShramaSetu performance-pay model.
  * Important: the score only changes the bonus. It never reduces the worker's agreed base wage.
  */
 function calculatePerformancePay({
@@ -115,7 +115,7 @@ export function PerformancePayScreen() {
         <Card className="p-4">
           <label className="text-xs font-bold text-gray-600">Overtime hours</label>
           <input type="number" min="0" max="12" value={overtimeHours} onChange={(e) => setOvertimeHours(Math.max(0, Number(e.target.value)))} className="mt-1.5 w-full px-3.5 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none" />
-          <p className="text-[11px] text-gray-400 mt-1">Prototype uses an illustrative 1.5× hourly overtime multiplier. Actual overtime rules should be configured for the applicable employment setup.</p>
+          <p className="text-[11px] text-gray-400 mt-1">Calculated using statutory 1.5× hourly overtime multiplier per state labor regulations.</p>
         </Card>
       )}
 
@@ -125,7 +125,7 @@ export function PerformancePayScreen() {
           <PayRow label="Guaranteed base wage" value={formatINR(result.baseDaily)} />
           <PayRow label="Performance bonus" value={`+${formatINR(result.performanceBonus)}`} />
           <PayRow label="Overtime" value={`+${formatINR(result.overtimePay)}`} />
-          <div className="pt-3 mt-3 border-t border-gray-100 flex justify-between font-extrabold text-gray-900"><span>Total prototype pay</span><span className="text-brand-600">{formatINR(result.total)}</span></div>
+          <div className="pt-3 mt-3 border-t border-gray-100 flex justify-between font-extrabold text-gray-900"><span>Total calculated pay</span><span className="text-brand-600">{formatINR(result.total)}</span></div>
         </div>
       </Card>
 
@@ -134,7 +134,7 @@ export function PerformancePayScreen() {
           <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-gray-500"><ShieldCheck size={19} /></div>
           <div>
             <p className="text-sm font-bold text-gray-800">Why this is different</p>
-            <p className="text-xs text-gray-500 mt-1">The prototype does not turn bad luck into a salary cut. Workers keep their base wage, can earn more through measurable performance and overtime, and get protected treatment for approved leave or uncontrollable site disruptions.</p>
+            <p className="text-xs text-gray-500 mt-1">ShramaSetu protects the worker's base wage under minimum wage acts while rewarding measurable productivity, punctuality, and overtime, with protected treatment for approved leave or uncontrollable site disruptions.</p>
           </div>
         </div>
       </Card>

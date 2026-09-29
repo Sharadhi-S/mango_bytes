@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { Card, Button, formatINR } from './ui';
 import type { Tender, TenderWorkforceItem } from '@/types';
-import { SAMPLE_TENDER_DOC, simulateAITenderExtraction, type ExtractedTenderData } from '@/backend/aiExtractionService';
+import { simulateAITenderExtraction, type ExtractedTenderData } from '@/backend/aiExtractionService';
 
 interface AddTenderModalProps {
   isOpen: boolean;
@@ -108,13 +108,6 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, onSave, t }:
     setSelectedFile(fileInfo);
     setStep('analyzing');
     setAnalysisStepIndex(0);
-  };
-
-  const handleLoadSample = () => {
-    handleStartAnalysis({
-      name: SAMPLE_TENDER_DOC.fileName,
-      size: SAMPLE_TENDER_DOC.fileSize,
-    });
   };
 
   const handleFileDrop = (e: React.DragEvent) => {
@@ -225,7 +218,7 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, onSave, t }:
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-scale-up transition-colors">
+      <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-scale-up transition-colors">
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-brand-50/50 to-white dark:from-slate-950 dark:to-slate-900">
           <div className="flex items-center gap-3">
@@ -299,29 +292,6 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, onSave, t }:
                 </span>
               </div>
 
-              {/* 1-Click Demo Sample Button */}
-              <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 rounded-2xl border border-amber-200 dark:border-amber-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
-                    <FileText size={18} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-black text-amber-950 dark:text-amber-200">Quick Hackathon Demo:</p>
-                    <p className="text-[11px] text-amber-800 dark:text-amber-300">
-                      Load official sample: <strong>Belagavi Highway Package 4 Work Order (PDF)</strong>
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleLoadSample}
-                  className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-black rounded-xl shrink-0 shadow-xs flex items-center gap-1.5 transition-all"
-                >
-                  <Sparkles size={14} />
-                  Load Sample PDF
-                </button>
-              </div>
-
               {/* Fallback to Manual Entry */}
               <div className="pt-2 text-center">
                 <button
@@ -358,7 +328,7 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, onSave, t }:
                   AI Analyzing Tender Document...
                 </h3>
                 <p className="text-xs text-brand-600 dark:text-brand-400 font-semibold">
-                  Document: {selectedFile?.name || SAMPLE_TENDER_DOC.fileName} ({selectedFile?.size || '2.4 MB'})
+                  Document: {selectedFile?.name || 'Tender-Document.pdf'} ({selectedFile?.size || '2.4 MB'})
                 </p>
               </div>
 
@@ -522,7 +492,7 @@ export function AddTenderModal({ isOpen, onClose, onProjectCreated, onSave, t }:
                   </div>
                 </div>
 
-                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
                   {requirements.map((r) => (
                     <div
                       key={r.id}

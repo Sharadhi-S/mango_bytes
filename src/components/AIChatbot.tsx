@@ -164,7 +164,7 @@ export function AIChatbot() {
       <Card className="overflow-hidden shadow-float">
         <div className="bg-slate-900 dark:bg-slate-950 text-white p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center"><Bot size={21} /></div>
-          <div className="flex-1"><p className="font-extrabold text-sm">{role === 'skilledWorker' ? 'Skilled Worker AI Coach' : 'ShramaSetu AI Assistant'}</p><p className="text-[11px] text-slate-400">Prototype guidance only</p></div>
+          <div className="flex-1"><p className="font-extrabold text-sm">{role === 'skilledWorker' ? 'Skilled Worker AI Coach' : 'ShramaSetu AI Assistant'}</p><p className="text-[11px] text-slate-400">AI Assistant & Career Guide</p></div>
           <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"><X size={17} /></button>
         </div>
         <div className="p-2 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 flex gap-2">

@@ -120,6 +120,8 @@ export interface ContractorWorker {
   workCount: number;
   verified: boolean;
   avatar: string;
+  phone?: string;
+  matchScore?: number;
 }
 
 export interface AttendanceRow {

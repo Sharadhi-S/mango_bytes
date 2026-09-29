@@ -106,7 +106,7 @@ export function RoleSelect() {
       </div>
 
       <p className="mt-10 text-xs text-gray-400 dark:text-slate-500 text-center max-w-xs">
-        {t('demoNote') || 'This is a demo prototype. All data shown is mock data for demonstration purposes.'}
+        {t('platformNotice') || "Empowering India's workforce with verified identity, statutory muster, and direct payments."}
       </p>
     </div>
   );

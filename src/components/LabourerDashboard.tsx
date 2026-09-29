@@ -51,7 +51,7 @@ export function LabourerDashboard() {
       {/* Greeting */}
       <div className="animate-slide-up">
         <p className="text-sm text-gray-500 dark:text-slate-400">{t('goodMorning') || 'Good morning'},</p>
-        <h1 className="text-2xl font-extrabold text-gray-900 dark:text-slate-100">{registrationProfile?.name || 'Ravi Kumar'}</h1>
+        <h1 className="text-2xl font-extrabold text-gray-900 dark:text-slate-100">{registrationProfile?.name || 'Worker'}</h1>
       </div>
 
       {/* Earnings Hero Card */}

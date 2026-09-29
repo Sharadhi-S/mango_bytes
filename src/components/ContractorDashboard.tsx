@@ -98,11 +98,11 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
               {(registrationProfile?.name || 'Contractor').split(' ').filter(Boolean).map((part) => part[0]).slice(0, 2).join('').toUpperCase()}
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg font-extrabold text-gray-900 dark:text-slate-100">{registrationProfile?.name || 'Rajesh Kumar'}</h2>
-              <p className="text-sm text-gray-500 dark:text-slate-400">{registrationProfile?.company || 'Kumar Constructions'} · {roleLabel}</p>
+              <h2 className="text-lg font-extrabold text-gray-900 dark:text-slate-100">{registrationProfile?.name || 'Contractor'}</h2>
+              <p className="text-sm text-gray-500 dark:text-slate-400">{registrationProfile?.company || 'Independent Operations'} · {roleLabel}</p>
               <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 mt-1">
                 <MapPin size={14} />
-                <span>{registrationProfile?.location || 'Belagavi, Karnataka'}</span>
+                <span>{registrationProfile?.location || 'Karnataka, India'}</span>
               </div>
             </div>
           </div>
@@ -134,7 +134,7 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
               </div>
               <div>
                 <p className="text-xs font-semibold text-gray-400 dark:text-slate-500">{t('phone') || 'Contact'}</p>
-                <p className="font-bold text-gray-900 dark:text-slate-100 mt-0.5">{registrationProfile?.phone || '+91 98450 12345'}</p>
+                <p className="font-bold text-gray-900 dark:text-slate-100 mt-0.5">{registrationProfile?.phone || 'Not provided'}</p>
               </div>
             </div>
           </Card>
@@ -173,7 +173,7 @@ export function ContractorDashboard({ showProfileInitially = false }: { showProf
       <div className="flex items-start justify-between gap-3 mb-6">
         <ScreenHeader
           title={t('contractorHubTitle') || 'Contractor Operations Hub'}
-          subtitle={registrationProfile?.company || registrationProfile?.name || 'Kumar Construction Services'}
+          subtitle={registrationProfile?.company || registrationProfile?.name || 'Registered Contractor Operations'}
           showBack={false}
         />
         <div className="flex items-center gap-2">

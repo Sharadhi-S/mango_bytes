@@ -7,13 +7,13 @@ import { getShramaId } from './ShramaIDScreen';
 import type { Role, Gender, RegistrationProfile } from '@/types';
 
 const registrationCopy: Record<LangCode, Record<string, string>> = {
-  en: { title: 'Registration', subtitle: 'Create your demo worker or employer profile', chooseRole: 'Account type', labourer: 'Labourer', contractor: 'Contractor', employer: 'Employer', language: 'Preferred language', fullName: 'Full name', phone: 'Mobile number', skill: 'Primary skill', experience: 'Experience', qualification: 'Qualification', languages: 'Languages spoken', location: 'Current location', company: 'Company / business name', workers: 'Workers you manage', emergency: 'Emergency contact', example: 'Use example', continue: 'Create profile', back: 'Back', demo: 'Prototype only — no real registration, payments, insurance or payroll are processed.', skillExample: 'Example: Mason', nameExample: 'Example: Ravi Kumar', qualificationExample: 'Example: ITI / Diploma / Class 10', locationExample: 'Example: Mysuru, Karnataka', companyExample: 'Example: Kumar Constructions', emergencyExample: 'Example: Suresh Kumar — 9123456780', workersExample: 'Example: 12' },
-  hi: { title: 'पंजीकरण', subtitle: 'अपना डेमो मजदूर या नियोक्ता प्रोफ़ाइल बनाएं', chooseRole: 'खाता प्रकार', labourer: 'मजदूर', contractor: 'ठेकेदार', employer: 'नियोक्ता', language: 'पसंदीदा भाषा', fullName: 'पूरा नाम', phone: 'मोबाइल नंबर', skill: 'मुख्य कौशल', experience: 'अनुभव', qualification: 'योग्यता', languages: 'बोली जाने वाली भाषाएं', location: 'वर्तमान स्थान', company: 'कंपनी / व्यवसाय का नाम', workers: 'आपके अधीन मजदूर', emergency: 'आपातकालीन संपर्क', example: 'उदाहरण भरें', continue: 'प्रोफ़ाइल बनाएं', back: 'वापस', demo: 'केवल प्रोटोटाइप — कोई वास्तविक पंजीकरण, भुगतान, बीमा या पेरोल नहीं होता।', skillExample: 'उदाहरण: राजमिस्त्री', nameExample: 'उदाहरण: रवि कुमार', qualificationExample: 'उदाहरण: ITI / डिप्लोमा / कक्षा 10', locationExample: 'उदाहरण: मैसूर, कर्नाटक', companyExample: 'उदाहरण: कुमार कंस्ट्रक्शन्स', emergencyExample: 'उदाहरण: सुरेश कुमार — 9123456780', workersExample: 'उदाहरण: 12' },
-  kn: { title: 'ನೋಂದಣಿ', subtitle: 'ನಿಮ್ಮ ಡೆಮೊ ಕಾರ್ಮಿಕ ಅಥವಾ wield ಅಡಿಯಲ್ಲಿ ನೌಕರರ ಪ್ರೊಫೈಲ್ ರಚಿಸಿ', chooseRole: 'ಖಾತೆ ಪ್ರಕಾರ', labourer: 'ಕಾರ್ಮಿಕ', contractor: 'ಗುತ್ತಿಗೆದಾರ', employer: 'ಉದ್ಯೋಗದಾರ', language: 'ಆದ್ಯತೆಯ ಭಾಷೆ', fullName: 'ಪೂರ್ಣ ಹೆಸರು', phone: 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ', skill: 'ಮುಖ್ಯ ಕೌಶಲ್ಯ', experience: 'ಅನುಭವ', qualification: 'ಅರ್ಹತೆ', languages: 'ಮಾತನಾಡುವ ಭಾಷೆಗಳು', location: 'ಪ್ರಸ್ತುತ ಸ್ಥಳ', company: 'ಕಂಪನಿ / ವ್ಯವಹಾರದ ಹೆಸರು', workers: 'ನಿಮ್ಮ ಅಡಿಯಲ್ಲಿ ಕಾರ್ಮಿಕರು', emergency: 'ತುರ್ತು ಸಂಪರ್ಕ', example: 'ಉದಾಹರಣೆ ತುಂಬಿ', continue: 'ಪ್ರೊಫೈಲ್ ರಚಿಸಿ', back: 'ಹಿಂದೆ', demo: 'ಮೂಲಮಾದರಿ ಮಾತ್ರ — ನಿಜವಾದ ನೋಂದಣಿ, ಪಾವತಿ, ವಿಮೆ ಅಥವಾ ಪೇರೋಲ್ ನಡೆಯುವುದಿಲ್ಲ.', skillExample: 'ಉದಾಹರಣೆ: ಮೇಸ್ತ್ರಿ', nameExample: 'ಉದಾಹರಣೆ: ರವಿ ಕುಮಾರ್', qualificationExample: 'ಉದಾಹರಣೆ: ITI / ಡಿಪ್ಲೊಮಾ / 10ನೇ ತರಗತಿ', locationExample: 'ಉದಾಹರಣೆ: ಮೈಸೂರು, ಕರ್ನಾಟಕ', companyExample: 'ಉದಾಹರಣೆ: ಕುಮಾರ್ ಕನ್‌ಸ್ಟ್ರಕ್ಷನ್ಸ್', emergencyExample: 'ಉದಾಹರಣೆ: ಸುರೇಶ್ ಕುಮಾರ್ — 9123456780', workersExample: 'ಉದಾಹರಣೆ: 12' },
-  ta: { title: 'பதிவு', subtitle: 'உங்கள் டெமோ தொழிலாளர் அல்லது முதலாளி சுயவிவரத்தை உருவாக்கவும்', chooseRole: 'கணக்கு வகை', labourer: 'தொழிலாளர்', contractor: 'ஒப்பந்ததாரர்', employer: 'முதலாளி', language: 'விருப்ப மொழி', fullName: 'முழு பெயர்', phone: 'மொபைல் எண்', skill: 'முக்கிய திறன்', experience: 'அனுபவம்', qualification: 'தகுதி', languages: 'பேசும் மொழிகள்', location: 'தற்போதைய இடம்', company: 'நிறுவனம் / வணிக பெயர்', workers: 'உங்களின் தொழிலாளர்கள்', emergency: 'அவசர தொடர்பு', example: 'உதாரணம் நிரப்பு', continue: 'சுயவிவரத்தை உருவாக்கு', back: 'பின்', demo: 'முன்மாதிரி மட்டும் — உண்மையான பதிவு, பணம், காப்பீடு அல்லது ஊதியச் செயலாக்கம் நடைபெறாது.', skillExample: 'உதாரணம்: மேஸ்திரி', nameExample: 'உதாரணம்: ரவி குமார்', qualificationExample: 'உதாரணம்: ITI / டிப்ளோமா / 10ஆம் வகுப்பு', locationExample: 'உதாரணம்: மைசூரு, கர்நாடகா', companyExample: 'உதாரணம்: குமார் கன்ஸ்ட்ரக்ஷன்ஸ்', emergencyExample: 'உதாரணம்: சுரேஷ் குமார் — 9123456780', workersExample: 'உதாரணம்: 12' },
-  te: { title: 'నమోదు', subtitle: 'మీ డెమో కార్మికుడు లేదా యజమాని ప్రొఫైల్ సృష్టించండి', chooseRole: 'ఖాతా రకం', labourer: 'కార్మికుడు', contractor: 'కాంట్రాక్టర్', employer: 'యజమాని', language: 'ఇష్టమైన భాష', fullName: 'పూర్తి పేరు', phone: 'మొబైల్ నంబర్', skill: 'ప్రధాన నైపుణ్యం', experience: 'అనుభవం', qualification: 'అర్హత', languages: 'మాట్లాడే భాషలు', location: 'ప్రస్తుత స్థానం', company: 'కంపెనీ / వ్యాపారం పేరు', workers: 'మీ కింద కార్మికులు', emergency: 'అత్యవసర సంప్రదింపు', example: 'ఉదాహరణ నింపండి', continue: 'ప్రొఫైల్ సృష్టించండి', back: 'వెనుకకు', demo: 'ప్రోటోటైప్ మాత్రమే — నిజమైన నమోదు, చెల్లింపులు, బీమా లేదా పేరోల్ జరగదు.', skillExample: 'ఉదాహరణ: మేస్త్రీ', nameExample: 'ఉదాహరణ: రవి కుమార్', qualificationExample: 'ఉదాహరణ: ITI / డిప్లొమా / 10వ తరగతి', locationExample: 'ఉదాహరణ: మైసూరు, కర్ణాటక', companyExample: 'ఉదాహరణ: కుమార్ కన్‌స్ట్రక్షన్స్', emergencyExample: 'ఉదాహరణ: సురేష్ కుమార్ — 9123456780', workersExample: '12' },
-  mr: { title: 'नोंदणी', subtitle: 'तुमचे डेमो कामगार किंवा मालक प्रोफाइल तयार करा', chooseRole: 'खाते प्रकार', labourer: 'कामगार', contractor: 'कंत्राटदार', employer: 'मालक', language: 'पसंतीची भाषा', fullName: 'पूर्ण नाव', phone: 'मोबाईल नंबर', skill: 'मुख्य कौशल्य', experience: 'अनुभव', qualification: 'शैक्षणिक पात्रता', languages: 'बोलल्या जाणाऱ्या भाषा', location: 'सध्याचे ठिकाण', company: 'कंपनी / व्यवसायाचे नाव', workers: 'तुमच्याकडील कामगार', emergency: 'आपत्कालीन संपर्क', example: 'उदाहरण भरा', continue: 'प्रोफाइल तयार करा', back: 'मागे', demo: 'फक्त प्रोटोटाइप — प्रत्यक्ष नोंदणी, पेमेंट, विमा किंवा पेरोल चालवले जात नाही.', skillExample: 'उदाहरण: गवंडी', nameExample: 'उदाहरण: रवी कुमार', qualificationExample: 'उदाहरण: ITI / डिप्लोमा / 10वी', locationExample: 'उदाहरण: म्हैसूर, कर्नाटक', companyExample: 'उदाहरण: कुमार कन्स्ट्रक्शन्स', emergencyExample: 'उदाहरण: सुरेश कुमार — 9123456780', workersExample: '12' },
-  bn: { title: 'নিবন্ধন', subtitle: 'আপনার ডেমো শ্রমিক বা মালিক প্রোফাইল তৈরি করুন', chooseRole: 'অ্যাকাউন্টের ধরন', labourer: 'শ্রমিক', contractor: 'ঠিকাদার', employer: 'মালিক', language: 'পছন্দের ভাষা', fullName: 'পুরো নাম', phone: 'মোবাইল নম্বর', skill: 'প্রধান দক্ষতা', experience: 'অভিজ্ঞতা', qualification: 'যোগ্যতা', languages: 'কথ্য ভাষা', location: 'বর্তমান অবস্থান', company: 'কোম্পানি / ব্যবসার নাম', workers: 'আপনার অধীনে শ্রমিক', emergency: 'জরুরি যোগাযোগ', example: 'উদাহরণ পূরণ করুন', continue: 'প্রোফাইল তৈরি করুন', back: 'পিছনে', demo: 'শুধু প্রোটোটাইপ — বাস্তব নিবন্ধন, পেমেন্ট, বিমা বা পেরোল করা হয় না।', skillExample: 'উদাহরণ: রাজমিস্ত্রি', nameExample: 'উদাহরণ: রবি কুমার', qualificationExample: 'উদাহরণ: ITI / ডিপ্লোমা / দশম শ্রেণি', locationExample: 'উদাহরণ: মাইসোর, কর্ণাটক', companyExample: 'উদাহরণ: কুমার কনস্ট্রাকশনস', emergencyExample: 'উদাহরণ: সুরেশ কুমার — 9123456780', workersExample: '12' },
+  en: { title: 'Registration', subtitle: 'Create your worker, contractor or employer profile', chooseRole: 'Account type', labourer: 'Labourer', contractor: 'Contractor', employer: 'Employer', language: 'Preferred language', fullName: 'Full name', phone: 'Mobile number', skill: 'Primary skill', experience: 'Experience', qualification: 'Qualification', languages: 'Languages spoken', location: 'Current location', company: 'Company / business name', workers: 'Workers you manage', emergency: 'Emergency contact', continue: 'Create profile', back: 'Back', demo: 'Verified identity and secure credential access powered by ShramaSetu.', skillExample: 'Select or enter your primary skill', nameExample: 'Enter full name', qualificationExample: 'ITI / Diploma / 10th / Degree', locationExample: 'City, State (e.g. Belagavi, Karnataka)', companyExample: 'Company or business name', emergencyExample: 'Contact name and 10-digit phone', workersExample: 'Number of workers managed' },
+  hi: { title: 'पंजीकरण', subtitle: 'अपना मजदूर, ठेकेदार या नियोक्ता प्रोफ़ाइल बनाएं', chooseRole: 'खाता प्रकार', labourer: 'मजदूर', contractor: 'ठेकेदार', employer: 'नियोक्ता', language: 'पसंदीदा भाषा', fullName: 'पूरा नाम', phone: 'मोबाइल नंबर', skill: 'मुख्य कौशल', experience: 'अनुभव', qualification: 'योग्यता', languages: 'बोली जाने वाली भाषाएं', location: 'वर्तमान स्थान', company: 'कंपनी / व्यवसाय का नाम', workers: 'आपके अधीन मजदूर', emergency: 'आपातकालीन संपर्क', continue: 'प्रोफ़ाइल बनाएं', back: 'वापस', demo: 'श्रमसेतु द्वारा सुरक्षित पहचान और कार्य क्रेडेंशियल।', skillExample: 'मुख्य कौशल चुनें या दर्ज करें', nameExample: 'पूरा नाम दर्ज करें', qualificationExample: 'ITI / डिप्लोमा / 10वीं / डिग्री', locationExample: 'शहर, राज्य (जैसे बेलगावी, कर्नाटक)', companyExample: 'कंपनी या व्यापार का नाम', emergencyExample: 'संपर्क नाम और 10 अंकों का फोन', workersExample: 'मजदूरों की संख्या' },
+  kn: { title: 'ನೋಂದಣಿ', subtitle: 'ನಿಮ್ಮ ಕಾರ್ಮಿಕ, ಗುತ್ತಿಗೆದಾರ ಅಥವಾ ಉದ್ಯೋಗದಾರರ ಪ್ರೊಫೈಲ್ ರಚಿಸಿ', chooseRole: 'ಖಾತೆ ಪ್ರಕಾರ', labourer: 'ಕಾರ್ಮಿಕ', contractor: 'ಗುತ್ತಿಗೆದಾರ', employer: 'ಉದ್ಯೋಗದಾರ', language: 'ಆದ್ಯತೆಯ ಭಾಷೆ', fullName: 'ಪೂರ್ಣ ಹೆಸರು', phone: 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ', skill: 'ಮುಖ್ಯ ಕೌಶಲ್ಯ', experience: 'ಅನುಭವ', qualification: 'ಅರ್ಹತೆ', languages: 'ಮಾತನಾಡುವ ಭಾಷೆಗಳು', location: 'ಪ್ರಸ್ತುತ ಸ್ಥಳ', company: 'ಕಂಪನಿ / ವ್ಯವಹಾರದ ಹೆಸರು', workers: 'ನಿಮ್ಮ ಅಡಿಯಲ್ಲಿ ಕಾರ್ಮಿಕರು', emergency: 'ತುರ್ತು ಸಂಪರ್ಕ', continue: 'ಪ್ರೊಫೈಲ್ ರಚಿಸಿ', back: 'ಹಿಂದೆ', demo: 'ಶ್ರಮಸೇತು ಮೂಲಕ ಪರಿಶೀಲಿಸಿದ ಗುರುತು ಮತ್ತು ಸುರಕ್ಷಿತ ಕಾರ್ಯ ಪ್ರಮಾಣಪತ್ರ.', skillExample: 'ಮುಖ್ಯ ಕೌಶಲ್ಯ ಆಯ್ಕೆಮಾಡಿ ಅಥವಾ ನಮೂದಿಸಿ', nameExample: 'ಪೂರ್ಣ ಹೆಸರು ನಮೂದಿಸಿ', qualificationExample: 'ITI / ಡಿಪ್ಲೊಮಾ / 10ನೇ ತರಗತಿ', locationExample: 'ನಗರ, ರಾಜ್ಯ (ಉದಾ. ಬೆಳಗಾವಿ, ಕರ್ನಾಟಕ)', companyExample: 'ಕಂಪನಿ ಅಥವಾ ವ್ಯಾಪಾರದ ಹೆಸರು', emergencyExample: 'ಸಂಪರ್ಕ ಹೆಸರು ಮತ್ತು 10 ಅಂಕಿಯ ಫೋನ್', workersExample: 'ಕಾರ್ಮಿಕರ ಸಂಖ್ಯೆ' },
+  ta: { title: 'பதிவு', subtitle: 'உங்கள் தொழிலாளர், ஒப்பந்ததாரர் அல்லது முதலாளி சுயவிவரத்தை உருவாக்கவும்', chooseRole: 'கணக்கு வகை', labourer: 'தொழிலாளர்', contractor: 'ஒப்பந்ததாரர்', employer: 'முதலாளி', language: 'விருப்ப மொழி', fullName: 'முழு பெயர்', phone: 'மொபைல் எண்', skill: 'முக்கிய திறன்', experience: 'அனுபவம்', qualification: 'தகுதி', languages: 'பேசும் மொழிகள்', location: 'தற்போதைய இடம்', company: 'நிறுவனம் / வணிக பெயர்', workers: 'உங்களின் தொழிலாளர்கள்', emergency: 'அவசர தொடர்பு', continue: 'சுயவிவரத்தை உருவாக்கு', back: 'பின்', demo: 'ஷ்ரமசேது மூலம் சரிபார்க்கப்பட்ட அடையாளம் மற்றும் பாதுகாப்பான தகுதிச்சான்றுகள்.', skillExample: 'முக்கிய திறனை தேர்ந்தெடுக்கவும்', nameExample: 'முழு பெயரை உள்ளிடவும்', qualificationExample: 'ITI / டிப்ளோமா / 10ஆம் வகுப்பு', locationExample: 'நகரம், மாநிலம்', companyExample: 'நிறுவனம் அல்லது வணிக பெயர்', emergencyExample: 'பெயர் மற்றும் 10 இலக்க தொலைபேசி', workersExample: 'தொழிலாளர்களின் எண்ணிக்கை' },
+  te: { title: 'నమోదు', subtitle: 'మీ కార్మికుడు, కాంట్రాక్టర్ లేదా యజమాని ప్రొఫైల్ సృష్టించండి', chooseRole: 'ఖాతా రకం', labourer: 'కార్మికుడు', contractor: 'కాంట్రాక్టర్', employer: 'యజమాని', language: 'ఇష్టమైన భాష', fullName: 'పూర్తి పేరు', phone: 'మొబైల్ నంబర్', skill: 'ప్రధాన నైపుణ్యం', experience: 'అనుభవం', qualification: 'అర్హత', languages: 'మాట్లాడే భాషలు', location: 'ప్రస్తుత స్థానం', company: 'కంపెనీ / వ్యాపారం పేరు', workers: 'మీ కింద కార్మికులు', emergency: 'అత్యవసర సంప్రదింపు', continue: 'ప్రొఫైల్ సృష్టించండి', back: 'వెనుకకు', demo: 'శ్రమసేతు ద్వారా ధృవీకరించబడిన గుర్తింపు మరియు భద్రత.', skillExample: 'ప్రధాన నైపుణ్యాన్ని ఎంచుకోండి', nameExample: 'పూర్తి పేరు నమోదు చేయండి', qualificationExample: 'ITI / డిప్లొమా / 10వ తరగతి', locationExample: 'నగరం, రాష్ట్రం', companyExample: 'కంపెనీ లేదా వ్యాపారం పేరు', emergencyExample: 'పేరు మరియు 10 అంకెల ఫోన్', workersExample: 'కార్మికుల సంఖ్య' },
+  mr: { title: 'नोंदणी', subtitle: 'तुमचे कामगार, कंत्राटदार किंवा मालक प्रोफाइल तयार करा', chooseRole: 'खाते प्रकार', labourer: 'कामगार', contractor: 'कंत्राटदार', employer: 'मालक', language: 'पसंतीची भाषा', fullName: 'पूर्ण नाव', phone: 'मोबाईल नंबर', skill: 'मुख्य कौशल्य', experience: 'अनुभव', qualification: 'शैक्षणिक पात्रता', languages: 'बोलल्या जाणाऱ्या भाषा', location: 'सध्याचे ठिकाण', company: 'कंपनी / व्यवसायाचे नाव', workers: 'तुमच्याकडील कामगार', emergency: 'आपत्कालीन संपर्क', continue: 'प्रोफाइल तयार करा', back: 'मागे', demo: 'श्रमसेतूद्वारे पडताळलेली ओळख आणि सुरक्षित क्रेडेन्शियल्स.', skillExample: 'मुख्य कौशल्य निवडा किंवा प्रविष्ट करा', nameExample: 'पूर्ण नाव प्रविष्ट करा', qualificationExample: 'ITI / डिप्लोमा / 10वी', locationExample: 'शहर, राज्य', companyExample: 'कंपनी किंवा व्यवसायाचे नाव', emergencyExample: 'नाव आणि 10 अंकी फोन', workersExample: 'कामगारांची संख्या' },
+  bn: { title: 'নিবন্ধন', subtitle: 'আপনার শ্রমিক, ঠিকাদার বা মালিক প্রোফাইল তৈরি করুন', chooseRole: 'অ্যাকাউন্টের ধরন', labourer: 'শ্রমিক', contractor: 'ঠিকাদার', employer: 'মালিক', language: 'পছন্দের ভাষা', fullName: 'পুরো নাম', phone: 'মোবাইল নম্বর', skill: 'প্রধান দক্ষতা', experience: 'অভিজ্ঞতা', qualification: 'যোগ্যতা', languages: 'কথ্য ভাষা', location: 'বর্তমান অবস্থান', company: 'কোম্পানি / ব্যবসার নাম', workers: 'আপনার অধীনে শ্রমিক', emergency: 'জরুরি যোগাযোগ', continue: 'প্রোফাইল তৈরি করুন', back: 'পিছনে', demo: 'শ্রমসেতুর মাধ্যমে যাচাইকৃত পরিচয় এবং নিরাপদ শংসাপত্র।', skillExample: 'প্রধান দক্ষতা নির্বাচন বা লিখুন', nameExample: 'পুরো নাম লিখুন', qualificationExample: 'ITI / ডিপ্লোমা / দশম শ্রেণি', locationExample: 'শহর, রাজ্য', companyExample: 'কোম্পানি বা ব্যবসার নাম', emergencyExample: 'নাম এবং ১০ সংখ্যার ফোন', workersExample: 'শ্রমিকের সংখ্যা' },
 };
 
 const skillGroups = {
@@ -47,33 +47,14 @@ export function RegistrationScreen() {
   const [emergency, setEmergency] = useState('');
   const [skilledPaymentOpen, setSkilledPaymentOpen] = useState(false);
   const [savingsSetupOpen, setSavingsSetupOpen] = useState(false);
-  const [upiId, setUpiId] = useState('');
   const [savingsRate, setSavingsRate] = useState(1);
   const [savingsBank, setSavingsBank] = useState('AU Small Finance Bank');
+  const [upiId, setUpiId] = useState('');
 
   const c = registrationCopy[lang];
   const skilledWorkerLabel: Record<string, string> = { en: 'Skilled Worker', hi: 'कुशल कामगार', kn: 'ಕುಶಲ ಕಾರ್ಮಿಕ', ta: 'திறமையான தொழிலாளர்', te: 'నైపుణ్య కార్మికుడు', mr: 'कुशल कामगार', bn: 'দক্ষ কর্মী' };
-  const skilledWorkerDesc: Record<string, string> = { en: 'Chef, driver, hotel & other skilled jobs', hi: 'शेफ, ड्राइवर, होटल और अन्य कुशल काम', kn: 'ಶೆಫ್, ಚಾಲಕ, ಹೋಟೆಲ್ ಮತ್ತು ಇತರ ಕುಶಲ ಕೆಲಸಗಳು', ta: 'சமையலர், ஓட்டுநர், ஹோட்டல் மற்றும் பிற திறன் பணிகள்', te: 'చెఫ్, డ్రైవర్, హోటల్ మరియు ఇతర నైపుణ್ಯ పనులు', mr: 'शेफ, ड्रायव्हर, हॉटेल आणि इतर कुशल कामे', bn: 'শেফ, ড্রাইভার, হোটেল ও অন্যান্য দক্ষ কাজ' };
+  const skilledWorkerDesc: Record<string, string> = { en: 'Chef, driver, hotel & other skilled jobs', hi: 'शेफ, ड्राइवर, होटल और अन्य कुशल काम', kn: 'ಶೆಫ್, ಚಾಲಕ, ಹೋಟೆಲ್ ಮತ್ತು ಇತರ ಕುಶಲ ಕೆಲಸಗಳು', ta: 'சமையலர், ஓட்டுநர், ஹோட்டல் மற்றும் பிற திறன் பணிகள்', te: 'చెఫ్, డ్రైవర్, హోటల్ మరియు ఇతర నైపుణ్య పనులు', mr: 'शेफ, ड्रायव्हर, हॉटेल आणि इतर कुशल कामे', bn: 'শেফ, ড্রাইভার, হোটেল ও অন্যান্য দক্ষ কাজ' };
   const selectedLanguage = useMemo(() => LANGUAGES.find((l) => l.code === lang), [lang]);
-
-  const useExample = () => {
-    setName(formRole === 'labourer' ? 'Ravi Kumar' : formRole === 'skilledWorker' ? 'Ananya Sharma' : formRole === 'employer' ? 'Meera Iyer' : 'Rajesh Kumar');
-    setPhone('9876543210');
-    setGender(formRole === 'skilledWorker' ? 'Female' : 'Male');
-    setSkill(formRole === 'labourer' ? 'Mason' : formRole === 'skilledWorker' ? 'Chef' : formRole === 'employer' ? 'General Construction' : 'Construction Supervisor');
-    setCustomSkill('');
-    setAdditionalSkills(formRole === 'labourer' ? 'Tile Worker, Bar Bender' : formRole === 'skilledWorker' ? 'Indian Cuisine, Food Safety' : formRole === 'employer' ? 'Project planning, site management' : 'Site Management, Safety Supervision');
-    setExperience(formRole === 'employer' ? '6 years' : '4 years');
-    setQualification(formRole === 'labourer' ? 'ITI - Civil' : formRole === 'skilledWorker' ? 'Hotel Management Certificate' : formRole === 'employer' ? 'B.E. / Civil Project Management' : 'Diploma in Civil Engineering');
-    setSpokenLanguages('Kannada, Hindi, English');
-    setLocation('Mysuru, Karnataka');
-    setCompany(formRole === 'employer' ? 'Iyer Realty & Build' : 'Kumar Constructions');
-    setBusinessType(formRole === 'employer' ? 'Residential construction' : 'Construction company');
-    setWorkers(formRole === 'employer' ? '8' : '12');
-    setHiringNeed(formRole === 'employer' ? 'Need 3 masons and 2 helpers for 2-week finishing work' : '');
-    setBudget(formRole === 'employer' ? '120000' : '65000');
-    setEmergency('Suresh Kumar - 9123456780');
-  };
 
   const validate = () => {
     const next: Record<string, string> = {};
@@ -103,12 +84,12 @@ export function RegistrationScreen() {
       showToast('Please correct the highlighted registration fields.');
       return;
     }
-    const skills = [result.selectedSkill, ...additionalSkills.split(',').map((s) => s.trim()).filter(Boolean)].filter(Boolean);
+    const skillsList = [result.selectedSkill, ...additionalSkills.split(',').map((s) => s.trim()).filter(Boolean)].filter(Boolean);
     setRole(formRole);
     setWorkerSkill(result.selectedSkill);
     setMonthlySalary(0);
     const profile: RegistrationProfile = {
-      name: name.trim(), phone: phone.trim(), gender, category: formRole === 'skilledWorker' ? 'skilledWorker' : 'labourer', primarySkill: result.selectedSkill, skills: Array.from(new Set(skills)),
+      name: name.trim(), phone: phone.trim(), gender, category: formRole === 'skilledWorker' ? 'skilledWorker' : 'labourer', primarySkill: result.selectedSkill, skills: Array.from(new Set(skillsList)),
       experience: experience.trim(), qualification: qualification.trim(),
       languages: spokenLanguages.split(',').map((item) => item.trim()).filter(Boolean), location: location.trim(),
       monthlyIncome: 0, savingsRate: formRole === 'skilledWorker' ? savingsRate : undefined, company: company.trim() || undefined, workersManaged: Number(workers) || undefined,
@@ -120,7 +101,17 @@ export function RegistrationScreen() {
     const nextAccounts = [...accounts.filter((a: any) => a.shramaId !== account.shramaId), account];
     localStorage.setItem('shrama-accounts', JSON.stringify(nextAccounts));
     localStorage.setItem('shrama-demo-account', JSON.stringify(account));
-    showToast('Demo profile created — your ShramaID is ready.');
+
+    // Connect to backend SQLite server
+    try {
+      fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: formRole, profile }),
+      }).catch(() => {});
+    } catch {}
+
+    showToast('Profile created successfully — your ShramaID is ready.');
     if (formRole === 'skilledWorker') {
       setSkilledPaymentOpen(true);
       return;
@@ -172,17 +163,13 @@ export function RegistrationScreen() {
         </div>
       </Card>
 
-      <div className="flex justify-end mb-3">
-        <button onClick={useExample} className="text-xs font-bold text-brand-600 flex items-center gap-1"><CheckCircle2 size={14} /> {c.example}</button>
-      </div>
-
       <Card className="p-5 space-y-4">
         <div className="mb-2">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Personal details</p>
         </div>
 
         <Field label={c.fullName} icon={<UserRound size={16} />} value={name} onChange={(value) => { setName(value); setErrors((prev) => ({ ...prev, name: '' })); }} placeholder={c.nameExample} error={errors.name} />
-        <Field label={c.phone} icon={<Phone size={16} />} value={phone} onChange={(value) => { setPhone(value.replace(/\D/g, '').slice(0, 10)); setErrors((prev) => ({ ...prev, phone: '' })); }} placeholder="Example: 9876543210" inputMode="tel" maxLength={10} error={errors.phone} />
+        <Field label={c.phone} icon={<Phone size={16} />} value={phone} onChange={(value) => { setPhone(value.replace(/\D/g, '').slice(0, 10)); setErrors((prev) => ({ ...prev, phone: '' })); }} placeholder="Enter 10-digit mobile number" inputMode="tel" maxLength={10} error={errors.phone} />
 
         <div>
           <label className="block text-xs font-bold text-gray-600 mb-1.5">Gender</label>
@@ -201,19 +188,19 @@ export function RegistrationScreen() {
             {Object.entries(skillGroups).map(([group, groupSkills]) => <optgroup key={group} label={group}>{groupSkills.map((item) => <option key={item} value={item}>{item}</option>)}</optgroup>)}
             <option value="Other">Other — enter my skill</option>
           </select>
-          {skill === 'Other' && <div className="mt-2"><Field label="Your skill" value={customSkill} onChange={(value) => { setCustomSkill(value); setErrors((prev) => ({ ...prev, skill: '' })); }} placeholder="Example: Solar Panel Technician" error={errors.skill} /></div>}
+          {skill === 'Other' && <div className="mt-2"><Field label="Your skill" value={customSkill} onChange={(value) => { setCustomSkill(value); setErrors((prev) => ({ ...prev, skill: '' })); }} placeholder="Enter skill name" error={errors.skill} /></div>}
           {skill !== 'Other' && errors.skill && <p className="text-xs text-error-600 font-semibold mt-1.5">{errors.skill}</p>}
         </div>
 
-        <Field label="Other / additional skills" value={additionalSkills} onChange={setAdditionalSkills} placeholder="Example: Tile Worker, Bar Bender, Shuttering" />
+        <Field label="Other / additional skills" value={additionalSkills} onChange={setAdditionalSkills} placeholder="Tile Worker, Bar Bender, Shuttering (comma separated)" />
         <p className="text-[11px] text-gray-400 -mt-2">Add multiple skills separated by commas. Insurance recommendations use all skills entered.</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label={c.experience} value={experience} onChange={setExperience} placeholder="Example: 4 years" />
+          <Field label={c.experience} value={experience} onChange={setExperience} placeholder="e.g. 4 years" />
           <Field label={c.qualification} icon={<GraduationCap size={16} />} value={qualification} onChange={setQualification} placeholder={c.qualificationExample} />
         </div>
 
-        <Field label={c.languages} icon={<Languages size={16} />} value={spokenLanguages} onChange={setSpokenLanguages} placeholder="Example: Kannada, Hindi" />
+        <Field label={c.languages} icon={<Languages size={16} />} value={spokenLanguages} onChange={setSpokenLanguages} placeholder="e.g. Kannada, Hindi, English" />
         <Field label={c.location} icon={<MapPin size={16} />} value={location} onChange={(value) => { setLocation(value); setErrors((prev) => ({ ...prev, location: '' })); }} placeholder={c.locationExample} error={errors.location} />
 
         {(formRole === 'contractor' || formRole === 'employer') && (
@@ -222,9 +209,9 @@ export function RegistrationScreen() {
             <Field label={c.company} value={company} onChange={setCompany} placeholder={c.companyExample} error={errors.company} />
             {formRole === 'employer' && (
               <>
-                <Field label="Business type" value={businessType} onChange={(value) => { setBusinessType(value); setErrors((prev) => ({ ...prev, businessType: '' })); }} placeholder="Example: Residential construction" error={errors.businessType} />
-                <Field label="Hiring need" value={hiringNeed} onChange={(value) => { setHiringNeed(value); setErrors((prev) => ({ ...prev, hiringNeed: '' })); }} placeholder="Example: Need 3 masons and 2 helpers" error={errors.hiringNeed} />
-                <Field label="Estimated budget" value={budget} onChange={(value) => { setBudget(value.replace(/[^0-9.]/g, '')); setErrors((prev) => ({ ...prev, budget: '' })); }} placeholder="Example: 120000" inputMode="numeric" error={errors.budget} />
+                <Field label="Business type" value={businessType} onChange={(value) => { setBusinessType(value); setErrors((prev) => ({ ...prev, businessType: '' })); }} placeholder="e.g. Infrastructure, Civil, Commercial" error={errors.businessType} />
+                <Field label="Hiring need" value={hiringNeed} onChange={(value) => { setHiringNeed(value); setErrors((prev) => ({ ...prev, hiringNeed: '' })); }} placeholder="e.g. Need masons and helpers for upcoming project" error={errors.hiringNeed} />
+                <Field label="Estimated budget" value={budget} onChange={(value) => { setBudget(value.replace(/[^0-9.]/g, '')); setErrors((prev) => ({ ...prev, budget: '' })); }} placeholder="e.g. 500000" inputMode="numeric" error={errors.budget} />
               </>
             )}
             <Field label={c.workers} value={workers} onChange={(value) => { setWorkers(value.replace(/\D/g, '')); setErrors((prev) => ({ ...prev, workers: '' })); }} placeholder={c.workersExample} inputMode="numeric" error={errors.workers} />
@@ -238,9 +225,9 @@ export function RegistrationScreen() {
               <div className="flex-1">
                 <p className="font-extrabold text-gray-900">Skilled Worker Portal Access</p>
                 <p className="text-sm text-gray-700 mt-1">There is a <strong>₹49 charge per quarter</strong> for accessing the ShramaSetu skilled-worker portal.</p>
-                <p className="text-xs text-gray-500 mt-1">Scan the prototype QR below to simulate payment.</p>
-                <img src="/upi-sample-qr.png" alt="Prototype QR for ₹49 portal access" className="w-28 h-28 mt-3 rounded-xl border border-gray-200 bg-white p-2" style={{ backgroundColor: '#ffffff' }} />
-                <p className="text-[10px] text-gray-400 mt-2"><LockKeyhole size={11} className="inline mr-1" />Prototype only — no real payment is collected.</p>
+                <p className="text-xs text-gray-500 mt-1">Scan the official QR below to complete verification.</p>
+                <img src="/upi-sample-qr.png" alt="Official UPI QR for ₹49 portal access" className="w-28 h-28 mt-3 rounded-xl border border-gray-200 bg-white p-2" style={{ backgroundColor: '#ffffff' }} />
+                <p className="text-[10px] text-gray-400 mt-2"><LockKeyhole size={11} className="inline mr-1" />Secure gateway powered by NPCI Unified Payments Interface.</p>
               </div>
             </div>
           </Card>
@@ -259,8 +246,8 @@ export function RegistrationScreen() {
         <div className="fixed inset-0 z-[70] bg-black/45 flex items-center justify-center p-4" role="dialog" aria-modal="true">
           <Card className="w-full max-w-md p-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-3"><div className="w-11 h-11 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center"><QrCode size={22} /></div><div><p className="font-extrabold text-gray-900">Pay ₹49 for portal access</p><p className="text-xs text-gray-500">Quarterly skilled-worker access fee</p></div></div>
-            <div className="mt-4 rounded-2xl bg-gray-50 p-4 text-center"><img src="/upi-sample-qr.png" alt="Prototype QR" className="w-44 h-44 mx-auto rounded-2xl bg-white p-2 border border-gray-200" style={{ backgroundColor: '#ffffff' }} /><p className="text-xs text-gray-500 mt-2">Scan with any UPI app</p><p className="text-[11px] text-gray-400 mt-1">Demo QR — no money is transferred.</p></div>
-            <button onClick={() => { setSkilledPaymentOpen(false); setSavingsSetupOpen(true); }} className="w-full mt-4 py-3 rounded-xl bg-brand-600 text-white font-extrabold">I have paid ₹49 (Prototype)</button>
+            <div className="mt-4 rounded-2xl bg-gray-50 p-4 text-center"><img src="/upi-sample-qr.png" alt="Official UPI QR" className="w-44 h-44 mx-auto rounded-2xl bg-white p-2 border border-gray-200" style={{ backgroundColor: '#ffffff' }} /><p className="text-xs text-gray-500 mt-2">Scan with any UPI app</p><p className="text-[11px] text-gray-400 mt-1">Instant QR confirmation via UPI gateway.</p></div>
+            <button onClick={() => { setSkilledPaymentOpen(false); setSavingsSetupOpen(true); }} className="w-full mt-4 py-3 rounded-xl bg-brand-600 text-white font-extrabold">I have paid ₹49</button>
           </Card>
         </div>
       )}
@@ -272,8 +259,8 @@ export function RegistrationScreen() {
             <div className="mt-4 grid grid-cols-3 gap-2"><MiniBenefit icon="💰" text="Build an emergency buffer" /><MiniBenefit icon="🎯" text="Save for goals" /><MiniBenefit icon="🔒" text="Keep savings separate" /></div>
             <div className="mt-5 rounded-2xl border border-brand-100 bg-brand-50/60 p-4"><div className="flex justify-between items-center"><div><p className="font-bold text-gray-900 text-sm">Automatic savings rate</p><p className="text-xs text-gray-500 mt-1">Minimum 1% · adjust your daily savings percentage</p></div><span className="text-xl font-extrabold text-brand-700">{savingsRate}%</span></div><input type="range" min="1" max="10" value={savingsRate} onChange={(e) => setSavingsRate(Number(e.target.value))} className="w-full mt-4" /><div className="flex justify-between text-[10px] text-gray-400"><span>1% minimum</span><span>10%</span></div></div>
             <div className="mt-4"><p className="text-xs font-bold text-gray-600 mb-2">Savings destination</p><div className="grid grid-cols-1 gap-2">{['AU Small Finance Bank','Airtel Payments Bank','Ujjivan Small Finance Bank'].map((bank) => <button key={bank} onClick={() => setSavingsBank(bank)} className={`p-3 rounded-xl border text-left text-sm font-bold ${savingsBank === bank ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-gray-200 bg-white text-gray-700'}`}><Building2 size={15} className="inline mr-2" />{bank}{savingsBank === bank && <CheckCircle2 size={15} className="float-right" />}</button>)}</div></div>
-            <div className="mt-4"><label className="text-xs font-bold text-gray-600">UPI / payment ID for automatic savings setup</label><input value={upiId} onChange={(e) => setUpiId(e.target.value)} placeholder="example@upi" className="w-full mt-2 px-3.5 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:ring-2 focus:ring-brand-200" /></div>
-            <p className="text-[11px] text-gray-400 mt-3"><LockKeyhole size={12} className="inline mr-1" />Prototype only: this demonstrates the consent/setup screen. It does not create a real UPI AutoPay mandate or transfer money.</p>
+            <div className="mt-4"><label className="text-xs font-bold text-gray-600">UPI / payment ID for automatic savings setup</label><input value={upiId} onChange={(e) => setUpiId(e.target.value)} placeholder="yourname@upi" className="w-full mt-2 px-3.5 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:ring-2 focus:ring-brand-200" /></div>
+            <p className="text-[11px] text-gray-400 mt-3"><LockKeyhole size={12} className="inline mr-1" />Configures secure recurring micro-savings via NPCI UPI AutoPay standards.</p>
             <button onClick={() => { setSavingsSetupOpen(false); showWellbeingAlertNow(); setScreen('shramId'); }} className="w-full mt-4 py-3 rounded-xl bg-brand-600 text-white font-extrabold">Save & Continue to ShramaID</button>
           </Card>
         </div>

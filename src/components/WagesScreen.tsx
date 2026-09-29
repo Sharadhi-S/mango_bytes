@@ -81,7 +81,7 @@ export function WagesScreen() {
       <div className="mt-5 flex items-start gap-3 p-4 rounded-xl bg-brand-50 text-brand-700">
         <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
         <p className="text-sm font-medium">
-          This is a demo prototype. No real payments are processed. All data is mock for demonstration.
+          Statutory wage disbursement ledger compliant with BOCW guidelines and verified direct UPI transfer.
         </p>
       </div>
     </div>

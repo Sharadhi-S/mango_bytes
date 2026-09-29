@@ -299,6 +299,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [registrationProfile, showWellbeingAlertNow]);
 
   const dismissWellbeingAlert = useCallback(() => setWellbeingAlertOpen(false), []);
+
+  const [earnings] = useState<EarningEntry[]>(initialEarnings);
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(initialSavingsGoals);
+  const [jobs, setJobs] = useState<JobListing[]>(initialJobs);
+  const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
+  const [workerStats, setWorkerStats] = useState<WorkerStats>(initialWorkerStats);
+
+  const [attendance, setAttendance] = useState<AttendanceRow[]>(initialAttendance);
+  const [wages, setWages] = useState<WageRow[]>(initialWages);
+  const [postedJobs, setPostedJobs] = useState<PostedJob[]>(initialPostedJobs);
+
   const initialEmployer = getInitialEmployerState();
   const [tenders, setTenders] = useState<Tender[]>(initialEmployer.tenders);
   const [savedTenderIds, setSavedTenderIds] = useState<string[]>(initialEmployer.savedTenderIds);
@@ -476,9 +487,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
       prev.map((r) => {
         if (r.id !== rfpId) return r;
         if (status === 'accepted') {
-          setTenders((currTenders) =>
-            currTenders.map((t) => (t.id === r.tenderId ? { ...t, status: 'active_fulfillment' as const } : t))
-          );
+          setTenders((currTenders) => {
+            const exists = currTenders.find((t) => t.id === r.tenderId);
+            if (exists) {
+              return currTenders.map((t) => (t.id === r.tenderId ? { ...t, status: 'active_fulfillment' as const } : t));
+            }
+            const createdTender: Tender = {
+              id: r.tenderId,
+              title: r.projectTitle,
+              dept: r.clientName,
+              location: r.location,
+              value: r.budget,
+              duration: r.duration,
+              category: 'Infrastructure',
+              closing: '30 Oct 2026',
+              status: 'active_fulfillment',
+              match: 95,
+              skills: ['Site Supervisors', 'Masons', 'Construction Labourers'],
+              eligibility: ['Class-2 PWD License or higher', 'BOCW registration compliance'],
+              docs: ['Tender Specification PDF', 'Work Order Document'],
+              dynamicFee: calculateDynamicTenderFee(r.budget),
+              workforceRequirements: [
+                { id: 'req-1', skill: 'Site Supervisors', headcount: 2, dailyWageRate: 1100, category: 'skilled', assignedCount: 1 },
+                { id: 'req-2', skill: 'Masons', headcount: 12, dailyWageRate: 850, category: 'skilled', assignedCount: 8 },
+                { id: 'req-3', skill: 'Construction Labourers', headcount: 20, dailyWageRate: 650, category: 'unskilled', assignedCount: 15 },
+              ],
+            };
+            return [createdTender, ...currTenders];
+          });
         }
         return { ...r, status };
       })
@@ -579,7 +615,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
         };
       })
     );
-  }, []);
+
+    // Also dispatch contractor invitation so Labourer sees the assignment offer
+    setContractorInvitations((prev) => {
+      if (prev.some((inv) => inv.skill === worker.role && inv.dailyWageRate === worker.dailyWage)) return prev;
+      return [
+        {
+          id: 'inv-' + Date.now(),
+          contractorName: registrationProfile?.company || registrationProfile?.name || 'Verified Contractor Operations',
+          projectTitle: tenders.find((t) => t.id === tenderId)?.title || 'Infrastructure Project',
+          location: worker.location || 'Site B, Mysuru',
+          dailyWageRate: worker.dailyWage || 700,
+          duration: '30 days',
+          skill: worker.role,
+          status: 'pending',
+        },
+        ...prev,
+      ];
+    });
+  }, [tenders, registrationProfile]);
 
   const updateProjectWorkerAttendance = useCallback((tenderId: string, workerId: string, status: 'present' | 'absent' | 'half') => {
     setTenders((prev) =>
@@ -609,6 +663,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return { ...t, assignedWorkers: updatedWorkers };
       })
     );
+    setWages((prev) => prev.map((w) => (w.id === workerId ? { ...w, status: 'paid' } : w)));
+    setWorkerStats((prev) => ({
+      ...prev,
+      availableBalance: prev.availableBalance + 700,
+      todayEarnings: prev.todayEarnings + 700,
+      monthlyEarnings: prev.monthlyEarnings + 700,
+    }));
   }, []);
 
   const markAllProjectWorkersPresent = useCallback((tenderId: string) => {
@@ -635,6 +696,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return { ...t, assignedWorkers: updatedWorkers };
       })
     );
+    setWages((prev) => prev.map((w) => ({ ...w, status: 'paid' })));
+    setWorkerStats((prev) => ({
+      ...prev,
+      availableBalance: prev.availableBalance + 1400,
+      todayEarnings: prev.todayEarnings + 1400,
+      monthlyEarnings: prev.monthlyEarnings + 1400,
+    }));
   }, []);
 
 
@@ -681,16 +749,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [voiceActive, setVoiceActive] = useState(false);
   const [voiceText, setVoiceText] = useState('');
-
-  const [earnings] = useState<EarningEntry[]>(initialEarnings);
-  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(initialSavingsGoals);
-  const [jobs, setJobs] = useState<JobListing[]>(initialJobs);
-  const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
-  const [workerStats, setWorkerStats] = useState<WorkerStats>(initialWorkerStats);
-
-  const [attendance, setAttendance] = useState<AttendanceRow[]>(initialAttendance);
-  const [wages, setWages] = useState<WageRow[]>(initialWages);
-  const [postedJobs, setPostedJobs] = useState<PostedJob[]>(initialPostedJobs);
 
   const t = useCallback((key: string) => translate(lang, key), [lang]);
 
@@ -776,6 +834,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const markWagePaid = useCallback((id: string) => {
     setWages((prev) => prev.map((w) => (w.id === id ? { ...w, status: 'paid' } : w)));
+    setWorkerStats((prev) => ({
+      ...prev,
+      availableBalance: prev.availableBalance + 700,
+      todayEarnings: prev.todayEarnings + 700,
+      monthlyEarnings: prev.monthlyEarnings + 700,
+    }));
   }, []);
 
   const postJob = useCallback((job: Omit<PostedJob, 'id'>) => {

@@ -377,8 +377,8 @@ export function EmployerDashboard() {
   // =========================================================================
   if (view === 'enterTender') {
     return (
-      <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8 space-y-6">
-        <button onClick={back} className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-brand-600 transition-colors">
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 space-y-6">
+        <button onClick={back} className="flex items-center gap-2 text-sm font-bold text-gray-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
           <ArrowLeft size={18} /> {t('backToHub')}
         </button>
 
@@ -388,46 +388,12 @@ export function EmployerDashboard() {
           showBack={false}
         />
 
-        {/* Quick Presets for testing */}
-        <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200/70 rounded-2xl space-y-2">
-          <div className="flex items-center gap-2 text-xs font-extrabold text-purple-900">
-            <Sparkles size={16} className="text-purple-600" />
-            <span>{t('quickPresets')}</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-            <button
-              type="button"
-              onClick={() => loadPreset(1)}
-              className="p-2.5 rounded-xl bg-white border border-purple-200 hover:border-purple-400 text-left transition-all shadow-sm group"
-            >
-              <p className="text-xs font-bold text-gray-900 group-hover:text-purple-700">{t('preset1')}</p>
-              <p className="text-[10px] text-gray-500 mt-0.5">₹1.80 Cr · 12 Mo · Infra</p>
-            </button>
-            <button
-              type="button"
-              onClick={() => loadPreset(2)}
-              className="p-2.5 rounded-xl bg-white border border-purple-200 hover:border-purple-400 text-left transition-all shadow-sm group"
-            >
-              <p className="text-xs font-bold text-gray-900 group-hover:text-purple-700">{t('preset2')}</p>
-              <p className="text-[10px] text-gray-500 mt-0.5">₹48 Lakhs · 6 Mo · Civil</p>
-            </button>
-            <button
-              type="button"
-              onClick={() => loadPreset(3)}
-              className="p-2.5 rounded-xl bg-white border border-purple-200 hover:border-purple-400 text-left transition-all shadow-sm group"
-            >
-              <p className="text-xs font-bold text-gray-900 group-hover:text-purple-700">{t('preset3')}</p>
-              <p className="text-[10px] text-gray-500 mt-0.5">₹75 Lakhs · 5 Mo · Solar</p>
-            </button>
-          </div>
-        </div>
-
         {/* Tender Intake Form */}
         <form onSubmit={handleSubmitTender} className="space-y-4">
-          <Card className="p-5 space-y-4 border border-gray-200 shadow-sm">
+          <Card className="p-5 space-y-4 border border-gray-200 dark:border-slate-800 shadow-sm">
             {/* Title */}
             <div>
-              <label className="block text-xs font-extrabold text-gray-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-gray-700 dark:text-slate-300 mb-1.5">
                 {t('tenderTitleLabel')} *
               </label>
               <input
@@ -436,7 +402,7 @@ export function EmployerDashboard() {
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder={t('tenderTitlePlaceholder')}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs font-medium focus:ring-2 focus:ring-brand-500 outline-none"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 text-xs font-medium focus:ring-2 focus:ring-brand-500 outline-none"
               />
             </div>
 
@@ -947,8 +913,8 @@ export function EmployerDashboard() {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => showToast('Opening direct communication channel with ' + c.name)}
-                      className="px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold flex items-center gap-1.5"
+                      onClick={() => setScreen('messages')}
+                      className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors"
                     >
                       <MessageSquare size={14} /> {t('contactContractor')}
                     </button>
@@ -990,101 +956,104 @@ export function EmployerDashboard() {
     const isUnlocked = selected.status === 'contractor_matched' || (selected.unlockedContractors && selected.unlockedContractors.length > 0);
 
     return (
-      <div className="px-5 pt-6 pb-24 max-w-4xl mx-auto lg:px-8 space-y-5">
-        <button onClick={back} className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-brand-600 transition-colors">
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 space-y-6">
+        <button onClick={back} className="flex items-center gap-2 text-sm font-bold text-gray-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
           <ArrowLeft size={18} /> {t('backToHub')}
         </button>
 
         {/* Hero Card */}
-        <Card className="p-5 bg-gradient-to-br from-brand-600 to-brand-700 text-white shadow-lg">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full">
+        <Card className="p-5 sm:p-6 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 text-white shadow-xl rounded-3xl border-0 overflow-hidden relative">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div className="space-y-2 max-w-2xl">
+              <span className="inline-block text-[11px] font-black uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full backdrop-blur-xs">
                 {selected.category}
               </span>
-              <h1 className="text-2xl font-extrabold mt-2 leading-tight">{selected.title}</h1>
-              <p className="text-sm opacity-90 mt-1 flex items-center gap-1.5">
-                <MapPin size={14} /> {selected.dept} · {selected.location}
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black leading-tight tracking-tight break-words">{selected.title}</h1>
+              <p className="text-xs sm:text-sm text-brand-100 flex items-center gap-1.5 flex-wrap">
+                <MapPin size={15} className="shrink-0" />
+                <span>{selected.dept}</span>
+                <span>·</span>
+                <span>{selected.location}</span>
               </p>
             </div>
-            <div className="bg-white/15 rounded-2xl px-3.5 py-2.5 text-center shrink-0 border border-white/10">
-              <p className="text-2xl font-black">{selected.match || 90}%</p>
-              <p className="text-[10px] font-bold uppercase tracking-wider">{t('matchProfile')}</p>
+            <div className="bg-white/15 backdrop-blur-sm rounded-2xl px-4 py-3 text-center shrink-0 border border-white/20 self-start sm:self-auto">
+              <p className="text-2xl sm:text-3xl font-black">{selected.match || 90}%</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-brand-100">{t('matchProfile')}</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-5">
-            <div className="rounded-xl bg-white/10 p-3 backdrop-blur-sm border border-white/5">
-              <p className="text-xs opacity-75">{t('estimatedValue')}</p>
-              <p className="font-extrabold text-lg mt-0.5">{formatINR(selected.value)}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6">
+            <div className="rounded-2xl bg-white/10 p-3.5 backdrop-blur-sm border border-white/10">
+              <p className="text-[11px] font-semibold text-brand-100">{t('estimatedValue')}</p>
+              <p className="font-extrabold text-base sm:text-xl mt-0.5">{formatINR(selected.value)}</p>
             </div>
-            <div className="rounded-xl bg-white/10 p-3 backdrop-blur-sm border border-white/5">
-              <p className="text-xs opacity-75">{t('closing')}</p>
-              <p className="font-extrabold text-lg mt-0.5">{selected.closing || '30 Oct 2026'}</p>
+            <div className="rounded-2xl bg-white/10 p-3.5 backdrop-blur-sm border border-white/10">
+              <p className="text-[11px] font-semibold text-brand-100">{t('closing')}</p>
+              <p className="font-extrabold text-base sm:text-xl mt-0.5">{selected.closing || '30 Oct 2026'}</p>
             </div>
-            <div className="rounded-xl bg-white/10 p-3 backdrop-blur-sm border border-white/5 col-span-2 sm:col-span-1">
-              <p className="text-xs opacity-75">{t('duration')}</p>
-              <p className="font-extrabold text-lg mt-0.5">{selected.duration}</p>
+            <div className="rounded-2xl bg-white/10 p-3.5 backdrop-blur-sm border border-white/10 col-span-2 sm:col-span-1">
+              <p className="text-[11px] font-semibold text-brand-100">{t('duration')}</p>
+              <p className="font-extrabold text-base sm:text-xl mt-0.5">{selected.duration}</p>
             </div>
           </div>
         </Card>
 
         {/* Reasonable Dynamic Fee Banner */}
-        <div className="p-4 rounded-2xl bg-white border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+        <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm transition-colors">
           <div>
-            <span className="text-[10px] font-extrabold text-brand-700 uppercase tracking-wider bg-brand-50 px-2 py-0.5 rounded">
+            <span className="text-[10px] font-extrabold text-brand-700 dark:text-brand-300 uppercase tracking-wider bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-md border border-brand-200 dark:border-brand-800">
               Platform Matching Fee ({selectedTenderFee.tierLabel})
             </span>
-            <p className="text-xs text-gray-700 font-bold mt-1">
-              Fee: ₹{selectedTenderFee.totalFee.toLocaleString('en-IN')} (incl. 18% GST)
+            <p className="text-xs sm:text-sm text-gray-800 dark:text-slate-200 font-extrabold mt-1.5">
+              Fee: ₹{selectedTenderFee.totalFee.toLocaleString('en-IN')} <span className="text-xs font-normal text-gray-500 dark:text-slate-400">(incl. 18% GST)</span>
             </p>
           </div>
 
           {isUnlocked ? (
             <Button
               onClick={() => openContractors(selected)}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1.5 shadow-sm"
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
             >
-              <CheckCircle2 size={14} /> {t('viewContractors')} ({selected.unlockedContractors?.length || 3})
+              <CheckCircle2 size={15} /> {t('viewContractors')} ({selected.unlockedContractors?.length || 3})
             </Button>
           ) : (
             <Button
               onClick={() => openFeeCheckout(selected)}
-              className="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-black text-xs flex items-center gap-1.5 shadow-sm"
+              className="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
             >
-              <Lock size={14} /> {t('unlockProfiles')}
+              <Lock size={15} /> {t('unlockProfiles')}
             </Button>
           )}
         </div>
 
         {/* AI Summary Card */}
-        <Card className="p-4 sm:p-5 border border-purple-100 dark:border-purple-900/40 bg-purple-50/30 dark:bg-purple-950/20 shadow-xs">
-          <div className="flex items-center gap-3 mb-2.5">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-300 flex items-center justify-center shrink-0">
+        <Card className="p-4 sm:p-6 border border-purple-200/80 dark:border-purple-900/40 bg-gradient-to-br from-purple-50/50 via-white to-purple-50/20 dark:from-purple-950/30 dark:via-slate-900 dark:to-slate-900 rounded-3xl shadow-sm transition-colors">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-300 flex items-center justify-center shrink-0 shadow-2xs">
               <Sparkles size={20} />
             </div>
             <div>
-              <h2 className="font-extrabold text-gray-900 dark:text-slate-100">{t('aiSummary')}</h2>
+              <h2 className="font-black text-gray-900 dark:text-slate-100 text-base">{t('aiSummary')}</h2>
               <p className="text-xs text-gray-500 dark:text-slate-400">{t('aiSummarySubtitle')}</p>
             </div>
           </div>
-          <p className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 leading-relaxed">
+          <p className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 leading-relaxed font-normal">
             {selected.scopeDescription || `This ${selected.duration} project requires an optimized team across ${selected.skills?.length || 4} core trades. Review statutory eligibility and tender checklists below before official submission.`}
           </p>
         </Card>
 
         {/* Milestones if present */}
         {selected.milestones && selected.milestones.length > 0 && (
-          <Card className="p-5 space-y-3">
-            <h3 className="font-extrabold text-gray-900 text-sm flex items-center gap-2">
-              <Layers size={17} className="text-brand-600" />
+          <Card className="p-5 sm:p-6 space-y-4 rounded-3xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors">
+            <h3 className="font-extrabold text-gray-900 dark:text-slate-100 text-sm sm:text-base flex items-center gap-2">
+              <Layers size={18} className="text-brand-600 dark:text-brand-400" />
               Project Milestones & Timeline
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {selected.milestones.map((m) => (
-                <div key={m.phase} className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <p className="text-xs font-black text-gray-900">{m.phase}</p>
-                  <p className="text-[11px] text-gray-600 mt-0.5">{m.durationWeeks} weeks planned</p>
+                <div key={m.phase} className="p-3.5 bg-gray-50 dark:bg-slate-800/60 rounded-2xl border border-gray-100 dark:border-slate-700/60 transition-colors">
+                  <p className="text-xs font-black text-gray-900 dark:text-slate-100">{m.phase}</p>
+                  <p className="text-[11px] text-gray-600 dark:text-slate-400 mt-1">{m.durationWeeks} weeks planned</p>
                 </div>
               ))}
             </div>
@@ -1093,31 +1062,31 @@ export function EmployerDashboard() {
 
         {/* Eligibility & Documents */}
         <div className="grid md:grid-cols-2 gap-4">
-          <Card className="p-5">
-            <h3 className="font-extrabold text-gray-900 mb-3 flex items-center gap-2">
-              <ShieldCheck size={18} className="text-accent-600" />
+          <Card className="p-5 sm:p-6 rounded-3xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors">
+            <h3 className="font-extrabold text-gray-900 dark:text-slate-100 mb-3 text-sm sm:text-base flex items-center gap-2">
+              <ShieldCheck size={18} className="text-emerald-600 dark:text-emerald-400" />
               {t('whoCanApply')}
             </h3>
             <div className="space-y-2.5">
               {(selected.eligibility || []).map((x) => (
-                <div key={x} className="flex gap-2 text-xs text-gray-700">
-                  <CheckCircle2 size={16} className="text-accent-600 flex-shrink-0 mt-0.5" />
-                  <span>{x}</span>
+                <div key={x} className="flex gap-2.5 text-xs text-gray-700 dark:text-slate-300">
+                  <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <span className="leading-snug">{x}</span>
                 </div>
               ))}
             </div>
           </Card>
 
-          <Card className="p-5">
-            <h3 className="font-extrabold text-gray-900 mb-3 flex items-center gap-2">
-              <FileText size={18} className="text-brand-600" />
+          <Card className="p-5 sm:p-6 rounded-3xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors">
+            <h3 className="font-extrabold text-gray-900 dark:text-slate-100 mb-3 text-sm sm:text-base flex items-center gap-2">
+              <FileText size={18} className="text-brand-600 dark:text-brand-400" />
               {t('documentsToPrepare')}
             </h3>
             <div className="space-y-2.5">
               {(selected.docs || []).map((x) => (
-                <div key={x} className="flex gap-2 text-xs text-gray-700">
-                  <FileText size={16} className="text-brand-600 flex-shrink-0 mt-0.5" />
-                  <span>{x}</span>
+                <div key={x} className="flex gap-2.5 text-xs text-gray-700 dark:text-slate-300">
+                  <FileText size={16} className="text-brand-600 dark:text-brand-400 shrink-0 mt-0.5" />
+                  <span className="leading-snug">{x}</span>
                 </div>
               ))}
             </div>
@@ -1125,21 +1094,21 @@ export function EmployerDashboard() {
         </div>
 
         {/* Recommended Workforce with Real-Time Edit Option */}
-        <Card className="p-5 space-y-4 border-2 border-brand-200/70">
+        <Card className="p-5 sm:p-6 space-y-4 rounded-3xl border-2 border-brand-200/80 dark:border-brand-900/60 bg-white dark:bg-slate-900 shadow-sm transition-colors">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="font-extrabold text-gray-900 text-base flex items-center gap-2">
-                <Users size={18} className="text-brand-600" />
+              <h3 className="font-black text-gray-900 dark:text-slate-100 text-sm sm:text-base flex items-center gap-2">
+                <Users size={18} className="text-brand-600 dark:text-brand-400" />
                 {t('recommendedWorkforce')}
               </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {t('totalWorkersRequired')}: <strong className="text-brand-700">{currentTenderTotalWorkers} workers</strong> (₹{currentTenderDailyBudget.toLocaleString('en-IN')}/day)
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                {t('totalWorkersRequired')}: <strong className="text-brand-700 dark:text-brand-300">{currentTenderTotalWorkers} workers</strong> (₹{currentTenderDailyBudget.toLocaleString('en-IN')}/day)
               </p>
             </div>
 
             <button
               onClick={() => setIsEditingReqs(!isEditingReqs)}
-              className="px-3.5 py-1.5 rounded-xl border border-brand-300 text-brand-700 hover:bg-brand-50 text-xs font-bold flex items-center gap-1.5 transition-all self-start sm:self-auto shadow-sm"
+              className="px-3.5 py-1.5 rounded-xl border border-brand-300 dark:border-brand-700 text-brand-700 dark:text-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950/40 text-xs font-bold flex items-center gap-1.5 transition-all self-start sm:self-auto shadow-2xs"
             >
               <Edit3 size={14} />
               {isEditingReqs ? t('cancel') : t('editRequirements')}
@@ -1148,49 +1117,49 @@ export function EmployerDashboard() {
 
           {/* If Editing Mode */}
           {isEditingReqs ? (
-            <div className="space-y-3 pt-2 border-t border-gray-100 animate-fade-in">
-              <p className="text-xs font-semibold text-gray-600">
+            <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-slate-800 animate-fade-in">
+              <p className="text-xs font-semibold text-gray-600 dark:text-slate-400">
                 {t('editRequirementsDesc')}
               </p>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
                 {editedRequirements.map((item) => (
                   <div
                     key={item.id}
-                    className="p-3 rounded-xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    className="p-3.5 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-extrabold text-gray-900">{item.skill}</p>
-                      <p className="text-[11px] text-gray-500">₹{item.dailyWageRate}/day · {item.category}</p>
+                      <p className="text-xs font-extrabold text-gray-900 dark:text-slate-100">{item.skill}</p>
+                      <p className="text-[11px] text-gray-500 dark:text-slate-400">₹{item.dailyWageRate}/day · {item.category}</p>
                     </div>
 
-                    <div className="flex items-center gap-4 self-end sm:self-auto">
-                      <div className="flex items-center gap-1.5 bg-white px-2 py-1 rounded-lg border border-gray-200">
+                    <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3">
+                      <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 px-2 py-1 rounded-xl border border-gray-200 dark:border-slate-700">
                         <button
                           type="button"
                           onClick={() => handleHeadcountChange(item.id, -1)}
-                          className="w-6 h-6 rounded bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 font-bold"
+                          className="w-6 h-6 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700 font-bold"
                         >
                           <Minus size={12} />
                         </button>
-                        <span className="w-8 text-center text-xs font-black">{item.headcount}</span>
+                        <span className="w-8 text-center text-xs font-black text-gray-900 dark:text-slate-100">{item.headcount}</span>
                         <button
                           type="button"
                           onClick={() => handleHeadcountChange(item.id, 1)}
-                          className="w-6 h-6 rounded bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 font-bold"
+                          className="w-6 h-6 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700 font-bold"
                         >
                           <Plus size={12} />
                         </button>
                       </div>
 
                       <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-gray-500">₹</span>
+                        <span className="text-xs text-gray-500 dark:text-slate-400">₹</span>
                         <input
                           type="number"
                           step={50}
                           value={item.dailyWageRate}
                           onChange={(e) => handleWageChange(item.id, Number(e.target.value))}
-                          className="w-20 text-xs p-1 text-right rounded border border-gray-200 bg-white font-bold"
+                          className="w-20 text-xs p-1.5 text-right rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 font-bold"
                           title="Daily Wage Rate"
                         />
                       </div>
@@ -1198,7 +1167,7 @@ export function EmployerDashboard() {
                       <button
                         type="button"
                         onClick={() => handleDeleteTrade(item.id)}
-                        className="p-1.5 text-gray-400 hover:text-red-500 rounded hover:bg-red-50"
+                        className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
                         title="Remove"
                       >
                         <Trash2 size={14} />
@@ -1213,7 +1182,7 @@ export function EmployerDashboard() {
                 <select
                   value={selectedNewTrade}
                   onChange={(e) => setSelectedNewTrade(e.target.value)}
-                  className="w-full sm:flex-1 text-xs p-2 rounded-xl border border-gray-200 bg-white"
+                  className="w-full sm:flex-1 text-xs p-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100"
                 >
                   {CATALOG_TRADES.map((ct) => (
                     <option key={ct} value={ct}>
@@ -1224,7 +1193,7 @@ export function EmployerDashboard() {
                 <button
                   type="button"
                   onClick={handleAddTrade}
-                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold flex items-center justify-center gap-1"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5"
                 >
                   <Plus size={14} /> {t('addTrade')}
                 </button>
@@ -1248,22 +1217,22 @@ export function EmployerDashboard() {
             </div>
           ) : (
             /* Read Mode */
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex flex-wrap gap-2">
                 {selected.workforceRequirements?.map((x) => (
                   <span
                     key={x.id}
-                    className="px-3 py-1.5 rounded-xl bg-gray-100 text-gray-800 text-xs font-bold border border-gray-200 flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-slate-200 text-xs font-bold border border-gray-200 dark:border-slate-700 flex items-center gap-1.5"
                   >
                     <span>{x.skill}</span>
-                    <span className="bg-brand-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                    <span className="bg-brand-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
                       {x.headcount}
                     </span>
                   </span>
                 ))}
               </div>
 
-              <div className="pt-2 flex flex-col sm:flex-row gap-2">
+              <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
                 <Button
                   onClick={() => openWorkforce(selected)}
                   variant="outline"
@@ -1293,22 +1262,23 @@ export function EmployerDashboard() {
         </Card>
 
         {/* Bottom Actions */}
-        <div className="grid grid-cols-2 gap-3 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           <button
             onClick={() => handleToggleSave(selected.id)}
-            className={`py-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+            className={`py-3 rounded-2xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
               isSaved
-                ? 'border-brand-300 bg-brand-50 text-brand-700'
-                : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                ? 'border-brand-300 dark:border-brand-700 bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300'
+                : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800'
             }`}
           >
             <Check size={16} />
             {isSaved ? t('saved') : t('saveTender')}
           </button>
           <button
-            onClick={() => showToast('Opening official e-Procurement portal (prototype)')}
-            className="py-3 rounded-xl bg-gray-900 hover:bg-black text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-sm"
+            onClick={() => window.open('https://kppp.karnataka.gov.in', '_blank', 'noopener,noreferrer')}
+            className="py-3 rounded-2xl bg-gray-900 hover:bg-black dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-sm transition-all"
           >
+            <FileText size={15} />
             {t('viewOfficialTender')}
           </button>
         </div>

@@ -16,24 +16,38 @@ export function AuthScreen() {
 
   const roleLabel = useMemo(() => ({ labourer: 'Labourer', skilledWorker: 'Skilled Worker', contractor: 'Contractor', employer: 'Employer' } as Record<Role, string>)[role || 'labourer'], [role]);
 
-  const useExample = () => {
-    const accounts = JSON.parse(localStorage.getItem('shrama-accounts') || '[]') as Array<{ shramaId: string; phone: string; role: Role }>;
-    const account = accounts.find((item) => item.role === role) || accounts[0];
-    if (account) {
-      setShramaId(account.shramaId);
-      setPhone(account.phone);
-    } else {
-      setShramaId(role === 'skilledWorker' ? 'SHR-AS-3210' : role === 'contractor' ? 'SHR-RK-3210' : role === 'employer' ? 'SHR-MI-3210' : 'SHR-RK-3210');
-      setPhone('9876543210');
+  const signIn = async () => {
+    const trimmedId = shramaId.trim().toUpperCase();
+    const trimmedPhone = phone.trim();
+    if (!trimmedId || !trimmedPhone) {
+      setError('Please enter both your ShramaID and 10-digit mobile number.');
+      return;
     }
-    setError('');
-  };
 
-  const signIn = () => {
+    // Try backend authentication
+    try {
+      const response = await fetch('/api/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shramaId: trimmedId, phone: trimmedPhone, role }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.account) {
+          setRole(data.account.role);
+          setRegistrationProfile(data.account.profile);
+          setScreen(data.account.role === 'labourer' || data.account.role === 'skilledWorker' ? 'shramId' : 'home');
+          showToast(`Signed in as ${data.account.profile.name}`);
+          return;
+        }
+      }
+    } catch {}
+
+    // Check saved accounts fallback
     const accounts = JSON.parse(localStorage.getItem('shrama-accounts') || '[]') as Array<{ shramaId: string; phone: string; role: Role; profile: any; lang?: string }>;
-    const match = accounts.find((a) => a.shramaId.toUpperCase() === shramaId.trim().toUpperCase() && a.phone === phone.trim());
+    const match = accounts.find((a) => a.shramaId.toUpperCase() === trimmedId && a.phone === trimmedPhone);
     if (!match) {
-      setError('ShramaID and mobile number do not match. You can only open the account linked to both details.');
+      setError('ShramaID and mobile number do not match. Please verify your details or register a new profile.');
       return;
     }
     setRole(match.role);
@@ -53,15 +67,15 @@ export function AuthScreen() {
 
         <Card className="p-5 space-y-4 border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
           <div className="rounded-2xl bg-brand-50/70 dark:bg-brand-950/40 border border-brand-100 dark:border-brand-900/60 p-4 text-xs text-brand-900 dark:text-brand-300">
-            <b>Prototype account protection:</b> both the ShramaID and the registered mobile number must match. This prevents one demo user from opening another saved profile.
+            <b>Account protection:</b> enter the ShramaID and 10-digit mobile number linked to your profile to sign in securely.
           </div>
           <label className="block">
             <span className="text-xs font-bold text-gray-600 dark:text-slate-300">ShramaID</span>
             <input
               value={shramaId}
               onChange={(e) => { setShramaId(e.target.value); setError(''); }}
-              placeholder="Example: SHR-RK-3210"
-              className="mt-1.5 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 outline-none focus:border-brand-400"
+              placeholder="e.g. SHR-RK-1234"
+              className="mt-1.5 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 outline-none focus:border-brand-400 font-mono text-sm"
             />
           </label>
           <label className="block">
@@ -71,17 +85,14 @@ export function AuthScreen() {
               onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '').slice(0, 10)); setError(''); }}
               inputMode="tel"
               maxLength={10}
-              placeholder="Example: 9876543210"
-              className="mt-1.5 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 outline-none focus:border-brand-400"
+              placeholder="Enter 10-digit mobile number"
+              className="mt-1.5 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 outline-none focus:border-brand-400 text-sm"
             />
           </label>
           {error && <p className="text-xs font-semibold text-error-600 dark:text-red-400 bg-error-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl p-3">{error}</p>}
-          <div className="flex gap-2 pt-1">
-            <Button variant="secondary" className="flex-1 text-xs font-bold" onClick={useExample}>
-              <CheckCircle2 size={16} className="mr-2" />Use Example
-            </Button>
-            <Button className="flex-1 text-xs font-bold" onClick={signIn}>
-              <LogIn size={16} className="mr-2" />Sign In
+          <div className="pt-2">
+            <Button className="w-full text-xs font-bold py-3" onClick={signIn}>
+              <LogIn size={16} className="mr-2" />Sign In to Account
             </Button>
           </div>
         </Card>
@@ -119,7 +130,7 @@ export function AuthScreen() {
           </div>
           <div className="flex-1">
             <p className="font-extrabold text-gray-900 dark:text-slate-100 text-sm">New Registration</p>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Create a new ShramaSetu prototype profile</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Create a new ShramaSetu verified profile</p>
           </div>
         </button>
 

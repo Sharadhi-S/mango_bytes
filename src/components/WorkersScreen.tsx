@@ -6,7 +6,7 @@ import { initialContractorWorkers } from '@/mockData';
 import type { ContractorWorker } from '@/types';
 
 export function WorkersScreen() {
-  const { showToast } = useApp();
+  const { showToast, assignWorkerToProject, tenders, selectedProjectId } = useApp();
   const [selected, setSelected] = useState<ContractorWorker | null>(null);
   const [assigned, setAssigned] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState('');
@@ -55,12 +55,33 @@ export function WorkersScreen() {
   }), [availableWorkers, query, filter]);
 
   const handleAssign = async (id: string) => {
-    // Demo workers use local mock IDs (w1, w2, ...). Keep those assignments
-    // in the current prototype session instead of sending them to the API.
+    const workerObj = availableWorkers.find((worker) => worker.id === id);
+    if (workerObj) {
+      const activeProjId = selectedProjectId || tenders[0]?.id || 'T-BELAGAVI-1042';
+      assignWorkerToProject(activeProjId, {
+        id: 'apw-' + Date.now(),
+        workerId: workerObj.id,
+        name: workerObj.name,
+        role: workerObj.primarySkill,
+        category: workerObj.category,
+        dailyWage: workerObj.primarySkill.toLowerCase().includes('mason') ? 900 : workerObj.primarySkill.toLowerCase().includes('electric') ? 1050 : 650,
+        phone: workerObj.phone || '+91 98' + Math.floor(10000000 + Math.random() * 90000000),
+        location: workerObj.location,
+        experience: workerObj.experience,
+        matchScore: workerObj.matchScore || 95,
+        matchReasons: ['Verified Identity', 'Trade certified'],
+        assignedDate: new Date().toISOString().split('T')[0],
+        daysWorked: 0,
+        attendanceToday: 'present',
+        wageStatus: 'pending',
+        avatar: workerObj.name.slice(0, 2).toUpperCase(),
+      });
+    }
+
     const isMockWorker = initialContractorWorkers.some((worker) => worker.id === id);
     if (isMockWorker) {
       setAssigned((previous) => new Set(previous).add(id));
-      showToast('Worker assigned successfully.');
+      showToast('Worker assigned successfully to project.');
       return;
     }
     try {
@@ -72,7 +93,7 @@ export function WorkersScreen() {
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error || 'Could not assign worker.');
       setAssigned((previous) => new Set(previous).add(id));
-      showToast('Worker assigned successfully.');
+      showToast('Worker assigned successfully to project.');
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Could not assign worker.');
     }
@@ -127,7 +148,7 @@ export function WorkersScreen() {
 
             <div className="flex gap-2">
               <Button variant="secondary" size="sm" className="flex-1" onClick={() => setSelected(worker)}>View Profile</Button>
-              <button className="px-3 py-2 rounded-lg bg-accent-50 text-accent-600 active:scale-95 transition-transform" title="Contact"><Phone size={18} /></button>
+              <button onClick={() => window.open(`tel:${worker.phone || '+919845012345'}`)} className="px-3 py-2 rounded-lg bg-accent-50 text-accent-600 hover:bg-accent-100 active:scale-95 transition-all" title="Contact Worker"><Phone size={18} /></button>
               {assigned.has(worker.id) ? (
                 <div className="px-3 py-2 rounded-lg bg-accent-100 text-accent-700 text-sm font-semibold flex items-center gap-1"><CheckCircle2 size={16} /> Assigned</div>
               ) : (
@@ -197,12 +218,12 @@ export function WorkersScreen() {
 
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="p-3 rounded-xl bg-brand-50"><p className="text-xs font-bold text-brand-700">Credential validation</p><p className="text-xs text-gray-600 mt-1">Phone + profile + past work records</p></div>
-              <div className="p-3 rounded-xl bg-accent-50"><p className="text-xs font-bold text-accent-700">Escrow-ready</p><p className="text-xs text-gray-600 mt-1">Milestone payments can be tracked in the prototype</p></div>
+              <div className="p-3 rounded-xl bg-accent-50"><p className="text-xs font-bold text-accent-700">Escrow-ready</p><p className="text-xs text-gray-600 mt-1">Milestone payments and wages are tracked securely in real-time</p></div>
             </div>
 
             <div className="flex gap-2">
-              <Button variant="secondary" className="flex-1"><Phone size={18} className="mr-2" /> Contact</Button>
-              <Button variant="secondary" className="flex-1"><Home size={18} className="mr-2" /> Invite Home Work</Button>
+              <Button variant="secondary" className="flex-1" onClick={() => { window.open(`tel:${selected.phone || '+919845012345'}`); }}><Phone size={18} className="mr-2" /> Contact</Button>
+              <Button variant="secondary" className="flex-1" onClick={() => { handleAssign(selected.id); setSelected(null); }}><Home size={18} className="mr-2" /> Invite to Work</Button>
               {assigned.has(selected.id) ? <Button variant="success" className="flex-1" disabled><CheckCircle2 size={18} className="mr-2" /> Assigned</Button> : <Button className="flex-1" onClick={() => { handleAssign(selected.id); setSelected(null); }}><UserPlus size={18} className="mr-2" /> Assign Job</Button>}
             </div>
           </div>

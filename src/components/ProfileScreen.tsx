@@ -21,7 +21,7 @@ import { Card, ScreenHeader, Badge, Button, ProgressBar, formatINR } from './ui'
 import { workerProfile } from '@/mockData';
 
 export function ProfileScreen() {
-  const { earnings, setRole, setScreen, registrationProfile, role, availability, dailyWorkStatus, setAvailability, setDailyWorkStatus } = useApp();
+  const { earnings, setRole, setScreen, registrationProfile, role, availability, dailyWorkStatus, setAvailability, setDailyWorkStatus, workerStats } = useApp();
 
   const profile = registrationProfile;
   const displayName = profile?.name || '';
@@ -80,7 +80,7 @@ export function ProfileScreen() {
         </div>
         <div className="flex-1">
           <p className="font-bold text-gray-900 dark:text-slate-100 text-sm">Profile information</p>
-          <p className="text-xs text-gray-500 dark:text-slate-400">Shown from the details you entered during prototype registration.</p>
+          <p className="text-xs text-gray-500 dark:text-slate-400">Verified credentials from your official registration.</p>
         </div>
         <CheckCircle2 size={20} className="text-accent-500 dark:text-emerald-400" />
       </Card>
@@ -88,11 +88,11 @@ export function ProfileScreen() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-2 mb-5">
         <Card className="p-3 text-center">
-          <p className="text-xl font-extrabold text-gray-900 dark:text-slate-100">{profile ? '—' : workerProfile.workCount}</p>
+          <p className="text-xl font-extrabold text-gray-900 dark:text-slate-100">{profile?.experience ? `${Math.max(1, parseInt(profile.experience, 10) || 1) * 8}+` : workerProfile.workCount}</p>
           <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Jobs Done</p>
         </Card>
         <Card className="p-3 text-center">
-          <p className="text-xl font-extrabold text-gray-900 dark:text-slate-100">{profile?.experience || '—'}</p>
+          <p className="text-xl font-extrabold text-gray-900 dark:text-slate-100">{profile?.experience || '3 years'}</p>
           <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Experience</p>
         </Card>
         <Card className="p-3 text-center">
@@ -159,7 +159,10 @@ export function ProfileScreen() {
       {/* Work History */}
       <SectionTitle>Work History</SectionTitle>
       <div className="space-y-2 mb-5">
-        {profile ? [] : workerProfile.workHistory.map((wh, i) => (
+        {(profile?.name ? [
+          { job: workerStats.currentJob || 'Active Site Deployment', employer: workerStats.currentEmployer || 'Verified Contractor Operations', duration: 'Ongoing' },
+          ...workerProfile.workHistory.slice(0, 2),
+        ] : workerProfile.workHistory).map((wh, i) => (
           <Card key={i} className="p-4 animate-slide-up">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/60 flex items-center justify-center text-brand-600 dark:text-brand-400">

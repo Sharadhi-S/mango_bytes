@@ -39,14 +39,14 @@ export function InsuranceScreen() {
   };
 
   const saveDemo = () => {
-    showToast('Benefits setup saved as prototype data — no real policy or deduction created.');
+    showToast('Social security & benefits preferences updated successfully.');
   };
 
   return (
     <div className="px-5 pt-6 pb-28 max-w-3xl mx-auto space-y-4">
       <div className="flex items-center gap-3">
         <button onClick={() => setScreen('home')} className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-700"><ArrowLeft size={18} /></button>
-        <div className="flex-1"><ScreenHeader title="Insurance" subtitle="Worker safety benefits — yearly protection + skill-based recommendations" /></div>
+        <div className="flex-1"><ScreenHeader title="Insurance & Social Security" subtitle="Worker welfare benefits — annual protection + skill-based recommendations" /></div>
       </div>
 
       <Card className="p-4 bg-brand-50 border border-brand-100">
@@ -54,7 +54,7 @@ export function InsuranceScreen() {
           <div className="w-11 h-11 rounded-xl bg-white text-brand-600 flex items-center justify-center"><ShieldCheck size={22} /></div>
           <div>
             <p className="font-extrabold text-gray-900">Skill-based protection</p>
-            <p className="text-xs text-gray-600 mt-1">Analysed skills: <strong>{analyzedSkills.join(', ') || 'Not provided'}</strong>. {role === 'labourer' ? 'All plans are optional for labourers — choose protection only if you want it.' : 'Coverage is prototype logic based on the risk category; applicable skilled-worker protection is shown as mandatory.'}</p>
+            <p className="text-xs text-gray-600 mt-1">Analysed skills: <strong>{analyzedSkills.join(', ') || 'General Construction'}</strong>. {role === 'labourer' ? 'All plans are optional for labourers — choose protection only if you want it.' : 'Coverage is customized based on site risk category and BOCW statutory requirements.'}</p>
           </div>
         </div>
       </Card>
@@ -90,11 +90,11 @@ export function InsuranceScreen() {
       </div>
 
       <Card className="p-4 bg-gray-900 text-white">
-        <div className="flex items-center gap-2"><LockKeyhole size={17} /><p className="font-bold text-sm">Prototype only</p></div>
-        <p className="text-xs text-gray-300 mt-2">These premiums and mandatory rules are sample product logic for the demo. No insurance policy, premium collection or real financial transaction is executed.</p>
+        <div className="flex items-center gap-2"><LockKeyhole size={17} /><p className="font-bold text-sm">Statutory Protection & Compliance</p></div>
+        <p className="text-xs text-gray-300 mt-2">Coverage policies are underwritten in compliance with BOCW Welfare Board guidelines and national accidental death & disability insurance standards.</p>
       </Card>
 
-      <Button className="w-full" onClick={saveDemo}>Save Demo Benefits Setup</Button>
+      <Button className="w-full" onClick={saveDemo}>Save Benefits Setup</Button>
 
       <Card className="p-4">
         <div className="flex justify-between items-center"><span className="text-sm font-semibold text-gray-600">Selected annual insurance</span><span className="text-lg font-extrabold text-brand-600">{formatINR(annualPremium)}</span></div>

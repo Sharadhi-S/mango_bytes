@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { MapPin, Clock, IndianRupee, Check, Briefcase, Sparkles } from 'lucide-react';
 import { useApp } from '@/AppContext';
 import { Card, ScreenHeader, Badge, Button } from './ui';
@@ -5,10 +6,28 @@ import type { JobListing } from '@/types';
 
 export function JobsScreen() {
   const { jobs, applyJob, role, registrationProfile } = useApp();
+  const [filter, setFilter] = useState<'all' | 'nearby' | 'high_wage' | 'long_term'>('all');
   const workerSkill = registrationProfile?.primarySkill?.trim();
-  const visibleJobs = role === 'skilledWorker' && workerSkill
-    ? jobs.filter((job) => job.profession?.toLowerCase() === workerSkill.toLowerCase())
-    : jobs;
+
+  const filteredJobs = useMemo(() => {
+    let list = role === 'skilledWorker' && workerSkill
+      ? jobs.filter((job) => job.profession?.toLowerCase() === workerSkill.toLowerCase())
+      : jobs;
+
+    if (filter === 'nearby') {
+      const userLoc = registrationProfile?.location?.toLowerCase() || '';
+      list = [...list].sort((a, b) => {
+        const aMatch = userLoc && a.location.toLowerCase().includes(userLoc) ? -1 : 1;
+        const bMatch = userLoc && b.location.toLowerCase().includes(userLoc) ? -1 : 1;
+        return aMatch - bMatch;
+      });
+    } else if (filter === 'high_wage') {
+      list = [...list].sort((a, b) => b.dailyWage - a.dailyWage);
+    } else if (filter === 'long_term') {
+      list = list.filter((j) => j.duration.toLowerCase().includes('month') || j.duration.toLowerCase().includes('year') || parseInt(j.duration) >= 4);
+    }
+    return list;
+  }, [jobs, role, workerSkill, filter, registrationProfile?.location]);
 
   return (
     <div className="px-5 pt-6 pb-24 max-w-2xl mx-auto">
@@ -16,17 +35,45 @@ export function JobsScreen() {
 
       {/* Filter chips */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar mb-5 -mx-5 px-5">
-        <button className="px-4 py-2 rounded-full bg-brand-600 text-white text-sm font-semibold whitespace-nowrap">All Jobs</button>
-        <button className="px-4 py-2 rounded-full bg-white text-gray-600 text-sm font-semibold whitespace-nowrap shadow-card">Nearby</button>
-        <button className="px-4 py-2 rounded-full bg-white text-gray-600 text-sm font-semibold whitespace-nowrap shadow-card">High Wage</button>
-        <button className="px-4 py-2 rounded-full bg-white text-gray-600 text-sm font-semibold whitespace-nowrap shadow-card">Long Term</button>
+        <button
+          onClick={() => setFilter('all')}
+          className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+            filter === 'all' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 shadow-card'
+          }`}
+        >
+          All Jobs
+        </button>
+        <button
+          onClick={() => setFilter('nearby')}
+          className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+            filter === 'nearby' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 shadow-card'
+          }`}
+        >
+          Nearby
+        </button>
+        <button
+          onClick={() => setFilter('high_wage')}
+          className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+            filter === 'high_wage' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 shadow-card'
+          }`}
+        >
+          High Wage
+        </button>
+        <button
+          onClick={() => setFilter('long_term')}
+          className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+            filter === 'long_term' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 shadow-card'
+          }`}
+        >
+          Long Term
+        </button>
       </div>
 
       <div className="space-y-3">
-        {visibleJobs.map((job) => (
+        {filteredJobs.map((job) => (
           <JobCard key={job.id} job={job} onApply={() => applyJob(job.id)} />
         ))}
-        {role === 'skilledWorker' && visibleJobs.length === 0 && (
+        {role === 'skilledWorker' && filteredJobs.length === 0 && (
           <Card className="p-6 text-center">
             <Briefcase size={28} className="mx-auto text-gray-300" />
             <p className="font-bold text-gray-900 mt-3">No {workerSkill || 'matching'} jobs right now</p>
