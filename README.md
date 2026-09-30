@@ -152,6 +152,3 @@ npm run build
 ## Team
 
 Crafted with dedication by **Mango Bytes**:
-- **Sharat**
-- **Abhishek**
-- **Team Mango Bytes**
